@@ -2,10 +2,9 @@ package org.spliffy.server.db;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Temporal;
+import javax.persistence.*;
 
 /**
  * For holding permissions, etc
@@ -22,6 +21,7 @@ public class ResourceMeta implements Serializable {
     private String type; // "f" = file, "d" = directory
     private Date createDate;
     private Date modifiedDate;
+    private List<Permission> grantedPermissions;
 
     public static ResourceMeta find(UUID id) {
         return (ResourceMeta) MiltonOpenSessionInViewFilter.session().get(ResourceMeta.class, id);
@@ -69,6 +69,15 @@ public class ResourceMeta implements Serializable {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    @OneToMany(cascade= CascadeType.ALL, mappedBy="resourceMeta")
+    public List<Permission> getGrantedPermissions() {
+        return grantedPermissions;
+    }
+
+    public void setGrantedPermissions(List<Permission> grantedPermissions) {
+        this.grantedPermissions = grantedPermissions;
     }
     
     

@@ -1,13 +1,8 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import java.util.List;
+import javax.persistence.*;
 
 /**
  * Represents a real world entity such as a user or an organisation
@@ -22,6 +17,7 @@ import javax.persistence.Table;
 @DiscriminatorValue("E")
 public class BaseEntity implements Serializable {
     private String name;
+    private List<Permission> grantedPermissions;
 
     @Id
     public String getName() {
@@ -31,6 +27,16 @@ public class BaseEntity implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
+
+    @OneToMany(cascade= CascadeType.ALL, mappedBy="baseEntity")
+    public List<Permission> getGrantedPermissions() {
+        return grantedPermissions;
+    }
+
+    public void setGrantedPermissions(List<Permission> grantedPermissions) {
+        this.grantedPermissions = grantedPermissions;
+    }
+
     
     
 }

@@ -37,6 +37,8 @@
                 <value>org.spliffy.server.db.FanoutHash</value>
                 <value>org.spliffy.server.db.FanoutEntry</value>
                 <value>org.spliffy.server.db.ResourceMeta</value>
+                <value>org.spliffy.server.db.Permission</value>
+                <value>org.spliffy.server.db.Share</value>
             </list>
         </property>
         <property name="hibernateProperties">

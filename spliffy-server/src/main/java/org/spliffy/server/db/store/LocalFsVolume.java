@@ -34,6 +34,12 @@ public class LocalFsVolume implements Volume{
         if (blob.exists()) {
             return; // already exists, so dont overwrite
         }
+        File dir = blob.getParentFile();
+        if( !dir.exists() ) {
+            if( !dir.mkdirs() ) {
+                throw new RuntimeException("Couldnt create blob directory: " + dir.getAbsolutePath());
+            }
+        }
         FileOutputStream fout = null;
         try {
             fout = new FileOutputStream(blob);
