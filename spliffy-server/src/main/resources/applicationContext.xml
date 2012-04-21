@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:application.properties" />
+    </bean>
+
+    <import resource="classpath:database.xml"/>
+
+    <bean id="security.manager" class="com.ettrema.http.fs.SimpleSecurityManager" >
+        <property name="realm" value="aRealm" />
+        <property name="nameAndPasswords">
+            <map>
+                <entry key="admin" value="pwd"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="lock.manager" class="com.ettrema.http.fs.SimpleLockManager" />
+    
+    <bean id="local.volume" class="org.spliffy.server.db.store.LocalFsVolume">
+        <constructor-arg value="target/blobs" />
+        <property name="id" value="local"/>
+    </bean>
+    
+    <bean id="volume.manager" class="org.spliffy.server.db.store.VolumeManager">
+        <constructor-arg ref="local.volume" />
+    </bean>
+    
+    <bean id="blob.store" class="org.spliffy.server.db.store.SpliffyBlobStore">
+        <constructor-arg ref="volume.manager"/>
+    </bean>
+
+    <bean id="hash.store" class="org.spliffy.server.db.store.SpliffyHashStore"/>
+
+    <bean id="resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory">
+        <!--
+        <constructor-arg ref="security.manager"/>
+        <constructor-arg ref="lock.manager"/>
+        -->
+        <constructor-arg ref="dao.user"/>
+        <constructor-arg ref="blob.store"/>
+        <constructor-arg ref="hash.store"/>
+    </bean>
+
+    <bean id="open.session.in.view.filter" class="org.spliffy.server.db.MiltonOpenSessionInViewFilter">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
+        <constructor-arg ref="resource.factory" />
+        <property name="filters">
+            <list>
+                <ref local="open.session.in.view.filter" />
+            </list>
+        </property>
+        <property name="buffering" value="never" />
+    </bean>
+
+    <bean id="ftp.security.manager" class="com.ettrema.ftp.WrappingFtpSecurityManager">
+        <constructor-arg ref="security.manager"/>
+    </bean>
+
+    <!-- Adapts the specified milton security manager to the FTP server -->
+    <bean id="ftp.user.manager" class="com.ettrema.ftp.UserManagerAdapter">
+        <constructor-arg ref="resource.factory"/>
+        <constructor-arg ref="ftp.security.manager"/>
+    </bean>
+
+    <!-- This server will provide access to the same resources available on webdav
+    via FTP -->
+    <!--
+    <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
+        <constructor-arg ref="resource.factory"/>
+        <constructor-arg ref="ftp.user.manager"/>
+    </bean>
+    -->
+</beans>
