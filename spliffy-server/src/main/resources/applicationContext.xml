@@ -34,6 +34,8 @@
     </bean>
 
     <bean id="hash.store" class="org.spliffy.server.db.store.SpliffyHashStore"/>
+    
+    <bean id="version.number.generator" class="org.spliffy.server.db.DefaultVersionNumberGenerator"/>
 
     <bean id="resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory">
         <!--
@@ -43,6 +45,7 @@
         <constructor-arg ref="dao.user"/>
         <constructor-arg ref="blob.store"/>
         <constructor-arg ref="hash.store"/>
+        <constructor-arg ref="version.number.generator"/>
     </bean>
 
     <bean id="open.session.in.view.filter" class="org.spliffy.server.db.MiltonOpenSessionInViewFilter">

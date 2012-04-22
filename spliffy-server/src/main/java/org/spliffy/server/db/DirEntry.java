@@ -1,9 +1,7 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import org.hibernate.Criteria;
@@ -24,7 +22,7 @@ public class DirEntry implements Serializable {
     private String name;
     private long parentHash; // this identifies the parent, by its hash
     private long entryHash; // this is the hash of this item
-    private UUID metaId;
+    private UUID metaId;    // ID of the version meta
 
     /**
      * Gets the ordered list of entries for the given directory
@@ -40,7 +38,17 @@ public class DirEntry implements Serializable {
         List<DirEntry> dirList = new ArrayList<>();
         List oList = crit.list();
         if( oList != null ) {
-            dirList.addAll(oList);
+            Set<String> names = new HashSet<>();
+            for( Object o : oList ) {
+                DirEntry de = (DirEntry) o;
+                String name = de.getName();
+                if( names.contains(name)) {
+                    throw new RuntimeException("Name not unique within collection: " + name);
+                }
+                names.add(name);
+                
+                dirList.add(de);
+            }
         }
         return dirList;
     }

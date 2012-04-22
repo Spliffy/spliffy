@@ -3,6 +3,7 @@ package org.spliffy.server.db;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
+import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
@@ -15,6 +16,7 @@ import javax.persistence.Temporal;
 public class RepoVersion implements Serializable {
     private UUID id;
     private long dirHash;
+    private long versionNum;
     // parent
     private Repository repo;
     private Date createdDate; 
@@ -70,4 +72,15 @@ public class RepoVersion implements Serializable {
     public void setId(UUID id) {
         this.id = id;
     }
+
+    @Column(nullable=false)
+    public long getVersionNum() {
+        return versionNum;
+    }
+
+    public void setVersionNum(long versionNum) {
+        this.versionNum = versionNum;
+    }
+    
+    
 }

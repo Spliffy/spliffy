@@ -20,8 +20,8 @@ public class ResourceMeta implements Serializable {
     private UUID id;
     private String type; // "f" = file, "d" = directory
     private Date createDate;
-    private Date modifiedDate;
     private List<Permission> grantedPermissions;
+    private List<ResourceVersionMeta> versions;
 
     public static ResourceMeta find(UUID id) {
         return (ResourceMeta) MiltonOpenSessionInViewFilter.session().get(ResourceMeta.class, id);
@@ -61,17 +61,7 @@ public class ResourceMeta implements Serializable {
         this.createDate = createDate;
     }
 
-    @Temporal(javax.persistence.TemporalType.DATE)
-    @Column(nullable=false)
-    public Date getModifiedDate() {
-        return modifiedDate;
-    }
-
-    public void setModifiedDate(Date modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
-
-    @OneToMany(cascade= CascadeType.ALL, mappedBy="resourceMeta")
+    @OneToMany(cascade= CascadeType.ALL, mappedBy="grantedOn")
     public List<Permission> getGrantedPermissions() {
         return grantedPermissions;
     }
@@ -79,8 +69,16 @@ public class ResourceMeta implements Serializable {
     public void setGrantedPermissions(List<Permission> grantedPermissions) {
         this.grantedPermissions = grantedPermissions;
     }
-    
-    
+
+    @OneToMany(cascade= CascadeType.ALL, mappedBy="resourceMeta")
+    public List<ResourceVersionMeta> getVersions() {
+        return versions;
+    }
+
+    public void setVersions(List<ResourceVersionMeta> versions) {
+        this.versions = versions;
+    }
+        
         
     
 }

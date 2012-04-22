@@ -1,14 +1,15 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.MakeCollectionableResource;
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
@@ -17,20 +18,24 @@ import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
 
 /**
+ * Represents a repository resource.
  *
  * @author brad
  */
-public class RepoResource extends AbstractSpliffyResource implements CollectionResource, PropFindableResource, MakeCollectionableResource {
+public class RepoResource extends AbstractSpliffyResource implements CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource {
 
     private final Repository repository;
-
+    
+    private final VersionNumberGenerator versionNumberGenerator;
+    
     private List<AbstractSpliffyResource> children;
     
     private long hash;
     
-    public RepoResource(Repository repository, HashStore hashStore, BlobStore blobStore) {
+    public RepoResource(Repository repository, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
         super(hashStore, blobStore);
         this.repository = repository;
+        this.versionNumberGenerator = versionNumberGenerator;
         RepoVersion v = repository.latestVersion();
         if( v != null ) {
             hash = v.getDirHash();
@@ -43,7 +48,7 @@ public class RepoResource extends AbstractSpliffyResource implements CollectionR
     }
 
     @Override
-    public List<? extends Resource> getChildren() {
+    public List<AbstractSpliffyResource> getChildren() {
         if( children == null ) {
             List<DirEntry> dirEntries = DirEntry.listEntries(MiltonOpenSessionInViewFilter.session(), hash);
             children = Utils.toResources(this, dirEntries);
@@ -62,7 +67,7 @@ public class RepoResource extends AbstractSpliffyResource implements CollectionR
         Session session = MiltonOpenSessionInViewFilter.session();
         Transaction tx = session.beginTransaction();
         
-        ResourceMeta meta = Utils.newDirMeta();
+        ResourceVersionMeta meta = Utils.newDirMeta();
         RepoDirectoryResource rdr = new RepoDirectoryResource(newName, meta, this, hashStore, blobStore);
         getChildren(); // ensure loaded
         children.add(rdr);
@@ -77,14 +82,17 @@ public class RepoResource extends AbstractSpliffyResource implements CollectionR
 
     @Override
     public void onChildChanged(Session session) {
+        System.out.println("onChildChanged: " + getName());
         getChildren();
         long repVersionHash = HashCalc.calcResourceesHash(children);
         
         HashCalc.saveKids(session, repVersionHash, children);
         
         // need to create a new RepoVersion hash
-        RepoVersion rv = new RepoVersion();
+        RepoVersion rv = new RepoVersion();        
         rv.setId(UUID.randomUUID());
+        long versionNum = versionNumberGenerator.nextVersionNumber(repository);
+        rv.setVersionNum(versionNum);
         rv.setCreatedDate(new Date());
         rv.setDirHash(repVersionHash);
         rv.setRepository(repository);
@@ -108,6 +116,45 @@ public class RepoResource extends AbstractSpliffyResource implements CollectionR
 
     @Override
     public Date getModifiedDate() {
+        return null;
+    }
+
+    @Override
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
+        String type = HttpManager.request().getParams().get("type");
+        if( type == null ) {
+            // output directory listing
+            DirectoryUtils.writeIndexPage(this, params);
+        } else {
+            if( type.equals("hashes")) {
+                System.out.println("output hashes");
+                HashCalc.calcResourceesHash(getChildren(), out);
+                out.flush();
+            }
+        }
+    }
+
+    @Override
+    public Long getMaxAgeSeconds(Auth auth) {
+        return null;
+    }
+
+    @Override
+    public String getContentType(String accepts) {
+        String type = HttpManager.request().getParams().get("type");
+        if( type == null || type.length() == 0 ) {
+            return "text/html";
+        } else {
+            if( type.equals("hashes")) {
+                return "text/plain";
+            } else {
+                return type;
+            }
+        }
+    }
+
+    @Override
+    public Long getContentLength() {
         return null;
     }
     

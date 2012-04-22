@@ -67,21 +67,19 @@ public class Repository implements Serializable {
     
 
     public RepoVersion latestVersion() {
-        System.out.println("LatestVersion");
         List<RepoVersion> vs = getVersions();
         if( vs == null ) {
             return null;
         }
         RepoVersion cur = null;
         for( RepoVersion v : vs ) {
-            System.out.println("  version: " + v.getDirHash() + " - " + v.getCreatedDate().getTime());
             if( cur == null || v.getCreatedDate().after(cur.getCreatedDate())) {
                 cur = v;
             }
         }
-        if( cur != null ) {
-            System.out.println("latest is:  " + cur.getDirHash());
-        }
+//        if( cur != null ) {
+//            System.out.println("latest is:  " + cur.getDirHash());
+//        }
         return cur;
     }
     

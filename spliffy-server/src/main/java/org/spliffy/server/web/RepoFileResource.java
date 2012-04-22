@@ -16,7 +16,7 @@ import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
-import org.spliffy.server.db.ResourceMeta;
+import org.spliffy.server.db.ResourceVersionMeta;
 
 /**
  *
@@ -28,13 +28,13 @@ public class RepoFileResource extends AbstractSpliffyResource implements PropFin
     
     private final RepoDirectoryResource parent;
     
-    private final ResourceMeta meta;
+    private ResourceVersionMeta meta;
     
     private long hash;
     
     private Fanout fanout;
     
-    public RepoFileResource(String name, ResourceMeta meta, RepoDirectoryResource parent, HashStore hashStore, BlobStore blobStore) {
+    public RepoFileResource(String name, ResourceVersionMeta meta, RepoDirectoryResource parent, HashStore hashStore, BlobStore blobStore) {
         super(hashStore, blobStore);
         this.meta = meta;
         this.name = name;
@@ -43,9 +43,14 @@ public class RepoFileResource extends AbstractSpliffyResource implements PropFin
 
     @Override
     public Date getCreateDate() {
-        return meta.getCreateDate();
+        return meta.getResourceMeta().getCreateDate();
     }
 
+    @Override
+    public Date getModifiedDate() {
+        return meta.getModifiedDate();
+    }
+    
     @Override
     public String getUniqueId() {
         return null;
@@ -77,11 +82,6 @@ public class RepoFileResource extends AbstractSpliffyResource implements PropFin
     }
 
     @Override
-    public Date getModifiedDate() {
-        return meta.getModifiedDate();
-    }
-
-    @Override
     public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
         Session session = MiltonOpenSessionInViewFilter.session();
         Transaction tx = session.beginTransaction();
@@ -95,6 +95,9 @@ public class RepoFileResource extends AbstractSpliffyResource implements PropFin
             throw new BadRequestException("Couldnt parse given data", ex);
         }
         setHash(fileHash);
+        
+        // Create a new Version Meta record
+        meta = Utils.newFileMeta(meta.getResourceMeta());
                 
         // update parent
         parent.onChildChanged(session);

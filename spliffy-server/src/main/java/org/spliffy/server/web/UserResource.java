@@ -15,10 +15,7 @@ import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
-import org.spliffy.server.db.RepoVersion;
-import org.spliffy.server.db.Repository;
-import org.spliffy.server.db.User;
+import org.spliffy.server.db.*;
 
 /**
  *
@@ -27,38 +24,36 @@ import org.spliffy.server.db.User;
 public class UserResource extends AbstractSpliffyResource implements CollectionResource, MakeCollectionableResource, PropFindableResource {
 
     private final User user;
-    
-    public UserResource(User u, HashStore hashStore, BlobStore blobStore) {
+    private final VersionNumberGenerator versionNumberGenerator;
+
+    public UserResource(User u, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
         super(hashStore, blobStore);
         this.user = u;
-        
+        this.versionNumberGenerator = versionNumberGenerator;
+
     }
 
     @Override
     public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
-        return Utils.childOf(getChildren(), childName); 
+        return Utils.childOf(getChildren(), childName);
     }
 
     @Override
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
         List<RepoResource> list = new ArrayList();
-        if( user.getRepositories() != null ) {
-            System.out.println("user repos: " + user.getRepositories().size());
-            for( Repository r : user.getRepositories() ) {
-                RepoResource rr =new RepoResource(r, hashStore, blobStore);
+        if (user.getRepositories() != null) {
+            for (Repository r : user.getRepositories()) {
+                RepoResource rr = new RepoResource(r, hashStore, blobStore, versionNumberGenerator);
                 list.add(rr);
             }
         }
-        System.out.println("--- " + list.size());
         return list;
     }
-
 
     @Override
     public String getName() {
         return user.getName();
     }
-
 
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
@@ -70,18 +65,17 @@ public class UserResource extends AbstractSpliffyResource implements CollectionR
         r.setVersions(new ArrayList<RepoVersion>());
         r.setCreatedDate(new Date());
         List<Repository> list = user.getRepositories();
-        if( list == null ) {
+        if (list == null) {
             list = new ArrayList<>();
         }
-        list.add(r);        
+        list.add(r);
         MiltonOpenSessionInViewFilter.session().save(r);
         tx.commit();
-        return new RepoResource(r, hashStore, blobStore);
+        return new RepoResource(r, hashStore, blobStore, versionNumberGenerator);
     }
 
     @Override
     public void onChildChanged(Session session) {
-     
     }
 
     @Override
@@ -103,8 +97,4 @@ public class UserResource extends AbstractSpliffyResource implements CollectionR
     public Date getModifiedDate() {
         return user.getModifiedDate();
     }
-    
-    
-    
-    
 }

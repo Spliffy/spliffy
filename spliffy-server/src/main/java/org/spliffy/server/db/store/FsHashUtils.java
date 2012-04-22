@@ -9,7 +9,6 @@ import java.io.File;
 public class FsHashUtils {
     public static String toHex(long hash) {
         String hex = Long.toHexString(hash);
-        System.out.println("hex: " + hex);
         return hex;
     }
 

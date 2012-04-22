@@ -1,5 +1,6 @@
 package org.spliffy.server.db;
 
+import java.io.Serializable;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -7,9 +8,9 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
- * Represents a shared folder
+ * Represents a symbolic link, or shared folder
  * 
- * A Share is a pointer to the ResourceMeta of the shared folder. When the
+ * A Link is a pointer to the ResourceMeta of the shared folder. When the
  * Share invitation is accepted it is connected to a new resource in the recipients repository,
  * and the sharedTo value is set
  * 
@@ -20,15 +21,18 @@ import javax.persistence.ManyToOne;
  * Note that the existence of a share does not by itself convey any priviledges, it
  * merely places the folder in the recipients workspace. A Permission must also 
  * be created
+ * 
+ * TODO: extend this to support cross-server links. This will require specifying the
+ * address of the remote system.
  *
  * @author brad
  */
 @Entity
-public class Share {
+public class Link implements Serializable {
     private UUID id;
     private ResourceMeta sharedFrom;
     private ResourceMeta sharedTo;
-    private String recipient;
+
 
     @Id
     public UUID getId() {
@@ -56,18 +60,5 @@ public class Share {
     public void setSharedTo(ResourceMeta sharedTo) {
         this.sharedTo = sharedTo;
     }
-
-    @Column(nullable=false,length=255)
-    public String getRecipient() {
-        return recipient;
-    }
-
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
-    }
-    
-     
-   
-    
-    
+               
 }

@@ -4,10 +4,13 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
@@ -16,13 +19,15 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.DirEntry;
 import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
-import org.spliffy.server.db.ResourceMeta;
+import org.spliffy.server.db.ResourceVersionMeta;
 
 /**
+ * Represents a version of a directory, containing the members which 
+ * are in that directory in the repository snapshot
  *
  * @author brad
  */
-public class RepoDirectoryResource extends AbstractSpliffyResource implements PropFindableResource, CollectionResource, MakeCollectionableResource, PutableResource {
+public class RepoDirectoryResource extends AbstractSpliffyResource implements PropFindableResource, CollectionResource, MakeCollectionableResource, PutableResource, GetableResource {
     
     private AbstractSpliffyResource parent;
     
@@ -30,11 +35,11 @@ public class RepoDirectoryResource extends AbstractSpliffyResource implements Pr
     
     private long dirHash; // hash of members of this directory
     
-    private final ResourceMeta meta;
+    private final ResourceVersionMeta meta;
     
     private List<AbstractSpliffyResource> children;
         
-    public RepoDirectoryResource(String name, ResourceMeta meta, AbstractSpliffyResource parent, HashStore hashStore, BlobStore blobStore) {
+    public RepoDirectoryResource(String name, ResourceVersionMeta meta, AbstractSpliffyResource parent, HashStore hashStore, BlobStore blobStore) {
         super(hashStore, blobStore);
         this.meta = meta;
         this.name = name;
@@ -81,7 +86,7 @@ public class RepoDirectoryResource extends AbstractSpliffyResource implements Pr
         Session session = MiltonOpenSessionInViewFilter.session();
         Transaction tx = session.beginTransaction();
         
-        ResourceMeta newMeta = Utils.newDirMeta();
+        ResourceVersionMeta newMeta = Utils.newDirMeta();
         RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newMeta, this, hashStore, blobStore);
         getChildren(); // ensure loaded
         children.add(rdr);
@@ -95,6 +100,8 @@ public class RepoDirectoryResource extends AbstractSpliffyResource implements Pr
 
     @Override
     public void onChildChanged(Session session) {
+        System.out.println("onChildChanged: " + getName());
+        
         // calc new dirHash and save dir entries for children
         dirHash = HashCalc.calcResourceesHash(children);
         HashCalc.saveKids(session, dirHash, children);
@@ -124,16 +131,13 @@ public class RepoDirectoryResource extends AbstractSpliffyResource implements Pr
         
         // add a reference to the new child
         getChildren();
-        ResourceMeta newMeta = Utils.newFileMeta();
+        ResourceVersionMeta newMeta = Utils.newFileMeta();
         RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, getHashStore(), getBlobStore());
         fileResource.setHash(fileHash);
         children.add(fileResource);
         
         onChildChanged(session);
-        
-        // update parent
-        parent.onChildChanged(session);
-        
+                
         tx.commit();
         
         return fileResource;
@@ -141,12 +145,49 @@ public class RepoDirectoryResource extends AbstractSpliffyResource implements Pr
 
     @Override
     public Date getCreateDate() {
-        return meta.getCreateDate();
+        return meta.getResourceMeta().getCreateDate();
     }
 
     @Override
     public Date getModifiedDate() {
         return meta.getModifiedDate();
+    }
+
+    @Override
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
+        String type = HttpManager.request().getParams().get("type");
+        if( type == null ) {
+            // output directory listing
+            DirectoryUtils.writeIndexPage(this, params);
+        } else {
+            if( type.equals("hashes")) {
+                HashCalc.calcResourceesHash(getChildren(), out);
+            }
+        }
+    }
+
+    @Override
+    public Long getMaxAgeSeconds(Auth auth) {
+        return null;
+    }
+
+    @Override
+    public String getContentType(String accepts) {
+        String type = HttpManager.request().getParams().get("type");
+        if( type == null || type.length() == 0 ) {
+            return "text/html";
+        } else {
+            if( type.equals("hashes")) {
+                return "text/plain";
+            } else {
+                return type;
+            }
+        }
+    }
+
+    @Override
+    public Long getContentLength() {
+        return null;
     }
 
     

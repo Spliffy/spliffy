@@ -28,7 +28,7 @@ public class BaseEntity implements Serializable {
         this.name = name;
     }
 
-    @OneToMany(cascade= CascadeType.ALL, mappedBy="baseEntity")
+    @OneToMany(cascade= CascadeType.ALL, mappedBy="grantee")
     public List<Permission> getGrantedPermissions() {
         return grantedPermissions;
     }

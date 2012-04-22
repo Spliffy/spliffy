@@ -20,10 +20,15 @@ public class SpliffyBlobStore implements BlobStore{
     
     @Override
     public void setBlob(long hash, byte[] bytes) {
+        BlobHash blobHash = BlobHash.findByHash(hash);
+        if( blobHash != null ) {
+            return ;
+        }
+        
         Volume volume = volumeManager.findNextVolume();
         volume.setBlob(hash, bytes);
         
-        BlobHash blobHash = new BlobHash();
+        blobHash = new BlobHash();
         blobHash.setBlobHash(hash);
         blobHash.setVolumeId(volume.getId());
         

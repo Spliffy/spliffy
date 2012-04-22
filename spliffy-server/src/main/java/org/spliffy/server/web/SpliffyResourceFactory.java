@@ -18,6 +18,7 @@ import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.UserDao;
+import org.spliffy.server.db.VersionNumberGenerator;
 
 /**
  *
@@ -29,11 +30,13 @@ public class SpliffyResourceFactory implements ResourceFactory {
     private final RootFolder rootFolder = new RootFolder();
     private final HashStore hashStore;
     private final BlobStore blobStore;
+    private final VersionNumberGenerator versionNumberGenerator;
 
-    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore) {
+    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
         this.userDao = userDao;
         this.hashStore = hashStore;
         this.blobStore = blobStore;
+        this.versionNumberGenerator = versionNumberGenerator;
     }
 
     @Override
@@ -103,7 +106,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
             if (u == null) {
                 return null;
             } else {
-                return new UserResource(u, hashStore, blobStore);
+                return new UserResource(u, hashStore, blobStore, versionNumberGenerator);
             }
         }
 
