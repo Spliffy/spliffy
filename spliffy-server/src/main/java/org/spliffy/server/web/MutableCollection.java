@@ -32,5 +32,7 @@ public interface MutableCollection extends MutableResource, CollectionResource, 
      * @return 
      */
     boolean isDirty();
+
+    public MutableCollection getParent();
     
 }

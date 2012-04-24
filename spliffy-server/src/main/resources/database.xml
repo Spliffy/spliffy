@@ -40,6 +40,7 @@
                 <value>org.spliffy.server.db.ResourceVersionMeta</value>
                 <value>org.spliffy.server.db.Permission</value>
                 <value>org.spliffy.server.db.Link</value>
+                <value>org.spliffy.server.db.DeletedItem</value>
             </list>
         </property>
         <property name="hibernateProperties">

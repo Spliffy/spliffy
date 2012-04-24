@@ -34,11 +34,14 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     private List<MutableResource> children;
     private long hash;
     private boolean dirty;
+    
+    private RepoVersion repoVersion; // may be null
 
     public RepoResource(Repository repository, RepoVersion repoVersion, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
         super(hashStore, blobStore);
         this.repository = repository;
         this.versionNumberGenerator = versionNumberGenerator;
+        this.repoVersion = repoVersion;
         if (repoVersion != null) {
             hash = repoVersion.getDirHash();
         }
@@ -235,4 +238,21 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     public boolean isDirty() {
         return dirty;
     }
+
+    /** 
+     * may be null
+     * 
+     * @return 
+     */
+    public RepoVersion getRepoVersion() {
+        return repoVersion;
+    }
+
+    @Override
+    public MutableCollection getParent() {
+        return null; // no mutable parents
+    }
+    
+    
+    
 }

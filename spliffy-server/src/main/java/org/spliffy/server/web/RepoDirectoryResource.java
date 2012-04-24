@@ -170,7 +170,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
             getChildren();
             fileResource.setHash(fileHash);
         }
-        children.add(fileResource);
+        addChild(fileResource);
 
         long repoVersionNum = save(session);
         newMeta.setRepoVersionNum(repoVersionNum);
@@ -219,4 +219,11 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     public boolean isDirty() {
         return dirty;
     }
+
+    @Override
+    public MutableCollection getParent() {
+        return parent;
+    }
+    
+    
 }

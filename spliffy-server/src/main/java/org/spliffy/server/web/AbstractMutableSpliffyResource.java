@@ -9,7 +9,9 @@ import java.util.UUID;
 import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.spliffy.server.db.DeletedItem;
 import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
+import org.spliffy.server.db.RepoVersion;
 import org.spliffy.server.db.ResourceVersionMeta;
 
 /**
@@ -32,17 +34,17 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
 
     @Override
     public void moveTo(CollectionResource rDest, String newName) throws ConflictException, NotAuthorizedException, BadRequestException {
-        
+
         if (!(rDest instanceof MutableCollection)) {
             throw new ConflictException(this, "Can't move to: " + rDest.getClass());
         }
         MutableCollection newParent = (MutableCollection) rDest;
-                
+
         Session session = MiltonOpenSessionInViewFilter.session();
         Transaction tx = session.beginTransaction();
 
-        
-        if (newParent.getMetaId().equals(parent.getMetaId()) ) {
+
+        if (newParent.getMetaId().equals(parent.getMetaId())) {
             // just rename
             this.name = newName;
             parent.onChildChanged(this);
@@ -60,6 +62,18 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
     public void delete() throws NotAuthorizedException, ConflictException, BadRequestException {
         Session session = MiltonOpenSessionInViewFilter.session();
         Transaction tx = session.beginTransaction();
+
+        DeletedItem deletedItem = new DeletedItem();
+        deletedItem.setId(UUID.randomUUID());
+        if (parent.getMetaId() != null) { // will be null for folders directly in a RepoVersion
+            ResourceVersionMeta deletedFrom = ResourceVersionMeta.find(parent.getMetaId());
+            deletedItem.setDeletedFrom(deletedFrom);
+
+        }
+        ResourceVersionMeta deletedResource = ResourceVersionMeta.find(getMetaId());
+        deletedItem.setDeletedResource(deletedResource);
+        deletedItem.setRepoVersion(currentRepoVersion());
+        session.save(deletedItem);
 
         parent.removeChild(this);
         parent.save(session);
@@ -103,5 +117,14 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
     @Override
     public Long getMaxAgeSeconds(Auth auth) {
         return null;
+    }
+
+    public RepoVersion currentRepoVersion() {
+        MutableCollection col = parent;
+        while (!(col instanceof RepoResource)) {
+            col = col.getParent();
+        }
+        RepoResource rr = (RepoResource) col;
+        return rr.getRepoVersion();
     }
 }
