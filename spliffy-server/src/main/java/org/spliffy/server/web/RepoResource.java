@@ -49,10 +49,6 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     @Override
     public Resource child(String childName) {
-        if (childName.equals("revisions")) {
-            return new RepoRevisionsResource(repository);
-        }
-
         return Utils.childOf(getChildren(), childName);
     }
 

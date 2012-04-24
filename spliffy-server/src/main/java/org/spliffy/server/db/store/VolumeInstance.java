@@ -2,10 +2,16 @@ package org.spliffy.server.db.store;
 
 /**
  * An interface for storing and retrieving bytes
+ * 
+ * A single VolumeInstance refers to a physical location at which bytes
+ * can be stored, such as a directory in a file system or a remote HTTP server
+ * 
+ * These are grouped together to form a Volume. A volume will replicate data
+ * among the VolumeInstances in the Volume
  *
  * @author brad
  */
-public interface Volume {
+public interface VolumeInstance {
 
     public void setBlob(long hash, byte[] bytes);
 

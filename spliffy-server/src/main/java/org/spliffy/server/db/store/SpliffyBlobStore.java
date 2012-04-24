@@ -25,7 +25,7 @@ public class SpliffyBlobStore implements BlobStore{
             return ;
         }
         
-        Volume volume = volumeManager.findNextVolume();
+        VolumeInstance volume = volumeManager.findNextVolume();
         volume.setBlob(hash, bytes);
         
         blobHash = new BlobHash();
@@ -42,7 +42,7 @@ public class SpliffyBlobStore implements BlobStore{
         if( blobHash == null ) {
             return null;
         } else {
-            Volume vol = volumeManager.findVolume(blobHash.getVolumeId()); 
+            VolumeInstance vol = volumeManager.findVolume(blobHash.getVolumeId()); 
             return vol.getBlob(hash);
         }
     }

@@ -12,9 +12,9 @@ package org.spliffy.server.db.store;
  */
 public class VolumeManager {
 
-    private final Volume theVolume; // TODO: have a more dynamic means of configuring volumes
+    private final VolumeInstance theVolume; // TODO: have a more dynamic means of configuring volumes
 
-    public VolumeManager(Volume theVolume) {
+    public VolumeManager(VolumeInstance theVolume) {
         this.theVolume = theVolume;
     }
     
@@ -24,11 +24,11 @@ public class VolumeManager {
      * 
      * @return 
      */
-    public Volume findNextVolume() {
+    public VolumeInstance findNextVolume() {
         return theVolume;
     }
 
-    public Volume findVolume(String volumeId) {
+    public VolumeInstance findVolume(String volumeId) {
         return theVolume;
     }
 

@@ -7,7 +7,7 @@ import org.apache.commons.io.IOUtils;
  *
  * @author brad
  */
-public class LocalFsVolume implements Volume{
+public class LocalFsVolume implements VolumeInstance{
 
     private final File root;
     
