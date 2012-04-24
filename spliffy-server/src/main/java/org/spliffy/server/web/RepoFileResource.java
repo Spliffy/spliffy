@@ -16,6 +16,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
 import org.spliffy.server.db.ResourceVersionMeta;
+import org.spliffy.server.db.SessionManager;
 
 /**
  * An instance of this class represents the root folder of a repository at a
@@ -35,7 +36,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
     @Override
     public void copyTo(CollectionResource toCollection, String newName) throws NotAuthorizedException, BadRequestException, ConflictException {
         if (toCollection instanceof MutableCollection) {
-            Session session = MiltonOpenSessionInViewFilter.session();
+            Session session = SessionManager.session();
             Transaction tx = session.beginTransaction();
 
             MutableCollection newParent = (MutableCollection) toCollection;
@@ -52,7 +53,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
     
     @Override
     public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
         String ct = HttpManager.request().getContentTypeHeader();

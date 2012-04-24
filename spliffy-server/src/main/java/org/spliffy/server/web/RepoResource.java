@@ -55,7 +55,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     @Override
     public List<MutableResource> getChildren() {
         if (children == null) {
-            List<DirEntry> dirEntries = DirEntry.listEntries(MiltonOpenSessionInViewFilter.session(), hash);
+            List<DirEntry> dirEntries = DirEntry.listEntries(SessionManager.session(), hash);
             children = Utils.toResources(this, dirEntries);
         }
         return children;
@@ -68,7 +68,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta meta = Utils.newDirMeta();
@@ -83,7 +83,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     @Override
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException {
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta newMeta = Utils.newFileMeta();
@@ -110,7 +110,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
         long repoVersionNum = save(session);
         newMeta.setRepoVersionNum(repoVersionNum);
-        MiltonOpenSessionInViewFilter.session().save(newMeta);
+        SessionManager.session().save(newMeta);
 
         tx.commit();
 

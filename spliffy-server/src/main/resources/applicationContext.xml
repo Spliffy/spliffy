@@ -11,17 +11,29 @@
 
     <bean id="lock.manager" class="com.ettrema.http.fs.SimpleLockManager" />
     
-    <bean id="local.volume" class="org.spliffy.server.db.store.LocalFsVolume">
-        <constructor-arg value="target/blobs" />
-        <property name="id" value="local"/>
+    <bean id="local.volume.type" class="org.spliffy.server.db.store.LocalVolumeInstanceType">
+        <constructor-arg value="local" />
+        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg>
+            <!-- we have 2 stores for representing redundancy operation. These will be autoloaded into database (autoloading is not intended for production) -->
+            <list>
+                <value>target/blobs/store1</value>
+                <value>target/blobs/store2</value>
+            </list>
+        </constructor-arg>
     </bean>
     
-    <bean id="volume.manager" class="org.spliffy.server.db.store.VolumeManager">
-        <constructor-arg ref="local.volume" />
-    </bean>
     
-    <bean id="blob.store" class="org.spliffy.server.db.store.SpliffyBlobStore">
-        <constructor-arg ref="volume.manager"/>
+    <bean id="volume.allocator" class="org.spliffy.server.db.store.SingleVolumeInstanceAllocator"/>
+    
+    <bean id="blob.store" class="org.spliffy.server.db.store.VolumeBlobStore">
+        <constructor-arg ref="volume.allocator"/>
+        <constructor-arg>
+            <list>
+                <ref local="local.volume.type" />
+            </list>
+        </constructor-arg>
+        <constructor-arg ref="session.manager" />
     </bean>
 
     <bean id="hash.store" class="org.spliffy.server.db.store.SpliffyHashStore"/>
@@ -57,7 +69,7 @@
     </bean>
 
     <bean id="open.session.in.view.filter" class="org.spliffy.server.db.MiltonOpenSessionInViewFilter">
-        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="session.manager"/>
     </bean>
 
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">

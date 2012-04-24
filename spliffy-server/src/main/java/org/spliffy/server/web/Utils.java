@@ -2,10 +2,7 @@ package org.spliffy.server.web;
 
 import com.bradmcevoy.http.Resource;
 import java.util.*;
-import org.spliffy.server.db.DirEntry;
-import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
-import org.spliffy.server.db.ResourceMeta;
-import org.spliffy.server.db.ResourceVersionMeta;
+import org.spliffy.server.db.*;
 
 /**
  *
@@ -88,7 +85,7 @@ public class Utils {
         list.add(versionMeta);
         meta.setVersions(list);
         
-        MiltonOpenSessionInViewFilter.session().save(meta);
+        SessionManager.session().save(meta);
         return versionMeta;
     }    
 }

@@ -18,7 +18,7 @@ import javax.persistence.*;
 public class ResourceVersionMeta implements Serializable {
 
     public static ResourceVersionMeta find(UUID metaId) {
-        return (ResourceVersionMeta) MiltonOpenSessionInViewFilter.session().get(ResourceVersionMeta.class, metaId);
+        return (ResourceVersionMeta) SessionManager.session().get(ResourceVersionMeta.class, metaId);
     }
     
       

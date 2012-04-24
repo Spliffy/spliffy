@@ -24,7 +24,7 @@ public class ResourceMeta implements Serializable {
     private List<ResourceVersionMeta> versions;
 
     public static ResourceMeta find(UUID id) {
-        return (ResourceMeta) MiltonOpenSessionInViewFilter.session().get(ResourceMeta.class, id);
+        return (ResourceMeta) SessionManager.session().get(ResourceMeta.class, id);
     }
 
     public ResourceMeta() {

@@ -19,6 +19,7 @@ import org.hibernate.Transaction;
 import org.spliffy.server.db.DirEntry;
 import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
 import org.spliffy.server.db.ResourceVersionMeta;
+import org.spliffy.server.db.SessionManager;
 
 /**
  * Represents a version of a directory, containing the members which are in that
@@ -38,7 +39,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     @Override
     public void copyTo(CollectionResource toCollection, String newName) throws NotAuthorizedException, BadRequestException, ConflictException {
         if (toCollection instanceof MutableCollection) {
-            Session session = MiltonOpenSessionInViewFilter.session();
+            Session session = SessionManager.session();
             Transaction tx = session.beginTransaction();
 
             MutableCollection newParent = (MutableCollection) toCollection;
@@ -86,7 +87,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     @Override
     public List<MutableResource> getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
-            List<DirEntry> childDirEntries = DirEntry.listEntries(MiltonOpenSessionInViewFilter.session(), hash);
+            List<DirEntry> childDirEntries = DirEntry.listEntries(SessionManager.session(), hash);
             children = Utils.toResources(this, childDirEntries);
         }
         return children;
@@ -94,7 +95,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
 
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta newMeta = Utils.newDirMeta();
@@ -147,7 +148,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     @Override
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException {
         System.out.println("CreateNew: " + newName);
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta newMeta = Utils.newFileMeta();
@@ -174,7 +175,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
 
         long repoVersionNum = save(session);
         newMeta.setRepoVersionNum(repoVersionNum);
-        MiltonOpenSessionInViewFilter.session().save(newMeta);
+        SessionManager.session().save(newMeta);
 
         tx.commit();
 

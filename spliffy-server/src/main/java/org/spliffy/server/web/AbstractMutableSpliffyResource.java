@@ -9,10 +9,7 @@ import java.util.UUID;
 import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.DeletedItem;
-import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
-import org.spliffy.server.db.RepoVersion;
-import org.spliffy.server.db.ResourceVersionMeta;
+import org.spliffy.server.db.*;
 
 /**
  *
@@ -40,7 +37,7 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
         }
         MutableCollection newParent = (MutableCollection) rDest;
 
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
 
@@ -60,7 +57,7 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
 
     @Override
     public void delete() throws NotAuthorizedException, ConflictException, BadRequestException {
-        Session session = MiltonOpenSessionInViewFilter.session();
+        Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
         DeletedItem deletedItem = new DeletedItem();

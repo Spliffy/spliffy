@@ -8,6 +8,7 @@ import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.FanoutEntry;
 import org.spliffy.server.db.FanoutHash;
 import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
+import org.spliffy.server.db.SessionManager;
 
 /**
  *
@@ -32,12 +33,12 @@ public class SpliffyHashStore implements HashStore{
             list.add(fe);
         }
         fanout.setFanoutEntrys(list);
-        MiltonOpenSessionInViewFilter.session().save(fanout);
+        SessionManager.session().save(fanout);
     }
 
     @Override
     public Fanout getFanout(long hash) {
-        FanoutHash fanoutHash = (FanoutHash) MiltonOpenSessionInViewFilter.session().get(FanoutHash.class, hash);
+        FanoutHash fanoutHash = (FanoutHash) SessionManager.session().get(FanoutHash.class, hash);
         if( fanoutHash == null ) {
             return null;
         } else {
@@ -47,7 +48,7 @@ public class SpliffyHashStore implements HashStore{
 
     @Override
     public boolean hasFanout(long hash) {
-        FanoutHash fanoutHash = (FanoutHash) MiltonOpenSessionInViewFilter.session().get(FanoutHash.class, hash);
+        FanoutHash fanoutHash = (FanoutHash) SessionManager.session().get(FanoutHash.class, hash);
         return fanoutHash != null;
     }
 

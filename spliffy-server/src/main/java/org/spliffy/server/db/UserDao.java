@@ -19,7 +19,7 @@ public class UserDao {
     }
 
     public User getUser(String name) {
-        return  (User) MiltonOpenSessionInViewFilter.session().get(User.class, name);
+        return  (User) SessionManager.session().get(User.class, name);
     }
 
     private void initTestData() {

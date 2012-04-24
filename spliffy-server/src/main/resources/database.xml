@@ -41,6 +41,8 @@
                 <value>org.spliffy.server.db.Permission</value>
                 <value>org.spliffy.server.db.Link</value>
                 <value>org.spliffy.server.db.DeletedItem</value>
+                <value>org.spliffy.server.db.Volume</value>
+                <value>org.spliffy.server.db.VolumeInstance</value>
             </list>
         </property>
         <property name="hibernateProperties">
@@ -53,6 +55,10 @@
             </props>
         </property>
         <property name="namingStrategy" ref="namingStrategy" />
+    </bean>
+    
+    <bean id="session.manager" class="org.spliffy.server.db.SessionManager">
+        <constructor-arg ref="sessionFactory" />
     </bean>
 
     <bean id="namingStrategy" class="org.hibernate.cfg.ImprovedNamingStrategy"/>

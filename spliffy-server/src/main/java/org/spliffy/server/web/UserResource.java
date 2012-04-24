@@ -61,7 +61,7 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
 
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        Transaction tx = MiltonOpenSessionInViewFilter.session().beginTransaction();
+        Transaction tx = SessionManager.session().beginTransaction();
         Repository r = new Repository();
         r.setId(UUID.randomUUID());
         r.setUser(user);
@@ -73,7 +73,7 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
             list = new ArrayList<>();
         }
         list.add(r);
-        MiltonOpenSessionInViewFilter.session().save(r);
+        SessionManager.session().save(r);
         tx.commit();
         RepoVersion rv = r.latestVersion();
         return new RepoResource(r, rv,hashStore, blobStore, versionNumberGenerator);

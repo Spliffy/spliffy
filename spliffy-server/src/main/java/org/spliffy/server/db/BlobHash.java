@@ -13,10 +13,10 @@ import javax.persistence.Id;
 @Entity
 public class BlobHash implements Serializable {
     private long blobHash;
-    private String volumeId;
+    private UUID volumeId;
     
     public static BlobHash findByHash(long hash) {
-        return (BlobHash) MiltonOpenSessionInViewFilter.session().get(BlobHash.class, hash);
+        return (BlobHash) SessionManager.session().get(BlobHash.class, hash);
     }    
     
 
@@ -29,12 +29,12 @@ public class BlobHash implements Serializable {
         this.blobHash = hash;
     }
 
-    @Column(length = 20)
-    public String getVolumeId() {
+    @Column(nullable=false)
+    public UUID getVolumeId() {
         return volumeId;
     }
 
-    public void setVolumeId(String volumeId) {
+    public void setVolumeId(UUID volumeId) {
         this.volumeId = volumeId;
     }
     
