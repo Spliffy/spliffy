@@ -16,13 +16,13 @@ import org.spliffy.server.db.VolumeInstance;
  *
  * @author brad
  */
-public class VolumeBlobStore implements BlobStore {
+public class HAVolumeBlobStore implements BlobStore {
 
     private final VolumeInstanceAllocator allocator;
     private final Map<String, VolumeInstanceType> mapOfInstanceTypes;
     private final ReplicationManager replicationManager;
 
-    public VolumeBlobStore(VolumeInstanceAllocator allocator, List<VolumeInstanceType> instanceTypes, SessionManager sessionManager) {
+    public HAVolumeBlobStore(VolumeInstanceAllocator allocator, List<VolumeInstanceType> instanceTypes, SessionManager sessionManager) {
         this.allocator = allocator;        
         Map<String,VolumeInstanceType> map = new HashMap<>();
         for( VolumeInstanceType vit : instanceTypes ) {

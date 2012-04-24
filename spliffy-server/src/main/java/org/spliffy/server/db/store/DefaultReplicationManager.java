@@ -46,13 +46,11 @@ public class DefaultReplicationManager implements ReplicationManager {
 
     @Override
     public void newBlob(UUID volumeInstanceId, long hash) {
-        System.out.println("newBlob: queue size: " + queue.size());
         ReplicationItem item = new ReplicationItem(volumeInstanceId, hash);
         queue.add(item);
     }
 
     private void replicate(ReplicationItem item) throws VolumeInstanceException, InterruptedException {
-        System.out.println("replicate: " + item.hash);
         try {
             sessionManager.open();
             VolumeInstance viSource = VolumeInstance.get(SessionManager.session(), item.volumeInstanceId);
@@ -69,11 +67,9 @@ public class DefaultReplicationManager implements ReplicationManager {
             byte[] arr = sourceType.getBlob(viSource.getLocation(), item.hash);
                                     
             for( VolumeInstance viDest : viSource.getVolume().getInstances()) {
-                System.out.println("check: desst: " + viDest + "  src: " + viSource.getId());
                 if( viDest.getId().equals(item.volumeInstanceId)) {
                     // ignore, since it is the source
                 } else {
-                    System.out.println("replicate to: " + viDest.getLocation());
                     VolumeInstanceType destType = mapOfInstanceTypes.get(viDest.getInstanceType());
                     destType.setBlob(viDest.getLocation(), item.hash, arr);
                 }
@@ -91,9 +87,7 @@ public class DefaultReplicationManager implements ReplicationManager {
             try {
                 while (true) {
                     try {
-                        System.out.println("about to wait on take...");
                         replicate(queue.take());
-                        System.out.println("done take..");
                     } catch (VolumeInstanceException ex) {
                         System.out.println("Couldnt process replication: " + ex);
                     }
