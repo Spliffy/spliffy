@@ -2,7 +2,6 @@ package org.spliffy.server.db;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import javax.persistence.*;
 
@@ -21,9 +20,12 @@ public class ResourceVersionMeta implements Serializable {
     public static ResourceVersionMeta find(UUID metaId) {
         return (ResourceVersionMeta) MiltonOpenSessionInViewFilter.session().get(ResourceVersionMeta.class, metaId);
     }
+    
+      
     private UUID id;
     private ResourceMeta resourceMeta;
     private Date modifiedDate;    
+    private long repoVersionNum;
 
     public ResourceVersionMeta() {
     }
@@ -57,5 +59,21 @@ public class ResourceVersionMeta implements Serializable {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
-    }    
+    }
+
+    /**
+     * Identifies the repository version number in which this change was made
+     * 
+     * @return 
+     */
+    @Column(nullable=false)
+    public long getRepoVersionNum() {
+        return repoVersionNum;
+    }
+
+    public void setRepoVersionNum(long repoVersionNum) {
+        this.repoVersionNum = repoVersionNum;
+    }
+    
+    
 }

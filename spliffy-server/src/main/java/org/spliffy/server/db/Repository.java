@@ -63,9 +63,7 @@ public class Repository implements Serializable {
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
     }
-    
-    
-
+       
     public RepoVersion latestVersion() {
         List<RepoVersion> vs = getVersions();
         if( vs == null ) {
@@ -76,6 +74,9 @@ public class Repository implements Serializable {
             if( cur == null || v.getCreatedDate().after(cur.getCreatedDate())) {
                 cur = v;
             }
+        }
+        if( cur == null ) {
+            System.out.println("No RepoVersion for: " + getName());
         }
 //        if( cur != null ) {
 //            System.out.println("latest is:  " + cur.getDirHash());

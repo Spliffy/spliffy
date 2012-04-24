@@ -16,7 +16,7 @@ import org.hibernate.Session;
  */
 public abstract class AbstractSpliffyResource implements PropFindableResource {
 
-    public abstract void onChildChanged(Session session);
+
     
     public abstract Long getEntryHash();
     

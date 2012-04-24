@@ -26,27 +26,34 @@ import org.spliffy.server.db.VersionNumberGenerator;
  */
 public class SpliffyResourceFactory implements ResourceFactory {
 
-    private final UserDao userDao;
-    private final RootFolder rootFolder = new RootFolder();
+    private final UserDao userDao;    
     private final HashStore hashStore;
     private final BlobStore blobStore;
     private final VersionNumberGenerator versionNumberGenerator;
+    private final SpliffySecurityManager securityManager;
 
-    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
+    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager) {
         this.userDao = userDao;
         this.hashStore = hashStore;
         this.blobStore = blobStore;
         this.versionNumberGenerator = versionNumberGenerator;
+        this.securityManager = securityManager;
     }
 
     @Override
     public Resource getResource(String host, String sPath) throws NotAuthorizedException, BadRequestException {
         Path path = Path.path(sPath);
-        return find(host, path);        
+        Resource r = find(host, path);
+        return r;
     }
 
-    private Resource find(String host, Path p) throws NotAuthorizedException, BadRequestException {
+    private Resource find(String host, Path p) throws NotAuthorizedException, BadRequestException {        
         if (p.isRoot()) {
+            RootFolder rootFolder = (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
+            if( rootFolder == null ) {
+                rootFolder = new RootFolder();
+                HttpManager.request().getAttributes().put("_spliffy_root_folder", rootFolder);
+            }
             return rootFolder;
         } else {
             Resource rParent = find(host, p.getParent());
@@ -65,6 +72,8 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
     public class RootFolder implements CollectionResource, GetableResource {
 
+        private Map<String,Resource> children = new HashMap<>();
+        
         @Override
         public String getUniqueId() {
             return null;
@@ -77,17 +86,17 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         @Override
         public Object authenticate(String user, String password) {
-            throw new UnsupportedOperationException("Not supported yet.");
+            return securityManager.authenticate(user, password);
         }
 
         @Override
         public boolean authorise(Request request, Request.Method method, Auth auth) {
-            return true;
+            return securityManager.authorise(request, method, auth, null);
         }
 
         @Override
         public String getRealm() {
-            return "spliffy";
+            return securityManager.getRealm();
         }
 
         @Override
@@ -102,11 +111,17 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         @Override
         public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
+            Resource r = children.get(childName);
+            if( r != null ) {
+                return r;
+            }
             User u = userDao.getUser(childName);
             if (u == null) {
                 return null;
             } else {
-                return new UserResource(u, hashStore, blobStore, versionNumberGenerator);
+                UserResource ur = new UserResource(u, hashStore, blobStore, versionNumberGenerator);
+                children.put(childName, ur);
+                return ur;
             }
         }
 
@@ -125,7 +140,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
 //            jspResponse.getOutputStream().write("hello word".getBytes());
             try {
                 d.include(req, jspResponse);
-                
+
             } catch (ServletException ex) {
                 throw new RuntimeException(ex);
             }
@@ -173,8 +188,6 @@ public class SpliffyResourceFactory implements ResourceFactory {
                     System.out.println("write3");
                     o.write(b, off, len);
                 }
-                
-                
             };
             pw = new PrintWriter(o);
         }

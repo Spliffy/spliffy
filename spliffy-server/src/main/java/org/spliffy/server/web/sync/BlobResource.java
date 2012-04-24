@@ -9,6 +9,7 @@ import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import org.spliffy.server.web.SpliffySecurityManager;
 
 /**
  *
@@ -18,8 +19,8 @@ public class BlobResource extends BaseResource implements GetableResource{
 
     private final byte[] blob;
     private final long hash;
-
-    public BlobResource(byte[] blob, long hash, com.bradmcevoy.http.SecurityManager securityManager) {
+    
+    public BlobResource(byte[] blob, long hash, SpliffySecurityManager securityManager) {
         super(securityManager);
         this.blob = blob;
         this.hash = hash;
@@ -28,6 +29,7 @@ public class BlobResource extends BaseResource implements GetableResource{
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> map, String string) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
         out.write(blob);
+        out.flush();
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.hashsplit4j.api.BlobStore;
+import org.spliffy.server.web.SpliffySecurityManager;
 
 /**
  *
@@ -20,7 +21,7 @@ class BlobFolder extends  BaseResource implements PutableResource {
     private final BlobStore blobStore;
     private final String name;
     
-    public BlobFolder(BlobStore blobStore, String name, com.bradmcevoy.http.SecurityManager securityManager) {
+    public BlobFolder(BlobStore blobStore, String name, SpliffySecurityManager securityManager) {
         super(securityManager);
         this.blobStore = blobStore;
         this.name = name;

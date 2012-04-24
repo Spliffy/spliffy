@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.*;
 import javax.persistence.Column;
 import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -11,13 +13,16 @@ import org.hibernate.criterion.Restrictions;
 
 /**
  * A DirEntry is an item with a DirHash
- * 
+ *
  * A list of DirEntry objects makes up a tree node
  *
  * @author brad
  */
 @javax.persistence.Entity
+@Table(uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"name", "parentHash"})})
 public class DirEntry implements Serializable {
+
     private UUID id;
     private String name;
     private long parentHash; // this identifies the parent, by its hash
@@ -26,10 +31,10 @@ public class DirEntry implements Serializable {
 
     /**
      * Gets the ordered list of entries for the given directory
-     * 
+     *
      * @param session
      * @param dirHash
-     * @return 
+     * @return
      */
     public static List<DirEntry> listEntries(Session session, long dirHash) {
         Criteria crit = session.createCriteria(DirEntry.class);
@@ -37,26 +42,26 @@ public class DirEntry implements Serializable {
         crit.addOrder(Order.asc("id"));
         List<DirEntry> dirList = new ArrayList<>();
         List oList = crit.list();
-        if( oList != null ) {
+        if (oList != null) {
             Set<String> names = new HashSet<>();
-            for( Object o : oList ) {
+            for (Object o : oList) {
                 DirEntry de = (DirEntry) o;
                 String name = de.getName();
-                if( names.contains(name)) {
+                if (names.contains(name)) {
                     throw new RuntimeException("Name not unique within collection: " + name);
                 }
                 names.add(name);
-                
+
                 dirList.add(de);
             }
         }
         return dirList;
     }
-    
+
     /**
      * @return the name
      */
-    @Column(length=1000)
+    @Column(length = 1000)
     public String getName() {
         return name;
     }
@@ -70,8 +75,8 @@ public class DirEntry implements Serializable {
 
     /**
      * @return the hash
-     */    
-    @Column(nullable=false)
+     */
+    @Column(nullable = false)
     public long getParentHash() {
         return parentHash;
     }
@@ -99,8 +104,8 @@ public class DirEntry implements Serializable {
 
     /**
      * Artificial PK to keep hibernate happy
-     * 
-     * @return 
+     *
+     * @return
      */
     @Id
     public UUID getId() {
@@ -111,7 +116,7 @@ public class DirEntry implements Serializable {
         this.id = id;
     }
 
-    @Column(nullable=false)    
+    @Column(nullable = false)
     public long getEntryHash() {
         return entryHash;
     }
@@ -119,6 +124,4 @@ public class DirEntry implements Serializable {
     public void setEntryHash(long entryHash) {
         this.entryHash = entryHash;
     }
-
-    
 }

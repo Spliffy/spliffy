@@ -35,9 +35,7 @@ public class MiltonOpenSessionInViewFilter implements Filter{
         try {
             session = SessionFactoryUtils.getSession(sessionFactory, true);
             tlSession.set(session);
-            System.out.println("opened session");
             chain.process(request, response);
-            System.out.println("closed session");
         } finally {
             if( session != null ) {
                 SessionFactoryUtils.closeSession(session);

@@ -25,26 +25,26 @@ public class Utils {
         return null;
     }
 
-    public static AbstractSpliffyResource toResource(AbstractSpliffyResource parent, DirEntry de) {
+    public static MutableResource toResource(MutableCollection parent, DirEntry de) {
         UUID metaId = de.getMetaId();
         ResourceVersionMeta meta = ResourceVersionMeta.find(metaId); 
         String type = meta.getResourceMeta().getType();
-        if (type.equals("d")) {
-            RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(),meta, parent, parent.getHashStore(), parent.getBlobStore());
-            rdr.setDirHash(de.getEntryHash());
-            return rdr;            
-        } else if( type.equals("f")) {
-            RepoDirectoryResource parentDir = (RepoDirectoryResource) parent;
-            RepoFileResource rfr = new RepoFileResource(de.getName(), meta, parentDir, parent.getHashStore(), parent.getBlobStore());
-            rfr.setHash(de.getEntryHash());
-            return rfr;
-        } else {
-            throw new RuntimeException("Unknown resource type: " + type);
+        switch (type) {
+            case "d":
+                RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(),meta, parent, parent.getHashStore(), parent.getBlobStore());
+                rdr.setHash(de.getEntryHash());
+                return rdr;
+            case "f":
+                RepoFileResource rfr = new RepoFileResource(de.getName(), meta, parent, parent.getHashStore(), parent.getBlobStore());
+                rfr.setHash(de.getEntryHash());
+                return rfr;
+            default:
+                throw new RuntimeException("Unknown resource type: " + type);
         }
     }
 
-    public static List<AbstractSpliffyResource> toResources(AbstractSpliffyResource parent, List<DirEntry> dirEntries) {
-        List<AbstractSpliffyResource> list = new ArrayList<>();
+    public static List<MutableResource> toResources(MutableCollection parent, List<DirEntry> dirEntries) {
+        List<MutableResource> list = new ArrayList<>();
         Set<String> names = new HashSet<>();
         for (DirEntry de : dirEntries) {
             String name = de.getName();
@@ -53,7 +53,7 @@ public class Utils {
             }
             names.add(name);                    
             
-            AbstractSpliffyResource r = Utils.toResource(parent, de);
+            MutableResource r = Utils.toResource(parent, de);
             list.add(r);
         }
         return list;

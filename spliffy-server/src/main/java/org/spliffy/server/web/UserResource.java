@@ -21,10 +21,11 @@ import org.spliffy.server.db.*;
  *
  * @author brad
  */
-public class UserResource extends AbstractSpliffyResource implements CollectionResource, MakeCollectionableResource, PropFindableResource {
+public class UserResource extends AbstractSpliffyCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource {
 
     private final User user;
     private final VersionNumberGenerator versionNumberGenerator;
+    private List<RepoResource> children;
 
     public UserResource(User u, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
         super(hashStore, blobStore);
@@ -40,14 +41,17 @@ public class UserResource extends AbstractSpliffyResource implements CollectionR
 
     @Override
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
-        List<RepoResource> list = new ArrayList();
-        if (user.getRepositories() != null) {
-            for (Repository r : user.getRepositories()) {
-                RepoResource rr = new RepoResource(r, hashStore, blobStore, versionNumberGenerator);
-                list.add(rr);
+        if( children == null ) {
+            children = new ArrayList();
+            if (user.getRepositories() != null) {
+                for (Repository r : user.getRepositories()) {
+                    RepoVersion rv = r.latestVersion();
+                    RepoResource rr = new RepoResource(r, rv, hashStore, blobStore, versionNumberGenerator);
+                    children.add(rr);
+                }
             }
         }
-        return list;
+        return children;
     }
 
     @Override
@@ -71,11 +75,13 @@ public class UserResource extends AbstractSpliffyResource implements CollectionR
         list.add(r);
         MiltonOpenSessionInViewFilter.session().save(r);
         tx.commit();
-        return new RepoResource(r, hashStore, blobStore, versionNumberGenerator);
+        RepoVersion rv = r.latestVersion();
+        return new RepoResource(r, rv,hashStore, blobStore, versionNumberGenerator);
     }
 
     @Override
-    public void onChildChanged(Session session) {
+    public long save(Session session) {
+        throw new RuntimeException("Not supported");
     }
 
     @Override

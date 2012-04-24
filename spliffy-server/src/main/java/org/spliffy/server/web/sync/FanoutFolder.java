@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import org.hashsplit4j.api.FanoutImpl;
 import org.hashsplit4j.api.HashStore;
+import org.spliffy.server.web.SpliffySecurityManager;
 
 /**
  *
@@ -24,7 +25,7 @@ public class FanoutFolder extends BaseResource implements PutableResource {
     private final HashStore hashStore;
     private final String name;
 
-    public FanoutFolder(HashStore hashStore, String name, com.bradmcevoy.http.SecurityManager securityManager) {
+    public FanoutFolder(HashStore hashStore, String name, SpliffySecurityManager securityManager) {
         super(securityManager);
         this.hashStore = hashStore;
         this.name = name;
@@ -38,7 +39,7 @@ public class FanoutFolder extends BaseResource implements PutableResource {
     @Override
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException {
         long hash = Long.parseLong(newName);
-        List<Long> list = new ArrayList<Long>();
+        List<Long> list = new ArrayList<>();
         DataInputStream din = new DataInputStream(inputStream);
         long actualFanoutLength = din.readLong(); // first long is the content length of the chunks within the fanout. Ie the actual content length (not length of hashes!)
         try {

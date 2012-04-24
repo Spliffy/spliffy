@@ -4,8 +4,8 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.SecurityManager;
 import java.util.Date;
+import org.spliffy.server.web.SpliffySecurityManager;
 
 /**
  * Base class for other hashing related resources
@@ -14,9 +14,9 @@ import java.util.Date;
  */
 public abstract class BaseResource implements Resource{
 
-    protected final com.bradmcevoy.http.SecurityManager securityManager;
+    protected final SpliffySecurityManager securityManager;
 
-    public BaseResource(SecurityManager securityManager) {
+    public BaseResource(SpliffySecurityManager securityManager) {
         this.securityManager = securityManager;
     }
     
@@ -39,7 +39,7 @@ public abstract class BaseResource implements Resource{
 
     @Override
     public String getRealm() {
-        return securityManager.getRealm(null);
+        return securityManager.getRealm();
     }
 
     @Override

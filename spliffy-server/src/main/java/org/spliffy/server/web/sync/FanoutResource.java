@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 import org.hashsplit4j.api.Fanout;
+import org.spliffy.server.web.SpliffySecurityManager;
 
 /**
  *
@@ -21,7 +22,7 @@ public class FanoutResource extends BaseResource implements GetableResource {
     private final Fanout fanout;
     private final long hash;
 
-    public FanoutResource(Fanout fanout, long hash, com.bradmcevoy.http.SecurityManager securityManager) {
+    public FanoutResource(Fanout fanout, long hash, SpliffySecurityManager securityManager) {
         super(securityManager);
         this.fanout = fanout;
         this.hash = hash;
@@ -55,6 +56,6 @@ public class FanoutResource extends BaseResource implements GetableResource {
 
     @Override
     public Long getContentLength() {
-        return 4 + fanout.getHashes().size() * 4l; // 4 bytes for each hash, plus 4 for the actualContentLength
+        return 8 + fanout.getHashes().size() * 8l; // 8 bytes for each hash, plus 8 for the actualContentLength
     }
 }

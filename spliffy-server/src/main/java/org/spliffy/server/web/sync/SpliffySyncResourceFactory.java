@@ -9,6 +9,7 @@ import java.util.Date;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.Fanout;
 import org.hashsplit4j.api.HashStore;
+import org.spliffy.server.web.SpliffySecurityManager;
 
 /**
  * Implements a URL scheme for handling HTTP interactions with a file sync
@@ -18,10 +19,10 @@ import org.hashsplit4j.api.HashStore;
  * resource factory
  *
  * /{basePath}/fanouts/XXX - returns a list of chunk hashs within a fanout,
- * which makes up a segment of a file 
- * 
- * /{basePath}/blobs/XXX - returns a stream
- * of bytes which is the file content for a single chunk
+ * which makes up a segment of a file
+ *
+ * /{basePath}/blobs/XXX - returns a stream of bytes which is the file content
+ * for a single chunk
  *
  * Note that each file will have a single top level fanout hash which will be
  * linked to the fanout hashes containing chunk hashes. This top level fanout is
@@ -34,13 +35,12 @@ import org.hashsplit4j.api.HashStore;
 public class SpliffySyncResourceFactory implements ResourceFactory {
 
     public static final Date LONG_LONG_AGO = new Date(0);
-    
-    private String basePath = "_hashes";
-    private final com.bradmcevoy.http.SecurityManager securityManager;
+    private String basePath = "/_hashes";
+    private final SpliffySecurityManager securityManager;
     private final HashStore hashStore;
     private final BlobStore blobStore;
 
-    public SpliffySyncResourceFactory(HashStore hashStore, BlobStore blobStore, com.bradmcevoy.http.SecurityManager securityManager) {
+    public SpliffySyncResourceFactory(HashStore hashStore, BlobStore blobStore, SpliffySecurityManager securityManager) {
         this.hashStore = hashStore;
         this.blobStore = blobStore;
         this.securityManager = securityManager;
@@ -58,22 +58,25 @@ public class SpliffySyncResourceFactory implements ResourceFactory {
                 return null; // not a recognised depth
             }
             String first = p.getFirst();
-            String sHash = p.getName();
-            long hash = Long.parseLong(sHash);
-            if (first.equals("fanouts")) {
-                if (numPathParts == 1) {
-                    return new FanoutFolder(hashStore, "fanouts", securityManager);
-                } else {
-                    return findFanout(hash);
-                }
-            } else if (first.equals("blobs")) {
-                if (numPathParts == 1) {
-                    return new BlobFolder(blobStore, "blobs", securityManager);
-                } else {
-                    return findBlob(hash);
-                }
-            } else {
-                return null;
+            switch (first) {
+                case "fanouts":
+                    if (numPathParts == 1) {
+                        return new FanoutFolder(hashStore, "fanouts", securityManager);
+                    } else {
+                        String sHash = p.getName();
+                        long hash = Long.parseLong(sHash);
+                        return findFanout(hash);
+                    }
+                case "blobs":
+                    if (numPathParts == 1) {
+                        return new BlobFolder(blobStore, "blobs", securityManager);
+                    } else {
+                        String sHash = p.getName();
+                        long hash = Long.parseLong(sHash);
+                        return findBlob(hash);
+                    }
+                default:
+                    return null;
             }
         } else {
             return null;
@@ -92,6 +95,7 @@ public class SpliffySyncResourceFactory implements ResourceFactory {
     private Resource findFanout(long hash) {
         Fanout fanout = hashStore.getFanout(hash);
         if (fanout == null) {
+            System.out.println("fanout not found");
             return null;
         } else {
             return new FanoutResource(fanout, hash, securityManager);

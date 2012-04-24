@@ -18,6 +18,7 @@ public class Permission implements Serializable {
     private AccessControlledResource.Priviledge priviledge;
     private BaseEntity grantee;
     private ResourceMeta grantedOn;
+        
 
     @Id
     public UUID getId() {

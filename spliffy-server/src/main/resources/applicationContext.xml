@@ -9,15 +9,6 @@
 
     <import resource="classpath:database.xml"/>
 
-    <bean id="security.manager" class="com.ettrema.http.fs.SimpleSecurityManager" >
-        <property name="realm" value="aRealm" />
-        <property name="nameAndPasswords">
-            <map>
-                <entry key="admin" value="pwd"/>
-            </map>
-        </property>
-    </bean>
-
     <bean id="lock.manager" class="com.ettrema.http.fs.SimpleLockManager" />
     
     <bean id="local.volume" class="org.spliffy.server.db.store.LocalFsVolume">
@@ -37,15 +28,32 @@
     
     <bean id="version.number.generator" class="org.spliffy.server.db.DefaultVersionNumberGenerator"/>
 
-    <bean id="resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory">
-        <!--
-        <constructor-arg ref="security.manager"/>
+    <bean id="security.manager" class="org.spliffy.server.web.SpliffySecurityManager"/>
+
+    <bean id="main.spliffy.resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory">
+        <!--        
         <constructor-arg ref="lock.manager"/>
         -->
         <constructor-arg ref="dao.user"/>
         <constructor-arg ref="blob.store"/>
         <constructor-arg ref="hash.store"/>
         <constructor-arg ref="version.number.generator"/>
+        <constructor-arg ref="security.manager"/>
+    </bean>
+    
+    <bean id="sync.spliffy.resource.factory" class="org.spliffy.server.web.sync.SpliffySyncResourceFactory">
+        <constructor-arg ref="hash.store" />
+        <constructor-arg ref="blob.store" />
+        <constructor-arg ref="security.manager" />
+    </bean>
+    
+    <bean id="resource.factory" class="com.bradmcevoy.http.MultipleResourceFactory">
+        <constructor-arg>
+            <list>
+                <ref local="main.spliffy.resource.factory" />
+                <ref local="sync.spliffy.resource.factory" />
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean id="open.session.in.view.filter" class="org.spliffy.server.db.MiltonOpenSessionInViewFilter">
@@ -62,15 +70,19 @@
         <property name="buffering" value="never" />
     </bean>
 
+    <!--
     <bean id="ftp.security.manager" class="com.ettrema.ftp.WrappingFtpSecurityManager">
         <constructor-arg ref="security.manager"/>
     </bean>
+    -->
 
     <!-- Adapts the specified milton security manager to the FTP server -->
+    <!--
     <bean id="ftp.user.manager" class="com.ettrema.ftp.UserManagerAdapter">
         <constructor-arg ref="resource.factory"/>
         <constructor-arg ref="ftp.security.manager"/>
     </bean>
+    -->
 
     <!-- This server will provide access to the same resources available on webdav
     via FTP -->

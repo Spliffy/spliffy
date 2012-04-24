@@ -21,10 +21,14 @@ public class DefaultVersionNumberGenerator implements VersionNumberGenerator{
     public synchronized long nextVersionNumber(Repository r) {
         Long l = mapOfCounters.get(r.getId());
         if( l == null ) {
-            l = 0l;
-        } else {
-            l++;
+            RepoVersion rv = r.latestVersion();
+            if( rv != null ) {
+                l = rv.getVersionNum();
+            } else {
+                l = 0l;
+            }
         }
+        l = l+1;
         mapOfCounters.put(r.getId(), l);
         return l;
     }
