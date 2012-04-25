@@ -1,18 +1,13 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.MakeCollectionableResource;
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import org.hashsplit4j.api.BlobStore;
-import org.hashsplit4j.api.HashStore;
+import com.bradmcevoy.http.exceptions.NotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
@@ -21,14 +16,14 @@ import org.spliffy.server.db.*;
  *
  * @author brad
  */
-public class UserResource extends AbstractSpliffyCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource {
+public class UserResource extends AbstractSpliffyCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource {
 
     private final User user;
     private final VersionNumberGenerator versionNumberGenerator;
     private List<RepoResource> children;
 
-    public UserResource(User u, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
-        super(hashStore, blobStore);
+    public UserResource(User u, Services services, VersionNumberGenerator versionNumberGenerator) {
+        super(services);
         this.user = u;
         this.versionNumberGenerator = versionNumberGenerator;
 
@@ -41,12 +36,12 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
 
     @Override
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
-        if( children == null ) {
+        if (children == null) {
             children = new ArrayList();
             if (user.getRepositories() != null) {
                 for (Repository r : user.getRepositories()) {
                     RepoVersion rv = r.latestVersion();
-                    RepoResource rr = new RepoResource(r, rv, hashStore, blobStore, versionNumberGenerator);
+                    RepoResource rr = new RepoResource(r, rv, services, versionNumberGenerator);
                     children.add(rr);
                 }
             }
@@ -76,7 +71,7 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
         SessionManager.session().save(r);
         tx.commit();
         RepoVersion rv = r.latestVersion();
-        return new RepoResource(r, rv,hashStore, blobStore, versionNumberGenerator);
+        return new RepoResource(r, rv, services, versionNumberGenerator);
     }
 
     @Override
@@ -102,5 +97,25 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
     @Override
     public Date getModifiedDate() {
         return user.getModifiedDate();
+    }
+
+    @Override
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
+        getTemplater().writePage("userHome.ftl", this, params, out);
+    }
+
+    @Override
+    public Long getMaxAgeSeconds(Auth auth) {
+        return null;
+    }
+
+    @Override
+    public String getContentType(String accepts) {
+        return "text/html";
+    }
+
+    @Override
+    public Long getContentLength() {
+        return null;
     }
 }

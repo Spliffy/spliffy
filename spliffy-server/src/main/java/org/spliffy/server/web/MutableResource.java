@@ -15,6 +15,8 @@ public interface MutableResource extends Resource {
 
     HashStore getHashStore();
     
+    Services getServices();
+    
     public abstract Long getEntryHash();
     
     public abstract UUID getMetaId();    

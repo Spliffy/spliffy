@@ -15,5 +15,27 @@ import java.io.IOException;
  * @author brad
  */
 public interface DeltaWalker {
-    void scanDir(File localParent, String encodedPath, ScanningHashStore scanningHashStore, DeltaListener listener) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException;
+    /**
+     * Scan the local and remote directories, updating local files and 
+     * sending new data to the server as it goes.
+     * 
+     * Data sent to the server should only be objects, not the top level hash
+     * which links everything together. That hash should be returned by this function
+     * and a higher level function will submit that
+     * 
+     * @param remoteDirHash
+     * @param localParent
+     * @param encodedPath
+     * @param scanningHashStore
+     * @param listener
+     * @return - the new hash of the directory, based on local data after it has
+     * been merged with changes from the server
+     * @throws IOException
+     * @throws HttpException
+     * @throws NotAuthorizedException
+     * @throws BadRequestException
+     * @throws ConflictException
+     * @throws NotFoundException 
+     */
+    Long scanDir(Long remoteDirHash, File localParent, String encodedPath, ScanningHashStore scanningHashStore, DeltaListener listener) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException;
 }

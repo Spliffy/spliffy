@@ -11,13 +11,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import org.hashsplit4j.api.BlobStore;
-import org.hashsplit4j.api.HashStore;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.DirEntry;
-import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
 import org.spliffy.server.db.ResourceVersionMeta;
 import org.spliffy.server.db.SessionManager;
 
@@ -32,8 +29,8 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     private List<MutableResource> children;
     private boolean dirty;
 
-    public RepoDirectoryResource(String name, ResourceVersionMeta meta, MutableCollection parent, HashStore hashStore, BlobStore blobStore) {
-        super(name, meta, parent, hashStore, blobStore);
+    public RepoDirectoryResource(String name, ResourceVersionMeta meta, MutableCollection parent, Services services) {
+        super(name, meta, parent, services);
     }
 
     @Override
@@ -44,7 +41,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
 
             MutableCollection newParent = (MutableCollection) toCollection;
             ResourceVersionMeta newMeta = Utils.newFileMeta();
-            RepoDirectoryResource newDir = new RepoDirectoryResource(newName, newMeta, newParent, getHashStore(), getBlobStore());
+            RepoDirectoryResource newDir = new RepoDirectoryResource(newName, newMeta, newParent, services);
             newDir.setHash(hash);
             newParent.addChild(newDir);
             newParent.save(session);
@@ -99,7 +96,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta newMeta = Utils.newDirMeta();
-        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newMeta, this, hashStore, blobStore);
+        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newMeta, this, services);
         getChildren(); // ensure loaded
         children.add(rdr);
 
@@ -152,7 +149,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta newMeta = Utils.newFileMeta();
-        RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, getHashStore(), getBlobStore());
+        RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, services);
 
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {
@@ -165,7 +162,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         } else {
             // parse data and persist to stores
             Parser parser = new Parser();
-            long fileHash = parser.parse(inputStream, hashStore, blobStore);
+            long fileHash = parser.parse(inputStream, getHashStore(), getBlobStore());
 
             // add a reference to the new child
             getChildren();
@@ -189,7 +186,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         String type = HttpManager.request().getParams().get("type");
         if (type == null) {
             // output directory listing
-            DirectoryUtils.writeIndexPage(this, params);
+            getTemplater().writePage("directoryIndex.ftl", this, params, out);
         } else {
             if (type.equals("hashes")) {
                 HashCalc.calcResourceesHash(getChildren(), out);
@@ -224,6 +221,11 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     @Override
     public MutableCollection getParent() {
         return parent;
+    }
+
+    @Override
+    public boolean isDir() {
+        return true;
     }
     
     

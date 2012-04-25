@@ -61,7 +61,7 @@ public class HashCalc {
     public static long calcResourceesHash(List<MutableResource> children, OutputStream out) throws IOException {
         CheckedOutputStream cout = new CheckedOutputStream(out, new Adler32());
         for (MutableResource r : children) {
-            String type = (r instanceof AbstractSpliffyCollectionResource) ? "d" : "f";
+            String type = (r instanceof MutableCollection) ? "d" : "f";
             String line = HashUtils.toHashableText(r.getName(), r.getEntryHash(), r.getMetaId(), type);
             HashUtils.appendLine(line, cout);
         }

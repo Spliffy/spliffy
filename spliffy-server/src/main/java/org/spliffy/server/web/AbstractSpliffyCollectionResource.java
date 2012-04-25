@@ -19,7 +19,14 @@ public abstract class AbstractSpliffyCollectionResource extends AbstractSpliffyR
     public abstract long save(Session session);
     
    
-    public AbstractSpliffyCollectionResource(HashStore hashStore, BlobStore blobStore) {
-        super(hashStore, blobStore);
-    }    
+    public AbstractSpliffyCollectionResource(Services services) {
+        super(services);
+    }
+
+    @Override
+    public boolean isDir() {
+        return true;
+    }
+    
+    
 }

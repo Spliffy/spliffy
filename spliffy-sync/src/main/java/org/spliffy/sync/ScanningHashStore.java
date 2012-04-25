@@ -64,7 +64,6 @@ public class ScanningHashStore implements HashStore {
             List<FileTriplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
             mapOfRemoteTriplets = HashUtils.toMap(triplets);
         } catch (NotFoundException ex) {
-            System.out.println("not found: " + encodedDirPath);
             mapOfRemoteTriplets = new HashMap<>();
         }
 

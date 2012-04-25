@@ -14,7 +14,6 @@ import java.util.Map;
 import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
 import org.spliffy.server.db.ResourceVersionMeta;
 import org.spliffy.server.db.SessionManager;
 
@@ -29,8 +28,8 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
 
     private Fanout fanout;
 
-    public RepoFileResource(String name, ResourceVersionMeta meta, MutableCollection parent, HashStore hashStore, BlobStore blobStore) {
-        super(name, meta, parent, hashStore, blobStore);
+    public RepoFileResource(String name, ResourceVersionMeta meta, MutableCollection parent, Services services) {
+        super(name, meta, parent, services);
     }
 
     @Override
@@ -41,7 +40,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
 
             MutableCollection newParent = (MutableCollection) toCollection;
             ResourceVersionMeta newMeta = Utils.newFileMeta();
-            RepoFileResource fileResource = new RepoFileResource(newName, newMeta, newParent, getHashStore(), getBlobStore());
+            RepoFileResource fileResource = new RepoFileResource(newName, newMeta, newParent, services);
             fileResource.setHash(hash);
             newParent.addChild(fileResource);
             newParent.save(session);
@@ -71,7 +70,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
             Parser parser = new Parser();
             long fileHash;
             try {
-                fileHash = parser.parse(in, hashStore, blobStore);
+                fileHash = parser.parse(in, getHashStore(), getBlobStore());
             } catch (IOException ex) {
                 throw new BadRequestException("Couldnt parse given data", ex);
             }
@@ -91,7 +90,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
         Combiner combiner = new Combiner();
         List<Long> fanoutCrcs = getFanout().getHashes();
-        combiner.combine(fanoutCrcs, hashStore, blobStore, out);
+        combiner.combine(fanoutCrcs, getHashStore(), getBlobStore(), out);
         out.flush();
     }
 
@@ -108,11 +107,16 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
 
     private Fanout getFanout() {
         if (fanout == null) {
-            fanout = hashStore.getFanout(hash);
+            fanout = getHashStore().getFanout(hash);
             if (fanout == null) {
                 throw new RuntimeException("Fanout not found: " + hash);
             }
         }
         return fanout;
     }
+    
+    @Override
+    public boolean isDir() {
+        return false;
+    }    
 }

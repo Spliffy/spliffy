@@ -4,16 +4,16 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import javax.swing.JOptionPane;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.hashsplit4j.api.HashCache;
 import org.hashsplit4j.api.HttpBlobStore;
 import org.hashsplit4j.api.HttpHashStore;
 
@@ -22,40 +22,42 @@ import org.hashsplit4j.api.HttpHashStore;
  * @author brad
  */
 public class SpliffySync {
+
     public static void main(String[] args) throws Exception {
         String sLocalDir = args[0];
         String sRemoteAddress = args[1];
         String user = args[2];
         String pwd = args[3];
-        
+
         File fLocal = new File(sLocalDir);
         URL url = new URL(sRemoteAddress);
         HttpClient client = createHost(url, user, pwd);
-        
+
         System.out.println("Sync: " + fLocal.getAbsolutePath() + " - " + sRemoteAddress);
-        
+
         File dbFile = new File("target/db");
         System.out.println("Using database: " + dbFile.getAbsolutePath());
-        
+
         DbInitialiser dbInit = new DbInitialiser(dbFile);
-        
+
         JdbcHashCache fanoutsHashCache = new JdbcHashCache(dbInit.getUseConnection(), dbInit.getDialect(), "h");
         JdbcHashCache blobsHashCache = new JdbcHashCache(dbInit.getUseConnection(), dbInit.getDialect(), "b");
-        
-        HttpHashStore httpHashStore = new HttpHashStore(client, fanoutsHashCache);        
-        httpHashStore.setBaseUrl( "/_hashes/fanouts/");
+
+        HttpHashStore httpHashStore = new HttpHashStore(client, fanoutsHashCache);
+        httpHashStore.setBaseUrl("/_hashes/fanouts/");
         HttpBlobStore httpBlobStore = new HttpBlobStore(client, blobsHashCache);
-        httpBlobStore.setBaseUrl( "/_hashes/blobs/");
-                
+        httpBlobStore.setBaseUrl("/_hashes/blobs/");
+
         LastBackedupStore lastBackedupStore = new JdbcLastBackedupStore(dbInit.getUseConnection(), dbInit.getDialect());
         DeltaWalker deltaWalker = new DefaultDeltaWalker(client, lastBackedupStore);
-        
-        Syncer syncer = new Syncer(httpHashStore, httpBlobStore, lastBackedupStore, client, new Archiver());
+
+        Archiver archiver = new Archiver();
+        Syncer syncer = new Syncer(httpHashStore, httpBlobStore, lastBackedupStore, client, archiver);
         syncer.setBaseUrl(url.getPath());
-                
-        SpliffySync spliffySync = new SpliffySync(fLocal, client, lastBackedupStore, url.getPath(), deltaWalker, syncer);
-        spliffySync.scan();        
-        
+
+        SpliffySync spliffySync = new SpliffySync(fLocal, client, lastBackedupStore, url.getPath(), deltaWalker, syncer, archiver);
+        spliffySync.scan();
+
         System.out.println("Stats---------");
         System.out.println("fanouts cache: hits: " + fanoutsHashCache.getHits() + " misses:" + fanoutsHashCache.getMisses() + " inserts: " + fanoutsHashCache.getInserts());
         System.out.println("blobs cache: hits: " + blobsHashCache.getHits() + " misses:" + blobsHashCache.getMisses() + " inserts: " + blobsHashCache.getInserts());
@@ -63,8 +65,8 @@ public class SpliffySync {
         System.out.println("http blob gets: " + httpBlobStore.getGets() + " sets: " + httpBlobStore.getSets());
     }
 
-    private static HttpClient createHost(URL url, String user, String pwd) throws MalformedURLException {        
-        
+    private static HttpClient createHost(URL url, String user, String pwd) throws MalformedURLException {
+
         HttpClient client = new HttpClient();
         client.getHttpConnectionManager().getParams().setConnectionTimeout(10000);
         if (user != null) {
@@ -81,33 +83,34 @@ public class SpliffySync {
         client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, handler);
         client.getHostConfiguration().setHost(url.getHost(), url.getPort(), url.getProtocol());
         return client;
-    }    
-    
+    }
     private final File local;
     private final HttpClient httpClient;
     private final Syncer syncer;
     private final String basePath;
     private final DeltaWalker deltaWalker;
-
+    private final Archiver archiver;
     private long localHash;
     private Long remoteHash;
-    
-    public SpliffySync(File local, HttpClient httpClient, LastBackedupStore hashCache, String basePath, DeltaWalker deltaWalker, Syncer syncer) {
+
+    public SpliffySync(File local, HttpClient httpClient, LastBackedupStore hashCache, String basePath, DeltaWalker deltaWalker, Syncer syncer, Archiver archiver) {
         this.local = local;
         this.httpClient = httpClient;
         this.basePath = basePath;
-        this.deltaWalker = deltaWalker;                      
+        this.deltaWalker = deltaWalker;
         this.syncer = syncer;
+        this.archiver = archiver;
     }
 
     public void scan() throws com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException, IOException {
         doScan();
     }
-    
+
     public void doScan() throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
         ScanningHashStore scanningHashStore = new ScanningHashStore(httpClient, local, basePath);
         localHash = scanningHashStore.scan();
         System.out.println("Local hash: " + localHash);
+        findRemoteHash();
         System.out.println("Remote hash: " + remoteHash);
         if (remoteHash != null) {
             if (localHash == remoteHash.longValue()) {
@@ -116,49 +119,28 @@ public class SpliffySync {
             }
         }
 
-        SyncingDeltaListener deltaListener = new SyncingDeltaListener();
-        deltaWalker.scanDir(local, basePath, scanningHashStore, deltaListener);              
+        SyncingDeltaListener deltaListener = new SyncingDeltaListener(syncer, archiver);
+        Long newRemoteHash = deltaWalker.scanDir(remoteHash, local, basePath, scanningHashStore, deltaListener);
+//        if (hashesChanged(remoteHash, newRemoteHash)) {
+//            updateRepoHash();
+//        }
     }
 
-    private class SyncingDeltaListener implements DeltaListener {
+    private void findRemoteHash() throws NotFoundException, IOException {
+        byte[] arr = HttpUtils.get(httpClient, basePath + "?type=hash");
+        DataInputStream din = new DataInputStream(new ByteArrayInputStream(arr));
+        remoteHash = din.readLong();
+    }
 
-        @Override
-        public void onRemoteChange(long hash, File localChild) throws IOException {
-            syncer.downloadSync(hash, localChild);
-        }
-
-        @Override
-        public void onLocalChange(String encodedPath, File localFile) throws IOException {            
-            // 
-            if( localFile.isFile()) {
-                System.out.println("LocalChange - " + localFile.getAbsolutePath());
-                syncer.upSync(encodedPath, localFile);
+    private boolean hashesChanged(Long remoteHash, Long newRemoteHash) {
+        if( remoteHash == null ) {
+            return newRemoteHash != null;
+        } else {
+            if( newRemoteHash == null ) {
+                throw new RuntimeException("New remote hash is null??");
             } else {
-                // ignore locally new directories. Remote dirs get created implicitly
-                // when files are uploaded
-                // Probably should explicitly create empty dirs if needed though
-                System.out.println("New directory, but ignoring for now");
+                return remoteHash.longValue() != newRemoteHash.longValue();
             }
         }
-
-        @Override
-        public void onTreeConflict(File localChild) {
-            Thread.dumpStack();
-            JOptionPane.showMessageDialog(null, "Oh oh, remote is a file but local is a directory: " + localChild.getAbsolutePath());
-        }
-
-        @Override
-        public void onFileConflict(long remoteHash, File localFile, String encodedPath) {
-            Thread.dumpStack();
-            JOptionPane.showMessageDialog(null, "Files are in conflict. There has been a change to a local file, but also a change to the corresponding remote file: " + localFile.getAbsolutePath());
-        }
-
-        @Override
-        public void onLocallyDeleted(File localChild, String childEncodedPath) {
-            syncer.deleteRemoteFile(childEncodedPath);
-        }                
     }
-    
-
-
 }

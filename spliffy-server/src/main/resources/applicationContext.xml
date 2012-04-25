@@ -25,8 +25,14 @@
     
     
     <bean id="volume.allocator" class="org.spliffy.server.db.store.SingleVolumeInstanceAllocator"/>
+        
+    <bean id="blob.store" class="org.spliffy.server.db.store.FileSystemBlobStore">
+        <constructor-arg value="target/blobs" />
+    </bean>
     
-    <bean id="blob.store" class="org.spliffy.server.db.store.VolumeBlobStore">
+    <!-- This is a much more robust blob store, but experimental -->
+    <!--
+    <bean id="blob.store" class="org.spliffy.server.db.store.HAVolumeBlobStore">
         <constructor-arg ref="volume.allocator"/>
         <constructor-arg>
             <list>
@@ -35,12 +41,16 @@
         </constructor-arg>
         <constructor-arg ref="session.manager" />
     </bean>
+    -->
 
     <bean id="hash.store" class="org.spliffy.server.db.store.SpliffyHashStore"/>
     
     <bean id="version.number.generator" class="org.spliffy.server.db.DefaultVersionNumberGenerator"/>
 
     <bean id="security.manager" class="org.spliffy.server.web.SpliffySecurityManager"/>
+    
+    <!-- default config is to load templates from WEB-INF/templates -->
+    <bean id="templater" class="org.spliffy.server.web.FreemarkerTemplater"/>
 
     <bean id="main.spliffy.resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory">
         <!--        
@@ -51,6 +61,7 @@
         <constructor-arg ref="hash.store"/>
         <constructor-arg ref="version.number.generator"/>
         <constructor-arg ref="security.manager"/>
+        <constructor-arg ref="templater"/>
     </bean>
     
     <bean id="sync.spliffy.resource.factory" class="org.spliffy.server.web.sync.SpliffySyncResourceFactory">

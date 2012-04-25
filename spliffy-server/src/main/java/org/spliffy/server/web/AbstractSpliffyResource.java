@@ -4,11 +4,9 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
-import java.util.Date;
 import java.util.UUID;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
-import org.hibernate.Session;
 
 /**
  *
@@ -21,14 +19,16 @@ public abstract class AbstractSpliffyResource implements PropFindableResource {
     public abstract Long getEntryHash();
     
     public abstract UUID getMetaId();
-
-    protected final HashStore hashStore;
     
-    protected final BlobStore blobStore;
+    /**
+     * For templating, return true if this is a directory, false for a file
+     */
+    public abstract boolean isDir();
 
-    public AbstractSpliffyResource(HashStore hashStore, BlobStore blobStore) {
-        this.hashStore = hashStore;
-        this.blobStore = blobStore;
+    protected final Services services;
+
+    public AbstractSpliffyResource(Services services) {
+        this.services = services;
     }
 
     @Override
@@ -57,12 +57,21 @@ public abstract class AbstractSpliffyResource implements PropFindableResource {
     }
 
     public BlobStore getBlobStore() {
-        return blobStore;
+        return services.getBlobStore();
     }
 
     public HashStore getHashStore() {
-        return hashStore;
+        return services.getHashStore();
+    }
+    
+    public Templater getTemplater() {
+        return services.getTemplater();
     }
 
+    public Services getServices() {
+        return services;
+    }
+
+    
     
 }

@@ -6,7 +6,6 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
 import java.util.UUID;
-import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
@@ -22,8 +21,8 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
     protected ResourceVersionMeta meta;
     protected long hash;
 
-    public AbstractMutableSpliffyResource(String name, ResourceVersionMeta meta, MutableCollection parent, HashStore hashStore, BlobStore blobStore) {
-        super(hashStore, blobStore);
+    public AbstractMutableSpliffyResource(String name, ResourceVersionMeta meta, MutableCollection parent, Services services) {
+        super(services);
         this.meta = meta;
         this.name = name;
         this.parent = parent;

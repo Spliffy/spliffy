@@ -119,13 +119,13 @@ public class Syncer {
         System.out.println("Finished update!");
     }
 
-    public void deleteRemoteFile(String childEncodedPath) {
-        try {
-            HttpUtils.delete(client, childEncodedPath);
-        } catch (NotFoundException ex) {
-            System.out.println("Not Found: " + childEncodedPath + " - ignoring exception because we were going to delete it anyway");
-        }
-    }
+//    public void deleteRemoteFile(String childEncodedPath) {
+//        try {
+//            HttpUtils.delete(client, childEncodedPath);
+//        } catch (NotFoundException ex) {
+//            //System.out.println("Not Found: " + childEncodedPath + " - ignoring exception because we were going to delete it anyway");
+//        }
+//    }
     
     public void upSync(String encodedPath, File file) throws FileNotFoundException, IOException {
         System.out.println("upSync: " + encodedPath);
@@ -139,7 +139,7 @@ public class Syncer {
             hashCache.setBackedupHash(file, newHash);
 
             // Now set the new hash on the remote file, which effectively commits the new content
-            updateHashOnRemoteResource(newHash, encodedPath);
+            //updateHashOnRemoteResource(newHash, encodedPath);
         } finally {
             IOUtils.closeQuietly(fin);
         }

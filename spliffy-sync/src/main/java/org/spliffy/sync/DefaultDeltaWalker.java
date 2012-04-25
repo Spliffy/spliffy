@@ -33,8 +33,7 @@ public class DefaultDeltaWalker implements DeltaWalker {
     }
 
     @Override
-    public void scanDir(File localParent, String encodedPath, ScanningHashStore scanningHashStore, DeltaListener listener) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
-        System.out.println("DefaultDeltaWalker: scanDir: " + encodedPath);
+    public Long scanDir(Long remoteDirHash, File localParent, String encodedPath, ScanningHashStore scanningHashStore, DeltaListener listener) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException {        
         List<FileTriplet> remoteTriplets = getRemoteTriplets(encodedPath);
         for (FileTriplet remoteTriplet : remoteTriplets) {
             File localChild = new File(localParent, remoteTriplet.getName());
@@ -52,16 +51,16 @@ public class DefaultDeltaWalker implements DeltaWalker {
                     } else {
                         if (!localChild.isDirectory()) {
                             listener.onTreeConflict(localChild);
-                            return;
+                            throw new RuntimeException("cant handle conflicts yet");
                         }
                     }
                     childEncodedPath += "/";
-                    scanDir(localChild, childEncodedPath, scanningHashStore, listener);
+                    scanDir(remoteTriplet.getHash(), localChild, childEncodedPath, scanningHashStore, listener);
                 } else {
                     // remote resource is a file and is new or updated. Local file might also be updated which would be a conflict
-                    System.out.println("Check new or modified remote file: " + localChild.getAbsolutePath());
                     if (localChild.exists()) {
                         if (localChild.isDirectory()) {
+                            System.out.println("tree conflict on remote path: " + encodedPath);
                             listener.onTreeConflict(localChild);
                         } else {
                             checkFileUpdate(localChild, childEncodedPath, remoteTriplet, localTriplet, listener);
@@ -72,54 +71,72 @@ public class DefaultDeltaWalker implements DeltaWalker {
                         // If the last backed up crc is same as on the server then it was deleted locally, so we should delete on server.                        
                         // If the last backed crc exists but is different to server then it has been locally deleted and remotely modified = conflict
                         Long lastBackedup = lastBackedupStore.findBackedUpHash(localChild);
-                        if( lastBackedup == null ) {
-                            listener.onRemoteChange(remoteTriplet.getHash(), localChild);
+                        if (lastBackedup == null) {
+                            listener.onRemoteChange(remoteTriplet.getHash(), remoteTriplet.isDirectory(), localChild);
                         } else {
-                            if( lastBackedup == remoteTriplet.getHash()) {
+                            if (lastBackedup == remoteTriplet.getHash()) {
                                 // locally deleted, clean server copy
-                                listener.onLocallyDeleted(localChild, childEncodedPath);
+                                listener.onLocalDeletetion(localChild, childEncodedPath);
                             } else {
                                 // technically a conflict, but simplest thing is to restore latest version
-                                listener.onRemoteChange(remoteTriplet.getHash(), localChild);
+                                listener.onRemoteChange(remoteTriplet.getHash(),remoteTriplet.isDirectory(), localChild);
                             }
                         }
-                                
+
                     }
                 }
             }
         }
-
+        System.out.println("check locally new stuff");
         // Now check for locally new resources
         Set<String> remoteNames = toSet(remoteTriplets);
-        for (File childFile : localParent.listFiles()) {
-            if( !scanningHashStore.ignored(childFile)) {
-                if (!remoteNames.contains(childFile.getName())) {
-                    String childEncodedPath = encodedPath;
-                    if( !childEncodedPath.endsWith("/")) {
-                        childEncodedPath+="/";
-                    }
-                    childEncodedPath += Utils.percentEncode(childFile.getName());
-                    listener.onLocalChange(childEncodedPath, childFile);
-                    if( childFile.isDirectory() ) {
-                        scanDir(childFile, childEncodedPath, scanningHashStore, listener);
+        System.out.println("got remote set");
+        File[] childFiles = localParent.listFiles();
+        if (childFiles != null) {
+            System.out.println("child files: " + childFiles.length);
+            for (File childFile : childFiles) {
+                System.out.println("check local: " + childFile.getAbsolutePath());
+                if (!scanningHashStore.ignored(childFile)) {
+                    if (!remoteNames.contains(childFile.getName())) {
+                        String childEncodedPath = encodedPath;
+                        System.out.println("Found local resource not on server: " + childEncodedPath);
+                        if (!childEncodedPath.endsWith("/")) {
+                            childEncodedPath += "/";
+                        }
+                        childEncodedPath += Utils.percentEncode(childFile.getName());
+                        if (childFile.isDirectory()) {
+                            System.out.println("  is dir, continue");
+                            scanDir(null, childFile, childEncodedPath, scanningHashStore, listener);
+                        } else {
+                            System.out.println("  not dir, check for confilct");
+                            // there is a local file which is not on the server. This could be
+                            // a remote deletion to be applied locally, or it could be a new file to
+                            // be uploaded.
+                            Long backedUpHash = lastBackedupStore.findBackedUpHash(childFile);
+                            if (backedUpHash == null) {
+                                // not previously backed up, so is locally new                        
+                                listener.onLocalChange(childEncodedPath, childFile);
+                            } else {
+                                // was previously backed up, but has been deleted on the server, so delete locally
+                                listener.onRemoteDeletion(childEncodedPath, childFile);
+                            }
+                        }
                     }
                 }
             }
         }
+        throw new RuntimeException("nothing to return yet");
     }
 
     private List<FileTriplet> getRemoteTriplets(String path) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException {
-        System.out.println("getRemoteTriplets: " + path);
         try {
             byte[] arrRemoteTriplets = HttpUtils.get(httpClient, path + "?type=hashes");
             List<FileTriplet> remoteTriplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
-            for (FileTriplet t : remoteTriplets) {
-                System.out.println(" - " + t.getName());
-            }
-            System.out.println("    triplets: " + remoteTriplets.size() + " - " + path);
+//            for (FileTriplet t : remoteTriplets) {
+//                System.out.println(" - " + t.getName());
+//            }
             return remoteTriplets;
         } catch (NotFoundException ex) {
-            System.out.println("Not found: " + path);
             return Collections.EMPTY_LIST;
         }
     }
@@ -150,7 +167,7 @@ public class DefaultDeltaWalker implements DeltaWalker {
                     System.out.println("Local file matches server, no change: " + localFile.getAbsolutePath());
                 } else {
                     System.out.println("Remote file is updated and local file is unchanged, so download");
-                    listener.onRemoteChange(remoteTriplet.getHash(), localFile);
+                    listener.onRemoteChange(remoteTriplet.getHash(),remoteTriplet.isDirectory(), localFile);
                 }
             } else {
                 // local file has changed, check for conflict
@@ -161,7 +178,7 @@ public class DefaultDeltaWalker implements DeltaWalker {
                     // local file has changed, but remote file has also changed, and they're not the same
                     // -->> CONFLICT!!
                     System.out.println("Conflict: " + localFile.getAbsolutePath());
-                    if( localTriplet != null ) {
+                    if (localTriplet != null) {
                         System.out.println("current local hash: " + localTriplet.getHash());
                     } else {
                         System.out.println("current local hash: none");
@@ -176,7 +193,7 @@ public class DefaultDeltaWalker implements DeltaWalker {
 
     private Set<String> toSet(List<FileTriplet> remoteTriplets) {
         Set<String> set = new HashSet<>();
-        for( FileTriplet r : remoteTriplets) {
+        for (FileTriplet r : remoteTriplets) {
             set.add(r.getName());
         }
         return set;

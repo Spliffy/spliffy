@@ -27,17 +27,15 @@ import org.spliffy.server.db.VersionNumberGenerator;
 public class SpliffyResourceFactory implements ResourceFactory {
 
     private final UserDao userDao;    
-    private final HashStore hashStore;
-    private final BlobStore blobStore;
     private final VersionNumberGenerator versionNumberGenerator;
     private final SpliffySecurityManager securityManager;
+    private final Services services;
 
-    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager) {
+    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Templater templater) {
         this.userDao = userDao;
-        this.hashStore = hashStore;
-        this.blobStore = blobStore;
         this.versionNumberGenerator = versionNumberGenerator;
         this.securityManager = securityManager;
+        this.services = new Services(hashStore, blobStore, templater);
     }
 
     @Override
@@ -119,7 +117,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
             if (u == null) {
                 return null;
             } else {
-                UserResource ur = new UserResource(u, hashStore, blobStore, versionNumberGenerator);
+                UserResource ur = new UserResource(u, services, versionNumberGenerator);
                 children.put(childName, ur);
                 return ur;
             }

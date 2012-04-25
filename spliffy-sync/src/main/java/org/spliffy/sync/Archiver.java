@@ -14,6 +14,12 @@ import java.io.File;
  * @author brad
  */
 public class Archiver {
+
+    public Archiver() {
+    }
+    
+    
+    
     public void archive(File f) {
         File versions = getVersionsDir(f);
         File dest = new File(versions, f.getName());

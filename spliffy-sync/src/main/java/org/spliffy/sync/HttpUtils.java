@@ -12,7 +12,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
  */
 public class HttpUtils {
     public static byte[] get(HttpClient client, String path) throws NotFoundException {
-        System.out.println("get: " + path);
         GetMethod getMethod = new GetMethod(path);
         int result;
         try {

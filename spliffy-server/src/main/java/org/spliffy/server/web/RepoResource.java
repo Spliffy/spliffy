@@ -10,8 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.hashsplit4j.api.BlobStore;
-import org.hashsplit4j.api.HashStore;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -37,8 +35,8 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     
     private RepoVersion repoVersion; // may be null
 
-    public RepoResource(Repository repository, RepoVersion repoVersion, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator) {
-        super(hashStore, blobStore);
+    public RepoResource(Repository repository, RepoVersion repoVersion,Services services, VersionNumberGenerator versionNumberGenerator) {
+        super(services);
         this.repository = repository;
         this.versionNumberGenerator = versionNumberGenerator;
         this.repoVersion = repoVersion;
@@ -72,7 +70,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta meta = Utils.newDirMeta();
-        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, meta, this, hashStore, blobStore);
+        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, meta, this, services);
         addChild(rdr);        
         save(session);
 
@@ -87,7 +85,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         Transaction tx = session.beginTransaction();
 
         ResourceVersionMeta newMeta = Utils.newFileMeta();
-        RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, getHashStore(), getBlobStore());
+        RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, services);
 
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {
@@ -100,7 +98,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         } else {
             // parse data and persist to stores
             Parser parser = new Parser();
-            long fileHash = parser.parse(inputStream, hashStore, blobStore);
+            long fileHash = parser.parse(inputStream, getHashStore(), getBlobStore());
 
             // add a reference to the new child
             getChildren();
@@ -172,18 +170,21 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         String type = HttpManager.request().getParams().get("type");
         if (type == null) {
             // output directory listing
-            DirectoryUtils.writeIndexPage(this, params);
+            getTemplater().writePage("repoHome.ftl", this, params, out);
         } else {
-            if (type.equals("hashes")) {
-                HashCalc.calcResourceesHash(getChildren(), out);
-                out.flush();
-            } else if (type.equals("revision")) {
-                // write the version number (revision) followed by the directory hash
-                RepoVersion rv = repository.latestVersion();
-                try (DataOutputStream dout = new DataOutputStream(out)) {
-                    dout.writeLong(rv.getVersionNum());
-                    dout.writeLong(rv.getDirHash());
-                }
+            switch (type) {
+                case "hashes":
+                    HashCalc.calcResourceesHash(getChildren(), out);
+                    out.flush();
+                    break;
+                case "revision":
+                    // write the version number (revision) followed by the directory hash
+                    RepoVersion rv = repository.latestVersion();
+                    try (DataOutputStream dout = new DataOutputStream(out)) {
+                        dout.writeLong(rv.getVersionNum());
+                        dout.writeLong(rv.getDirHash());
+                    }
+                    break;
             }
         }
     }

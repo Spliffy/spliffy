@@ -26,13 +26,14 @@ public class Utils {
         UUID metaId = de.getMetaId();
         ResourceVersionMeta meta = ResourceVersionMeta.find(metaId); 
         String type = meta.getResourceMeta().getType();
+        System.out.println("toResource: " + de.getName() + " type: " + type);
         switch (type) {
             case "d":
-                RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(),meta, parent, parent.getHashStore(), parent.getBlobStore());
+                RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(),meta, parent, parent.getServices());
                 rdr.setHash(de.getEntryHash());
                 return rdr;
             case "f":
-                RepoFileResource rfr = new RepoFileResource(de.getName(), meta, parent, parent.getHashStore(), parent.getBlobStore());
+                RepoFileResource rfr = new RepoFileResource(de.getName(), meta, parent, parent.getServices());
                 rfr.setHash(de.getEntryHash());
                 return rfr;
             default:
