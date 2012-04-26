@@ -99,17 +99,30 @@
                 <div class="nav">
                     <ul>
                         <li class="nav-myDashboard">
-                            <a href="/dashboard" shape="rect">My Dashboard</a>
+                            <a href="/dashboard" shape="rect">Dashboard</a>
                         </li>                    
-                        <li class="nav-myLearning">
-                            <a href="/myLearning" shape="rect">My Learning</a>
+                        <li class="nav-myDashboard">
+                            <a href="/files" shape="rect">Files</a>
                         </li>                    
-                        <li class="nav-myResources">
-                            <a href="/resources" shape="rect">Resources</a>
+                        <li class="nav-myDashboard">
+                            <a href="/photos" shape="rect">Photos</a>
                         </li>                    
-                        <li class="nav-myCommunity">
-                            <a href="/community" shape="rect">Community</a>
+                        <li class="nav-myDashboard">
+                            <a href="/music" shape="rect">Music</a>
                         </li>                    
+                        <li class="nav-myDashboard">
+                            <a href="/music" shape="rect">Videos</a>
+                        </li>           
+                        <li class="nav-myDashboard">
+                            <a href="/music" shape="rect">Calendar</a>
+                        </li>                              
+                        <li class="nav-myDashboard">
+                            <a href="/music" shape="rect">Contacts</a>
+                        </li>                              
+                        <li class="nav-myDashboard">
+                            <a href="/music" shape="rect">Sharing</a>
+                        </li>                              
+                        
                     </ul>  
                     <div class="clr">.</div>
                 </div>
