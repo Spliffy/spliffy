@@ -2,7 +2,10 @@ package org.spliffy.common;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
+import java.util.zip.Checksum;
+import org.apache.commons.io.output.NullOutputStream;
 import org.hashsplit4j.api.NullBlobStore;
 import org.hashsplit4j.api.NullHashStore;
 import org.hashsplit4j.api.Parser;
@@ -12,6 +15,25 @@ import org.hashsplit4j.api.Parser;
  * @author brad
  */
 public class HashUtils {
+    
+    public static long calcTreeHash(List<Triplet> triplets) {
+        OutputStream nulOut = new NullOutputStream();
+        CheckedOutputStream cout = new CheckedOutputStream(nulOut, new Adler32());
+        Set<String> names = new HashSet<>();
+        for (Triplet r : triplets) {
+            String name = r.getName();
+            if (names.contains(name)) { // defensive check
+                throw new RuntimeException("Name not unique within collection: " + name);
+            }
+            names.add(name);
+            String line = HashUtils.toHashableText(name, r.getHash(), r.getType());
+            HashUtils.appendLine(line, cout);
+        }
+        Checksum check = cout.getChecksum();
+        long crc = check.getValue();
+        return crc;
+    }    
+    
     /**
      * 
      * @param name - the name of the resource as it appears withint the current directory
@@ -53,7 +75,7 @@ public class HashUtils {
         Triplet triplet = new Triplet();
         triplet.setName(arr[0]);
         triplet.setHash(Long.parseLong(arr[1]));
-        triplet.setType(arr[3]);
+        triplet.setType(arr[2]);
         return triplet;
     }
     

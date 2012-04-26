@@ -26,7 +26,7 @@ public class Syncer {
     private final HttpClient client;
     private final Archiver archiver;
     private final File root;
-    private final String baseUrl;
+    private final Path baseUrl;
 
     public Syncer(File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, HttpClient client, Archiver archiver, String baseUrl) {
         this.root = root;
@@ -34,26 +34,27 @@ public class Syncer {
         this.httpBlobStore = httpBlobStore;
         this.archiver = archiver;
         this.client = client;
-        this.baseUrl = baseUrl;
+        this.baseUrl = Path.path(baseUrl);
     }
 
     
     public void createRemoteDir(Path path) throws ConflictException {
-        String remoteEncodedPath = toHref(path);
-        HttpUtils.mkcol(client, remoteEncodedPath);
+        String href = HttpUtils.toHref(baseUrl, path);        
+        HttpUtils.mkcol(client, href);
     }
 
     public void deleteRemote(Path path)  {
-        String remoteEncodedPath = toHref(path);
+        String s = HttpUtils.toHref(this.baseUrl, path);
         try {
-            HttpUtils.delete(client, remoteEncodedPath);
+            HttpUtils.delete(client, s);
         } catch (NotFoundException ex) {
-            System.out.println("not found: " + remoteEncodedPath + " but ignoring as we only wanted to delete it anyway");
+            System.out.println("not found: " + s + " but ignoring as we only wanted to delete it anyway");
         }
     }
     
     
     public void downloadSync(long hash, Path path) throws IOException {
+        System.out.println("downloadSync: " + path);
         File localFile = toFile(path);
         List<HashStore> hashStores = new ArrayList<>();
         List<BlobStore> blobStores = new ArrayList<>();
@@ -170,7 +171,8 @@ public class Syncer {
      * @param encodedPath
      */
     private void updateHashOnRemoteResource(long hash, Path path) {
-        String s = toHref(path);
+        String s = HttpUtils.toHref(this.baseUrl, path);
+        System.out.println("Syncer::updateHashOnRemoteResource: " + s);
         PutMethod p = new PutMethod(s);
         p.setRequestHeader("Content-Type", "spliffy/hash");
 
@@ -201,17 +203,8 @@ public class Syncer {
         }
     }
 
-    private String toHref(Path path) {
-        StringBuilder sb = new StringBuilder("/");
-        for(String name : path.getParts()) {
-            sb.append(name);
-            
-        }
-        return baseUrl + sb.toString();
-    }
     
-    
-    public String getBaseUrl() {
+    public Path getBaseUrl() {
         return baseUrl;
     }
 

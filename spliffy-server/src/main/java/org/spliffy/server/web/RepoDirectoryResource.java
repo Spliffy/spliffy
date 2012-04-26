@@ -139,16 +139,14 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
 
             long newHash = din.readLong();
             fileResource.setHash(newHash);
-
+            System.out.println("Set hash(a): " + newHash + " on resource: " + fileResource.getName());
         } else {
             // parse data and persist to stores
             Parser parser = new Parser();
             long fileHash = parser.parse(inputStream, getHashStore(), getBlobStore());
 
-            // add a reference to the new child
-            getChildren();
             fileResource.setHash(fileHash);
-            System.out.println("Set hash: " + fileHash + " on resource: " + fileResource.getName());
+            System.out.println("Set hash(b): " + fileHash + " on resource: " + fileResource.getName());
         }
         addChild(fileResource);
         save(session);

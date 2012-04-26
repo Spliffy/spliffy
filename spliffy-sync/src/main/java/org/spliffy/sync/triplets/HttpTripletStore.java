@@ -1,6 +1,7 @@
 package org.spliffy.sync.triplets;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import org.spliffy.sync.HttpUtils;
  */
 public class HttpTripletStore implements TripletStore {
     private final HttpClient httpClient;
-    private final String rootPath;
+    private final Path rootPath;
 
     /**
      * 
@@ -26,39 +27,24 @@ public class HttpTripletStore implements TripletStore {
      */
     public HttpTripletStore(HttpClient httpClient, String rootPath) {
         this.httpClient = httpClient;
-        this.rootPath = rootPath;
+        this.rootPath = Path.path(rootPath);
     }
 
 
 
     @Override
     public List<Triplet> getTriplets(Path path) {
-        String href = toHref(path);
+        String href = HttpUtils.toHref(rootPath, path);        
         try {            
             byte[] arrRemoteTriplets = HttpUtils.get(httpClient, href + "?type=hashes");
             List<Triplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
+            System.out.println("HttpTripletStore: getTriples: " + href + " -> " + triplets.size());
             return triplets;
         } catch (IOException ex) {
             throw new RuntimeException(href, ex);
         } catch (NotFoundException ex) {
+            System.out.println("HttpTripletStore: not found: " + href);
             return null;
         }
-    }
-    
-    /**
-     * Takes an unencoded local path (eg "/my docs") and turns it into
-     * a percentage encoded path (eg "/my%20docs"), with the rootPath
-     * added to the front
-     * 
-     * @param path
-     * @return 
-     */
-    private String toHref(Path path) {
-        StringBuilder sb = new StringBuilder("/");
-        for(String name : path.getParts()) {
-            sb.append(name);
-            
-        }
-        return rootPath + sb.toString();
-    }
+    }    
 }

@@ -1,5 +1,6 @@
 package org.spliffy.sync;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.httpclient.MkColMethod;
@@ -64,4 +65,20 @@ public class HttpUtils {
             throw new RuntimeException(ex);
         }           
     }
+    
+    /**
+     * Takes an unencoded local path (eg "/my docs") and turns it into
+     * a percentage encoded path (eg "/my%20docs"), with the encoded rootPath
+     * added to the front
+     * 
+     * @param path
+     * @return 
+     */
+    public static String toHref(Path basePath, Path unencodedPath) {
+        Path p = basePath;
+        for(String name : unencodedPath.getParts()) {
+            p = p.child( com.bradmcevoy.http.Utils.percentEncode(name) );
+        }
+        return p.toString();
+    }    
 }

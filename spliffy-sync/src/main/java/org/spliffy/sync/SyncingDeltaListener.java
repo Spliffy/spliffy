@@ -30,11 +30,14 @@ class SyncingDeltaListener implements DeltaListener2 {
         if( remoteTriplet.isDirectory()) {
             final File localFile = toFile(path);
             if( !localFile.exists() ) {
+                System.out.println("new remote directory, create: " + localFile.getAbsolutePath());
                 if( !localFile.mkdirs() ) {
                     throw new IOException("Couldnt create local directory: " + localFile.getAbsolutePath());
                 }
             }
         } else {
+            final File localChild = toFile(path);
+            System.out.println("new or modified remote file: " + localChild.getAbsolutePath());
             syncer.downloadSync(remoteTriplet.getHash(), path);
             syncStatusStore.setBackedupHash(path, remoteTriplet.getHash());
         }        
@@ -52,9 +55,11 @@ class SyncingDeltaListener implements DeltaListener2 {
     public void onLocalChange(Triplet localTriplet, Path path) throws IOException {
         final File localFile = toFile(path);
         if (localFile.isFile()) {
+            System.out.println("upload locally new or modified file: " + localFile.getAbsolutePath());
             syncer.upSync(path);
             syncStatusStore.setBackedupHash(path, localTriplet.getHash());
         } else {
+            System.out.println("create remote directory for locally new directory: " + localFile.getAbsolutePath());
             try {
                 syncer.createRemoteDir(path); // note that creating a remote directory does not ensure it is in sync
             } catch (ConflictException ex) {
@@ -65,6 +70,8 @@ class SyncingDeltaListener implements DeltaListener2 {
     
     @Override
     public void onLocalDeletion(Path path, Triplet remoteTriplet) {
+        final File localChild = toFile(path);
+        System.out.println("Delete file from server for locally deleted file: " + localChild.getAbsolutePath());
         syncer.deleteRemote(path);
         syncStatusStore.clearBackedupHash(path);
     }    

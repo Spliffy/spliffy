@@ -99,8 +99,9 @@ public class JdbcSyncStatusStore implements SyncStatusStore {
     }
 
     @Override
-    public void setBackedupHash(Path path, final long hash) {
+    public void setBackedupHash(Path path, final long hash) {        
         final File f = toFile(path);
+        System.out.println("JdbcSyncStatusStore::setBackedupHash - " + f.getAbsolutePath() + " hash:" + hash);
         final String deleteSql = SYNC_TABLE.getDeleteBy(SYNC_TABLE.localPath);
 
         final String insertSql = SYNC_TABLE.getInsert();
@@ -116,7 +117,7 @@ public class JdbcSyncStatusStore implements SyncStatusStore {
 
                 stmt = con.prepareStatement(insertSql);
                 SYNC_TABLE.localPath.set(stmt, 1, f.getAbsolutePath());
-                SYNC_TABLE.remoteRoot.set(stmt, 1, baseRemoteAddress);
+                SYNC_TABLE.remoteRoot.set(stmt, 2, baseRemoteAddress);
                 SYNC_TABLE.crc.set(stmt, 3, hash);
                 SYNC_TABLE.date.set(stmt, 4, new Timestamp(System.currentTimeMillis()));
                 stmt.execute();

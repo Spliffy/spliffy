@@ -35,7 +35,7 @@ public class SpliffySync {
 
         System.out.println("Sync: " + localRootDir.getAbsolutePath() + " - " + sRemoteAddress);
 
-        File dbFile = new File("target/db");
+        File dbFile = new File("target/sync-db");
         System.out.println("Using database: " + dbFile.getAbsolutePath());
 
         DbInitialiser dbInit = new DbInitialiser(dbFile);
@@ -107,6 +107,8 @@ public class SpliffySync {
         DeltaListener2 deltaListener2 = new SyncingDeltaListener(syncer, archiver, localRoot, statusStore);
         
         DirWalker dirWalker = new DirWalker(remoteTripletStore, jdbcTripletStore, statusStore, deltaListener2);
+                
+        // Now do the 
         dirWalker.walk();
     }
 }
