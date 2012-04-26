@@ -85,9 +85,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     public List<MutableResource> getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
             if( getItemVersion() != null ) {
-                System.out.println("get members of version: " + getItemVersion().getId());
                 List<DirectoryMember> members = getItemVersion().getMembers();
-                System.out.println("members: " + members.size());
                 children = Utils.toResources(this, members);
             } else {
                 children = new ArrayList<>();
