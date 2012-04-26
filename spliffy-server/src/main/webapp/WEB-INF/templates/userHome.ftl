@@ -1,10 +1,8 @@
 <#import "defaultLayout.ftl" as layout>
 <@layout.dirLayout "User home">
-listing...
-	
 
-<#list page.children as x>
-  ${x.name}
-</#list>  
+<h1>User home: ${page.name}</h1>
+
+<h2><a href="versions">Old Versions</a></h2>
 
 </@layout.dirLayout>

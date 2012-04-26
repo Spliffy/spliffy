@@ -25,7 +25,7 @@ public class Utils {
     /**
      * Produce a web resource representation of the given DirectoryMember.
      *
-     * This will be either a RepoFileResource or a RepoDirectoryResource,
+     * This will be either a FileResource or a DirectoryResource,
      * depending on the type associated with the member
      *
      * @param parent
@@ -38,11 +38,11 @@ public class Utils {
         System.out.println("toResource: " + de.getName() + " type: " + type);
         switch (type) {
             case "d":
-                RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(), itemVersion, parent, parent.getServices());
+                DirectoryResource rdr = new DirectoryResource(de.getName(), itemVersion, parent, parent.getServices());
                 rdr.setHash(de.getMemberItem().getItemHash());
                 return rdr;
             case "f":
-                RepoFileResource rfr = new RepoFileResource(de.getName(), itemVersion, parent, parent.getServices());
+                FileResource rfr = new FileResource(de.getName(), itemVersion, parent, parent.getServices());
                 rfr.setHash(de.getMemberItem().getItemHash());
                 return rfr;
             default:

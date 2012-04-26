@@ -10,16 +10,17 @@ import java.io.OutputStream;
 import java.util.*;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
+import org.spliffy.server.web.versions.VersionsRootFolder;
 
 /**
  *
  * @author brad
  */
-public class UserResource extends AbstractSpliffyCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource {
+public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource {
 
     private final User user;
     private final VersionNumberGenerator versionNumberGenerator;
-    private List<RepoResource> children;
+    private List<Resource> children;
 
     public UserResource(User u, Services services, VersionNumberGenerator versionNumberGenerator) {
         super(services);
@@ -43,10 +44,13 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
                     if (rv != null) {
                         System.out.println("Using latest version: " + rv.getVersionNum());
                     }
-                    RepoResource rr = new RepoResource(r, rv, services, versionNumberGenerator);
+                    RepositoryFolder rr = new RepositoryFolder(r, rv, services, versionNumberGenerator);
                     children.add(rr);
                 }
             }
+            // add the versions root, to allow browsing of old versions
+            VersionsRootFolder versionsRoot = new VersionsRootFolder(this, user, services);
+            children.add(versionsRoot);
         }
         return children;
     }
@@ -60,7 +64,7 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
         Transaction tx = SessionManager.session().beginTransaction();
         Repository r = new Repository();
-        r.setUser(user);
+        r.setBaseEntity(user);
         r.setName(newName);
         r.setVersions(new ArrayList<RepoVersion>());
         r.setCreatedDate(new Date());
@@ -72,13 +76,9 @@ public class UserResource extends AbstractSpliffyCollectionResource implements C
         SessionManager.session().save(r);
         tx.commit();
         RepoVersion rv = r.latestVersion();
-        return new RepoResource(r, rv, services, versionNumberGenerator);
+        return new RepositoryFolder(r, rv, services, versionNumberGenerator);
     }
 
-    @Override
-    public Long getEntryHash() {
-        return null;
-    }
 
     @Override
     public ItemVersion getItemVersion() {

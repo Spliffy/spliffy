@@ -18,14 +18,14 @@ import org.spliffy.server.db.*;
 /**
  * Represents a repository resource.
  *
- * This behaves much the same as a RepoDirectoryResource but is defined
+ * This behaves much the same as a DirectoryResource but is defined
  * differently
  *
  * TODO: must support PUT
  *
  * @author brad
  */
-public class RepoResource extends AbstractSpliffyCollectionResource implements MutableCollection, CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource, PutableResource {
+public class RepositoryFolder extends AbstractCollectionResource implements MutableCollection, CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource, PutableResource {
 
     private final Repository repository;
     private final VersionNumberGenerator versionNumberGenerator;
@@ -35,7 +35,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     private RepoVersion repoVersion; // may be null
     private ItemVersion rootItemVersion;
 
-    public RepoResource(Repository repository, RepoVersion repoVersion, Services services, VersionNumberGenerator versionNumberGenerator) {
+    public RepositoryFolder(Repository repository, RepoVersion repoVersion, Services services, VersionNumberGenerator versionNumberGenerator) {
         super(services);
         this.repository = repository;
         this.versionNumberGenerator = versionNumberGenerator;
@@ -58,12 +58,8 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         if (children == null) {
             if (repoVersion != null) {
                 List<DirectoryMember> members = repoVersion.getRootItemVersion().getMembers();
-                System.out.println("repoVersion: " + repoVersion.getVersionNum());
-                System.out.println("root item hash: " + repoVersion.getRootItemVersion().getItemHash());
-                System.out.println("RepoResource: getChildren: got: " + members.size());
                 children = Utils.toResources(this, members);
             } else {
-                System.out.println("RepoResource: getChildren: no repoVersion");
                 children = new ArrayList<>();
             }
         }
@@ -82,7 +78,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         Transaction tx = session.beginTransaction();
 
         ItemVersion newItemVersion = Utils.newDirItemVersion();
-        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newItemVersion, this, services);
+        DirectoryResource rdr = new DirectoryResource(newName, newItemVersion, this, services);
         addChild(rdr);
         save(session);
 
@@ -97,7 +93,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         Transaction tx = session.beginTransaction();
 
         ItemVersion newMeta = Utils.newFileItemVersion();
-        RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, services);
+        FileResource fileResource = new FileResource(newName, newMeta, this, services);
 
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {
@@ -131,7 +127,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
      * Save procedure is:
      *
      * 1. as resources are changed they set their dirty flag, which propogates
-     * up tp the parent. If in save the dirty flag on RepoResource is false,
+     * up tp the parent. If in save the dirty flag on RepositoryFolder is false,
      * then nothing has changed - exit<br/>
      *
      * 2.Recalculate hashes on all dirty directories<br/>

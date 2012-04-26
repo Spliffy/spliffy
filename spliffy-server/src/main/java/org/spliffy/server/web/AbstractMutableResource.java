@@ -14,7 +14,7 @@ import org.spliffy.server.db.*;
  *
  * @author brad
  */
-public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyResource implements PropFindableResource, GetableResource, DeletableResource, MutableResource, CopyableResource, MoveableResource {
+public abstract class AbstractMutableResource extends AbstractResource implements PropFindableResource, GetableResource, DeletableResource, MutableResource, CopyableResource, MoveableResource {
 
     protected String name;
     protected final MutableCollection parent;
@@ -22,7 +22,7 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
     protected long hash;
     protected boolean dirty;
 
-    public AbstractMutableSpliffyResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
+    public AbstractMutableResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(services);
         this.itemVersion = meta;
         this.name = name;
@@ -48,7 +48,7 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
         } else {
             parent.removeChild(this);
             newParent.addChild(this);
-            newParent.save(session); // save calls up to RepoResource which will call back down to save dirty nodes, including old parent
+            newParent.save(session); // save calls up to RepositoryFolder which will call back down to save dirty nodes, including old parent
         }
 
         tx.commit();
@@ -124,10 +124,10 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
 
     public RepoVersion currentRepoVersion() {
         MutableCollection col = parent;
-        while (!(col instanceof RepoResource)) {
+        while (!(col instanceof RepositoryFolder)) {
             col = col.getParent();
         }
-        RepoResource rr = (RepoResource) col;
+        RepositoryFolder rr = (RepositoryFolder) col;
         return rr.getRepoVersion();
     }
 }

@@ -14,7 +14,7 @@ public class Repository implements Serializable {
     private long id;
     private String name;
     private List<RepoVersion> versions;
-    private User user;
+    private BaseEntity baseEntity;
     private Date createdDate;
 
     @Id
@@ -27,13 +27,19 @@ public class Repository implements Serializable {
         this.id = id;
     }
 
+    /**
+     * Each repository to linked to some kind of entity, either a user,
+     * a group or an organisation
+     * 
+     * @return 
+     */
     @ManyToOne(optional=false)
-    public User getUser() {
-        return user;
+    public BaseEntity getBaseEntity() {
+        return baseEntity;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setBaseEntity(BaseEntity user) {
+        this.baseEntity = user;
     }
             
     @Column(length=255)

@@ -131,7 +131,10 @@
             <!--headerEnd-->
             <!--content-->
             <div class="content">
-
+                
+                
+                <@breadCrumbs node=page path=".."/>
+                
                 <#nested/>
 
                 <div class="clr"></div>
@@ -179,6 +182,8 @@
 <#macro dirLayout title="Home">
 <@layout.myLayout "User home">
 
+<#nested/>
+
 <table>
     <thead>
         <tr>
@@ -205,4 +210,19 @@
 </table>
 
 </@layout.myLayout>
+</#macro>
+
+
+
+
+
+<#macro breadCrumbs node path>
+<#if node.parent??>
+    <#assign p = path + "/..">  
+    <@breadCrumbs node=node.parent path=p/>
+</#if>
+
+/ <a href="${path}">${node.name}</a>
+
+
 </#macro>

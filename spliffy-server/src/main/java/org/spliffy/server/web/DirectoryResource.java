@@ -25,11 +25,11 @@ import org.spliffy.server.db.SessionManager;
  *
  * @author brad
  */
-public class RepoDirectoryResource extends AbstractMutableSpliffyResource implements PutableResource, GetableResource, MutableCollection {
+public class DirectoryResource extends AbstractMutableResource implements PutableResource, GetableResource, MutableCollection {
 
     private List<MutableResource> children;
 
-    public RepoDirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
+    public DirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
     }
 
@@ -41,7 +41,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
 
             MutableCollection newParent = (MutableCollection) toCollection;
             ItemVersion newMeta = Utils.newFileItemVersion();
-            RepoDirectoryResource newDir = new RepoDirectoryResource(newName, newMeta, newParent, services);
+            DirectoryResource newDir = new DirectoryResource(newName, newMeta, newParent, services);
             newDir.setHash(hash);
             newParent.addChild(newDir);
             newParent.save(session);
@@ -100,7 +100,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         Transaction tx = session.beginTransaction();
 
         ItemVersion newMeta = Utils.newDirItemVersion();
-        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newMeta, this, services);
+        DirectoryResource rdr = new DirectoryResource(newName, newMeta, this, services);
         addChild(rdr);
         save(session);
 
@@ -128,7 +128,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         Transaction tx = session.beginTransaction();
 
         ItemVersion newMeta = Utils.newFileItemVersion();
-        RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, services);
+        FileResource fileResource = new FileResource(newName, newMeta, this, services);
 
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {

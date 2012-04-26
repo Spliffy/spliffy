@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.ContentTypeUtils;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -24,11 +25,11 @@ import org.spliffy.server.db.SessionManager;
  *
  * @author brad
  */
-public class RepoFileResource extends AbstractMutableSpliffyResource implements ReplaceableResource {
+public class FileResource extends AbstractMutableResource implements ReplaceableResource {
 
     private Fanout fanout;
         
-    public RepoFileResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
+    public FileResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
     }
 
@@ -40,7 +41,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
 
             MutableCollection newParent = (MutableCollection) toCollection;
             ItemVersion newMeta = Utils.newFileItemVersion();
-            RepoFileResource fileResource = new RepoFileResource(newName, newMeta, newParent, services);
+            FileResource fileResource = new FileResource(newName, newMeta, newParent, services);
             fileResource.setHash(hash);
             newParent.addChild(fileResource);
             newParent.save(session);
@@ -99,9 +100,16 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
     }
 
 
+    /**
+     * Calculate content type based on file name
+     * 
+     * @param accepts
+     * @return 
+     */
     @Override
     public String getContentType(String accepts) {
-        return null;
+        String acceptable = ContentTypeUtils.findContentTypes(getName());
+        return ContentTypeUtils.findAcceptableContentType(acceptable, accepts);
     }
 
     @Override
