@@ -2,13 +2,13 @@ package org.spliffy.sync;
 
 import java.io.File;
 import org.hashsplit4j.api.FileBlobStore;
-import org.spliffy.common.FileTriplet;
+import org.spliffy.common.Triplet;
 
 /**
  *
  * @author brad
  */
-public class LocalFileTriplet extends FileTriplet {
+public class LocalFileTriplet extends Triplet {
     private final FileBlobStore blobStore;
 
     public LocalFileTriplet(File file) {

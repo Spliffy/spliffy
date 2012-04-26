@@ -8,12 +8,12 @@ import java.util.List;
  *
  * @author brad
  */
-public class FileTriplet {
+public class Triplet {
     private String name;
     private long hash;
     private String type;
     
-    private List<FileTriplet> children;
+    private List<Triplet> children;
 
     public long getHash() {
         return hash;
@@ -32,11 +32,11 @@ public class FileTriplet {
         this.name = name;
     }
 
-    public List<FileTriplet> getChildren() {
+    public List<Triplet> getChildren() {
         return children;
     }
 
-    public void setChildren(List<FileTriplet> children) {
+    public void setChildren(List<Triplet> children) {
         this.children = children;
     }
 

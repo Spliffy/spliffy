@@ -1,11 +1,11 @@
 package org.spliffy.sync;
 
+import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
@@ -22,21 +22,39 @@ import org.spliffy.common.HashUtils;
 public class Syncer {
 
     private final HttpHashStore httpHashStore;
-    private final HttpBlobStore httpBlobStore;
-    private final LastBackedupStore hashCache;
+    private final HttpBlobStore httpBlobStore;    
     private final HttpClient client;
     private final Archiver archiver;
-    private String baseUrl;
+    private final File root;
+    private final String baseUrl;
 
-    public Syncer(HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, LastBackedupStore hashCache, HttpClient client, Archiver archiver) {
+    public Syncer(File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, HttpClient client, Archiver archiver, String baseUrl) {
+        this.root = root;
         this.httpHashStore = httpHashStore;
         this.httpBlobStore = httpBlobStore;
-        this.hashCache = hashCache;
         this.archiver = archiver;
         this.client = client;
+        this.baseUrl = baseUrl;
     }
 
-    public void downloadSync(long hash, File localFile) throws IOException {
+    
+    public void createRemoteDir(Path path) throws ConflictException {
+        String remoteEncodedPath = toHref(path);
+        HttpUtils.mkcol(client, remoteEncodedPath);
+    }
+
+    public void deleteRemote(Path path)  {
+        String remoteEncodedPath = toHref(path);
+        try {
+            HttpUtils.delete(client, remoteEncodedPath);
+        } catch (NotFoundException ex) {
+            System.out.println("not found: " + remoteEncodedPath + " but ignoring as we only wanted to delete it anyway");
+        }
+    }
+    
+    
+    public void downloadSync(long hash, Path path) throws IOException {
+        File localFile = toFile(path);
         List<HashStore> hashStores = new ArrayList<>();
         List<BlobStore> blobStores = new ArrayList<>();
 
@@ -114,8 +132,6 @@ public class Syncer {
             throw new RuntimeException("Downloaded update ok, and renamed old file, but failed to rename new file to original file name: " + localFile.getAbsolutePath());
         }
 
-        hashCache.setBackedupHash(localFile, hash);
-
         System.out.println("Finished update!");
     }
 
@@ -127,8 +143,9 @@ public class Syncer {
 //        }
 //    }
     
-    public void upSync(String encodedPath, File file) throws FileNotFoundException, IOException {
-        System.out.println("upSync: " + encodedPath);
+    public void upSync(Path path) throws FileNotFoundException, IOException {
+        File file = toFile(path);
+        System.out.println("upSync: " + file.getAbsolutePath());
 
         FileInputStream fin = null;
         try {
@@ -136,14 +153,14 @@ public class Syncer {
             BufferedInputStream bufIn = new BufferedInputStream(fin);
             Parser parser = new Parser();
             long newHash = parser.parse(bufIn, httpHashStore, httpBlobStore);
-            hashCache.setBackedupHash(file, newHash);
 
             // Now set the new hash on the remote file, which effectively commits the new content
-            //updateHashOnRemoteResource(newHash, encodedPath);
+            updateHashOnRemoteResource(newHash, path);
         } finally {
             IOUtils.closeQuietly(fin);
         }
     }
+
 
     /**
      * Do a PUT with a special content type so the server knows to just update
@@ -152,8 +169,8 @@ public class Syncer {
      * @param hash
      * @param encodedPath
      */
-    private void updateHashOnRemoteResource(long hash, String encodedPath) {
-        String s = encodedPath;
+    private void updateHashOnRemoteResource(long hash, Path path) {
+        String s = toHref(path);
         PutMethod p = new PutMethod(s);
         p.setRequestHeader("Content-Type", "spliffy/hash");
 
@@ -184,12 +201,26 @@ public class Syncer {
         }
     }
 
+    private String toHref(Path path) {
+        StringBuilder sb = new StringBuilder("/");
+        for(String name : path.getParts()) {
+            sb.append(name);
+            
+        }
+        return baseUrl + sb.toString();
+    }
+    
+    
     public String getBaseUrl() {
         return baseUrl;
     }
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+    private File toFile(Path path) {
+        File f = root;
+        for (String fname : path.getParts()) {
+            f = new File(f, fname);
+        }
+        return f;
     }
 
 

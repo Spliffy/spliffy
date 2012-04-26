@@ -1,8 +1,8 @@
-package org.spliffy.sync;
+package org.spliffy.sync.triplets;
 
 import com.bradmcevoy.common.Path;
 import java.util.List;
-import org.spliffy.common.FileTriplet;
+import org.spliffy.common.Triplet;
 
 /**
  * A Triplet describes a member within a directory/collection, but its
@@ -25,5 +25,5 @@ public interface TripletStore {
      * @return - the list of triplets defining the state of the directory, or null
      * if the directory was not found
      */
-    List<FileTriplet> getTriplets(Path path);
+    List<Triplet> getTriplets(Path path);
 }

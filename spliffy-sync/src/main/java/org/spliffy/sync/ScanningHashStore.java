@@ -13,7 +13,7 @@ import java.util.zip.Checksum;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.io.output.NullOutputStream;
 import org.hashsplit4j.api.*;
-import org.spliffy.common.FileTriplet;
+import org.spliffy.common.Triplet;
 import org.spliffy.common.HashUtils;
 
 /**
@@ -25,7 +25,7 @@ public class ScanningHashStore implements HashStore {
     private final HttpClient httpClient;
     private final String basePath;
     private final File local;
-    private FileTriplet rootTriplet = new FileTriplet();
+    private Triplet rootTriplet = new Triplet();
     private Map<File, LocalFileTriplet> mapOfLocalTriplets = new HashMap<>();
     private final MemoryHashStore hashStore = new MemoryHashStore();
 
@@ -54,14 +54,14 @@ public class ScanningHashStore implements HashStore {
      * @return - the hash of the directory being scanned
      * @throws IOException
      */
-    private long walkTree(File dir, FileTriplet dirTriplet, String encodedDirPath) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException {
+    private long walkTree(File dir, Triplet dirTriplet, String encodedDirPath) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException {
         //      System.out.println("walkTree: " + encodedDirPath);
         // Need to load triplets from remote host to get meta id's
         System.out.println("walkTree: " + dir.getAbsolutePath());
-        Map<String, FileTriplet> mapOfRemoteTriplets;
+        Map<String, Triplet> mapOfRemoteTriplets;
         try {
             byte[] arrRemoteTriplets = HttpUtils.get(httpClient, encodedDirPath + "?type=hashes");
-            List<FileTriplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
+            List<Triplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
             mapOfRemoteTriplets = HashUtils.toMap(triplets);
         } catch (NotFoundException ex) {
             mapOfRemoteTriplets = new HashMap<>();
@@ -70,7 +70,7 @@ public class ScanningHashStore implements HashStore {
 
         // Now scan local files
         List<File> files = orderedList(dir.listFiles());
-        List<FileTriplet> fileTriplets = new ArrayList<>();
+        List<Triplet> fileTriplets = new ArrayList<>();
         for (File childFile : files) {
             if (!ignored(childFile)) {
                 String name = childFile.getName();
@@ -87,11 +87,7 @@ public class ScanningHashStore implements HashStore {
                     hash = parseFile(childFile, childTriplet.getBlobStore());
                 }
                 childTriplet.setHash(hash);
-                FileTriplet remoteTriplet = mapOfRemoteTriplets.get(name);
-                if (remoteTriplet != null) {
-//                System.out.println("got remote meta: " + remoteTriplet.getName() + " - " + remoteTriplet.getMetaId());
-                    childTriplet.setMetaId(remoteTriplet.getMetaId());
-                }
+                Triplet remoteTriplet = mapOfRemoteTriplets.get(name);
             }
         }
         long hash = calcTreeHash(fileTriplets);
@@ -115,17 +111,17 @@ public class ScanningHashStore implements HashStore {
         return hash;
     }
 
-    private long calcTreeHash(List<FileTriplet> fileTriplets) {
+    private long calcTreeHash(List<Triplet> fileTriplets) {
         OutputStream nulOut = new NullOutputStream();
         CheckedOutputStream cout = new CheckedOutputStream(nulOut, new Adler32());
         Set<String> names = new HashSet<>();
-        for (FileTriplet r : fileTriplets) {
+        for (Triplet r : fileTriplets) {
             String name = r.getName();
             if (names.contains(name)) {
                 throw new RuntimeException("Name not unique within collection: " + name);
             }
             names.add(name);
-            String line = HashUtils.toHashableText(name, r.getHash(), r.getMetaId(), r.getType());
+            String line = HashUtils.toHashableText(name, r.getHash(), r.getType());
             HashUtils.appendLine(line, cout);
         }
         Checksum check = cout.getChecksum();

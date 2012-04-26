@@ -13,4 +13,11 @@ public interface SyncStatusStore {
     Long findBackedUpHash(Path path);
 
     void setBackedupHash(Path path, long hash);    
+    
+    /**
+     * Called when the syncronisation has removed a file
+     * 
+     * @param path 
+     */
+    void clearBackedupHash(Path path);    
 }

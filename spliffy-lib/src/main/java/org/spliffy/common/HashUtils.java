@@ -35,31 +35,31 @@ public class HashUtils {
         }
     }
     
-    public static List<FileTriplet> parseTriplets(InputStream in) throws IOException {
+    public static List<Triplet> parseTriplets(InputStream in) throws IOException {
         Reader reader = new InputStreamReader(in);
         BufferedReader bufIn = new BufferedReader(reader);
-        List<FileTriplet> list = new ArrayList<>();
+        List<Triplet> list = new ArrayList<>();
         String line = bufIn.readLine();
         while( line != null ) {
-            FileTriplet triplet = parse(line);
+            Triplet triplet = parse(line);
             list.add(triplet);
             line = bufIn.readLine();
         }
         return list;
     }
 
-    private static FileTriplet parse(String line) {
+    private static Triplet parse(String line) {
         String[] arr = line.split(":");
-        FileTriplet triplet = new FileTriplet();
+        Triplet triplet = new Triplet();
         triplet.setName(arr[0]);
         triplet.setHash(Long.parseLong(arr[1]));
         triplet.setType(arr[3]);
         return triplet;
     }
     
-    public static Map<String, FileTriplet> toMap(List<FileTriplet> triplets) {
-        Map<String,FileTriplet> map = new HashMap<>();
-        for( FileTriplet t : triplets) {
+    public static Map<String, Triplet> toMap(List<Triplet> triplets) {
+        Map<String,Triplet> map = new HashMap<>();
+        for( Triplet t : triplets) {
             map.put(t.getName(), t);
         }
         return map;

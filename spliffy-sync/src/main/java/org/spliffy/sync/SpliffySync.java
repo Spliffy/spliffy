@@ -1,11 +1,10 @@
 package org.spliffy.sync;
 
+import org.spliffy.sync.triplets.JdbcLocalTripletStore;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -16,6 +15,7 @@ import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.hashsplit4j.api.HttpBlobStore;
 import org.hashsplit4j.api.HttpHashStore;
+import org.spliffy.sync.triplets.HttpTripletStore;
 
 /**
  *
@@ -29,11 +29,11 @@ public class SpliffySync {
         String user = args[2];
         String pwd = args[3];
 
-        File fLocal = new File(sLocalDir);
+        File localRootDir = new File(sLocalDir);
         URL url = new URL(sRemoteAddress);
         HttpClient client = createHost(url, user, pwd);
 
-        System.out.println("Sync: " + fLocal.getAbsolutePath() + " - " + sRemoteAddress);
+        System.out.println("Sync: " + localRootDir.getAbsolutePath() + " - " + sRemoteAddress);
 
         File dbFile = new File("target/db");
         System.out.println("Using database: " + dbFile.getAbsolutePath());
@@ -48,14 +48,10 @@ public class SpliffySync {
         HttpBlobStore httpBlobStore = new HttpBlobStore(client, blobsHashCache);
         httpBlobStore.setBaseUrl("/_hashes/blobs/");
 
-        LastBackedupStore lastBackedupStore = new JdbcLastBackedupStore(dbInit.getUseConnection(), dbInit.getDialect());
-        DeltaWalker deltaWalker = new DefaultDeltaWalker(client, lastBackedupStore);
-
         Archiver archiver = new Archiver();
-        Syncer syncer = new Syncer(httpHashStore, httpBlobStore, lastBackedupStore, client, archiver);
-        syncer.setBaseUrl(url.getPath());
+        Syncer syncer = new Syncer(localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
 
-        SpliffySync spliffySync = new SpliffySync(fLocal, client, lastBackedupStore, url.getPath(), deltaWalker, syncer, archiver);
+        SpliffySync spliffySync = new SpliffySync(localRootDir, client, url.getPath(), syncer, archiver, dbInit);
         spliffySync.scan();
 
         System.out.println("Stats---------");
@@ -84,22 +80,20 @@ public class SpliffySync {
         client.getHostConfiguration().setHost(url.getHost(), url.getPort(), url.getProtocol());
         return client;
     }
-    private final File local;
+    private final File localRoot;
+    private final DbInitialiser dbInit;
     private final HttpClient httpClient;
     private final Syncer syncer;
     private final String basePath;
-    private final DeltaWalker deltaWalker;
     private final Archiver archiver;
-    private long localHash;
-    private Long remoteHash;
 
-    public SpliffySync(File local, HttpClient httpClient, LastBackedupStore hashCache, String basePath, DeltaWalker deltaWalker, Syncer syncer, Archiver archiver) {
-        this.local = local;
+    public SpliffySync(File local, HttpClient httpClient, String basePath, Syncer syncer, Archiver archiver, DbInitialiser dbInit) {
+        this.localRoot = local;
         this.httpClient = httpClient;
         this.basePath = basePath;
-        this.deltaWalker = deltaWalker;
         this.syncer = syncer;
         this.archiver = archiver;
+        this.dbInit = dbInit;                
     }
 
     public void scan() throws com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException, IOException {
@@ -107,40 +101,12 @@ public class SpliffySync {
     }
 
     public void doScan() throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
-        ScanningHashStore scanningHashStore = new ScanningHashStore(httpClient, local, basePath);
-        localHash = scanningHashStore.scan();
-        System.out.println("Local hash: " + localHash);
-        findRemoteHash();
-        System.out.println("Remote hash: " + remoteHash);
-        if (remoteHash != null) {
-            if (localHash == remoteHash.longValue()) {
-                System.out.println("Directories are identical");
-                return;
-            }
-        }
-
-        SyncingDeltaListener deltaListener = new SyncingDeltaListener(syncer, archiver);
-        Long newRemoteHash = deltaWalker.scanDir(remoteHash, local, basePath, scanningHashStore, deltaListener);
-//        if (hashesChanged(remoteHash, newRemoteHash)) {
-//            updateRepoHash();
-//        }
-    }
-
-    private void findRemoteHash() throws NotFoundException, IOException {
-        byte[] arr = HttpUtils.get(httpClient, basePath + "?type=hash");
-        DataInputStream din = new DataInputStream(new ByteArrayInputStream(arr));
-        remoteHash = din.readLong();
-    }
-
-    private boolean hashesChanged(Long remoteHash, Long newRemoteHash) {
-        if( remoteHash == null ) {
-            return newRemoteHash != null;
-        } else {
-            if( newRemoteHash == null ) {
-                throw new RuntimeException("New remote hash is null??");
-            } else {
-                return remoteHash.longValue() != newRemoteHash.longValue();
-            }
-        }
+        HttpTripletStore remoteTripletStore = new HttpTripletStore(httpClient, basePath);
+        JdbcLocalTripletStore jdbcTripletStore = new JdbcLocalTripletStore(dbInit.getUseConnection(), dbInit.getDialect(), localRoot);
+        JdbcSyncStatusStore statusStore = new JdbcSyncStatusStore(dbInit.getUseConnection(), dbInit.getDialect(), basePath, localRoot);
+        DeltaListener2 deltaListener2 = new SyncingDeltaListener(syncer, archiver, localRoot, statusStore);
+        
+        DirWalker dirWalker = new DirWalker(remoteTripletStore, jdbcTripletStore, statusStore, deltaListener2);
+        dirWalker.walk();
     }
 }

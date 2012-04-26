@@ -1,6 +1,8 @@
 package org.spliffy.sync;
 
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.httpclient.MkColMethod;
 import java.io.IOException;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.DeleteMethod;
@@ -44,5 +46,22 @@ public class HttpUtils {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }             
+    }
+
+    public static void mkcol(HttpClient client, String path) throws ConflictException {
+        System.out.println("mkcol: " + path);
+        MkColMethod m = new MkColMethod(path);
+        int result;
+        try {
+            result = client.executeMethod(m);
+            if( result >= 400 && result < 500 ) {
+                throw new ConflictException("Conflict: " + path);
+            }
+            if (result < 200 || result >= 300) {
+                throw new RuntimeException("mkcol failed. result:" + result + " url: " + path);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }           
     }
 }

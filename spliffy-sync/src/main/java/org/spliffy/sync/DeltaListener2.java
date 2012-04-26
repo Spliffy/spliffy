@@ -1,7 +1,8 @@
 package org.spliffy.sync;
 
 import com.bradmcevoy.common.Path;
-import org.spliffy.common.FileTriplet;
+import java.io.IOException;
+import org.spliffy.common.Triplet;
 
 /**
  * A "delta" here refers to some difference between the client and server
@@ -13,16 +14,16 @@ import org.spliffy.common.FileTriplet;
 public interface DeltaListener2 {
 
     
-    void onLocalDeletion(Path path, FileTriplet remoteTriplet);
+    void onLocalDeletion(Path path, Triplet remoteTriplet) throws IOException;
     
-    void onLocalChange(FileTriplet localTriplet, Path path);
+    void onLocalChange(Triplet localTriplet, Path path) throws IOException;
 
-    void onRemoteChange(FileTriplet remoteTriplet, FileTriplet localTriplet, Path path);
+    void onRemoteChange(Triplet remoteTriplet, Triplet localTriplet, Path path) throws IOException;
     
-    void onRemoteDelete(FileTriplet localTriplet, Path path);
+    void onRemoteDelete(Triplet localTriplet, Path path) throws IOException;
     
-    void onTreeConflict(FileTriplet remoteTriplet, FileTriplet localTriplet, Path path);
+    void onTreeConflict(Triplet remoteTriplet, Triplet localTriplet, Path path) throws IOException;
 
-    void onFileConflict(FileTriplet remoteTriplet, FileTriplet localTriplet, Path path);
+    void onFileConflict(Triplet remoteTriplet, Triplet localTriplet, Path path) throws IOException;
      
 }
