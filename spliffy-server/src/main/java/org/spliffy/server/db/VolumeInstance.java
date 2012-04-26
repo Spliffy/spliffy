@@ -43,11 +43,11 @@ public class VolumeInstance implements Serializable {
         return list;
     }
 
-    public static VolumeInstance get(Session session, UUID volumeInstanceId) {
+    public static VolumeInstance get(Session session, long volumeInstanceId) {
         return (VolumeInstance) session.get(VolumeInstance.class, volumeInstanceId);
     }
     
-    private UUID id;
+    private long id;
     private Volume volume;
     private String instanceType;
     private String location;
@@ -57,11 +57,12 @@ public class VolumeInstance implements Serializable {
     private boolean lost;
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 

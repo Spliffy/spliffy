@@ -6,10 +6,10 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -32,16 +32,19 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     private List<MutableResource> children;
     private long hash;
     private boolean dirty;
-    
     private RepoVersion repoVersion; // may be null
+    private ItemVersion rootItemVersion;
 
-    public RepoResource(Repository repository, RepoVersion repoVersion,Services services, VersionNumberGenerator versionNumberGenerator) {
+    public RepoResource(Repository repository, RepoVersion repoVersion, Services services, VersionNumberGenerator versionNumberGenerator) {
         super(services);
         this.repository = repository;
         this.versionNumberGenerator = versionNumberGenerator;
         this.repoVersion = repoVersion;
         if (repoVersion != null) {
-            hash = repoVersion.getDirHash();
+            rootItemVersion = repoVersion.getRootItemVersion();
+            if (rootItemVersion != null) {
+                hash = rootItemVersion.getItemHash();
+            }
         }
     }
 
@@ -53,8 +56,16 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     @Override
     public List<MutableResource> getChildren() {
         if (children == null) {
-            List<DirEntry> dirEntries = DirEntry.listEntries(SessionManager.session(), hash);
-            children = Utils.toResources(this, dirEntries);
+            if (repoVersion != null) {
+                List<DirectoryMember> members = repoVersion.getRootItemVersion().getMembers();
+                System.out.println("repoVersion: " + repoVersion.getVersionNum());
+                System.out.println("root item hash: " + repoVersion.getRootItemVersion().getItemHash());
+                System.out.println("RepoResource: getChildren: got: " + members.size());
+                children = Utils.toResources(this, members);
+            } else {
+                System.out.println("RepoResource: getChildren: no repoVersion");
+                children = new ArrayList<>();
+            }
         }
         return children;
     }
@@ -66,12 +77,13 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
+        System.out.println("createCollection: " + newName);
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
-        ResourceVersionMeta meta = Utils.newDirMeta();
-        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, meta, this, services);
-        addChild(rdr);        
+        ItemVersion newItemVersion = Utils.newDirItemVersion();
+        RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newItemVersion, this, services);
+        addChild(rdr);
         save(session);
 
         tx.commit();
@@ -84,7 +96,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
-        ResourceVersionMeta newMeta = Utils.newFileMeta();
+        ItemVersion newMeta = Utils.newFileItemVersion();
         RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, services);
 
         String ct = HttpManager.request().getContentTypeHeader();
@@ -104,10 +116,9 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
             getChildren();
             fileResource.setHash(fileHash);
         }
-        children.add(fileResource);
+        addChild(fileResource);
 
-        long repoVersionNum = save(session);
-        newMeta.setRepoVersionNum(repoVersionNum);
+        save(session);
         SessionManager.session().save(newMeta);
 
         tx.commit();
@@ -116,33 +127,132 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     }
 
+    /**
+     * Save procedure is:
+     *
+     * 1. as resources are changed they set their dirty flag, which propogates
+     * up tp the parent. If in save the dirty flag on RepoResource is false,
+     * then nothing has changed - exit<br/>
+     *
+     * 2.Recalculate hashes on all dirty directories<br/>
+     *
+     * 3. If dirty, insert a new root item version
+     *
+     * 4. for each member
+     *
+     * 4a. if dirty create a new item version,
+     *
+     * 4b. insert member record connecting it to this version
+     *
+     * 4c. go to step 3
+     *
+     * @param session
+     * @return
+     */
     @Override
-    public long save(Session session) {
-        if( !isDirty() ) {
-            return hash;
+    public void save(Session session) {
+        System.out.println("RepoResource: save: dirty=" + isDirty());
+        if (!isDirty()) {
+            return;
         }
-        for( MutableResource r : children ) { // if is dirty then children must be loaded
-            if( r instanceof RepoDirectoryResource ) {
-                RepoDirectoryResource col = (RepoDirectoryResource) r;
-                col.saveHashes(session); // each collection checks its own dirty flag, won't do anything if clean
+
+        try {
+            System.out.println("calc child hashes..");
+            for (MutableResource r : children) { // if is dirty then children must be loaded
+                if (r instanceof MutableCollection) {
+                    MutableCollection col = (MutableCollection) r;
+                    calcHashes(session, col); // each collection checks its own dirty flag, won't do anything if clean
+                }
+            }
+
+            ItemVersion newVersion = Utils.newItemVersion(getItemVersion(), getType());
+            setItemVersion(newVersion);
+            System.out.println("Inserted new root item version id: " + newVersion.getId() + " for: " + getName());
+
+            saveCollection(session, this);
+
+            RepoVersion newRepoVersion = new RepoVersion();
+            newRepoVersion.setCreatedDate(new Date());
+            newRepoVersion.setRepository(repository);
+            newRepoVersion.setRootItemVersion(rootItemVersion);
+            long newVersionNum = versionNumberGenerator.nextVersionNumber(repository);
+            newRepoVersion.setVersionNum(newVersionNum);
+            session.save(newRepoVersion);
+            System.out.println("Saved new repo version: " + newVersionNum + " with hash: " + rootItemVersion.getItemHash());
+
+        } catch (NotAuthorizedException | BadRequestException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void saveCollection(Session session, MutableCollection parent) throws NotAuthorizedException, BadRequestException {
+        if (!parent.isDirty()) {
+            return;
+        }
+
+        List<MutableResource> nextChildren = (List<MutableResource>) parent.getChildren();
+        for (MutableResource r : nextChildren) { // if is dirty then children must be loaded
+            insertMember(session, parent.getItemVersion(), r);
+        }
+    }
+
+    /**
+     * If the resource has itself changed, then create a new ItemVersion for
+     * itself
+     *
+     * Create a new DirectoryMember to connect the ItemVersion of the member to
+     * the new parent version.
+     *
+     *
+     * @param session
+     * @param parentItemVersion
+     * @param r
+     */
+    private void insertMember(Session session, ItemVersion parentItemVersion, MutableResource r) throws NotAuthorizedException, BadRequestException {
+        ItemVersion memberItemVersion;
+        if (r.isDirty()) {
+            memberItemVersion = Utils.newItemVersion(r.getItemVersion(), r.getType()); // create a new ItemVersion for the member
+        } else {
+            memberItemVersion = r.getItemVersion(); // use existing ItemVersion
+        }
+        memberItemVersion.setItemHash(r.getEntryHash());
+        r.setItemVersion(memberItemVersion);
+        DirectoryMember member = new DirectoryMember();
+        member.setParentItem(parentItemVersion);
+        member.setName(r.getName());
+        member.setMemberItem(memberItemVersion);
+        session.save(member);
+        System.out.println("created member: " + member.getName() + "  on parent: " + parentItemVersion.getId() + " hash=" + memberItemVersion.getItemHash());
+
+        if (r instanceof MutableCollection) {
+            MutableCollection col = (MutableCollection) r;
+            saveCollection(session, col); // will do dirty check
+        }
+    }
+
+    /**
+     * Check if this is dirty, and if so recalculate the hash for the directory
+     *
+     * A recursive call, recalculating children as necessary
+     *
+     * @param session
+     */
+    private void calcHashes(Session session, MutableCollection parent) throws NotAuthorizedException, BadRequestException {
+        System.out.println("calcHashes: " + parent.getName() + " dirty=" + parent.isDirty());
+        if (!parent.isDirty()) {
+            return;
+        }
+        List<MutableResource> nextChildren = (List<MutableResource>) parent.getChildren();
+        for (MutableResource r : nextChildren) { // if is dirty then children must be loaded
+            if (r instanceof MutableCollection) {
+                MutableCollection col = (MutableCollection) r;
+                calcHashes(session, col);
             }
         }
-        long repVersionHash = HashCalc.calcResourceesHash(children);
-
-        HashCalc.saveKids(session, repVersionHash, children);
-
-        // need to create a new RepoVersion hash
-        RepoVersion rv = new RepoVersion();
-        rv.setId(UUID.randomUUID());
-        long versionNum = versionNumberGenerator.nextVersionNumber(repository);
-        rv.setVersionNum(versionNum);
-        rv.setCreatedDate(new Date());
-        rv.setDirHash(repVersionHash);
-        rv.setRepository(repository);
-        
-        session.save(rv);
-
-        return versionNum;
+        // calc new dirHash and save dir entries for children
+        long newHash = HashCalc.calcResourceesHash(children);
+        parent.setEntryHash(newHash);
+        return;
     }
 
     @Override
@@ -151,9 +261,20 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     }
 
     @Override
-    public UUID getMetaId() {
-        return null;
+    public void setEntryHash(long newHash) {
+        this.hash = newHash;
     }
+
+    @Override
+    public ItemVersion getItemVersion() {
+        return rootItemVersion;
+    }
+
+    @Override
+    public void setItemVersion(ItemVersion newVersion) {
+        this.rootItemVersion = newVersion;
+    }
+        
 
     @Override
     public Date getCreateDate() {
@@ -162,6 +283,9 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     @Override
     public Date getModifiedDate() {
+        if (rootItemVersion != null) {
+            return rootItemVersion.getModifiedDate();
+        }
         return null;
     }
 
@@ -182,7 +306,7 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
                     RepoVersion rv = repository.latestVersion();
                     try (DataOutputStream dout = new DataOutputStream(out)) {
                         dout.writeLong(rv.getVersionNum());
-                        dout.writeLong(rv.getDirHash());
+                        dout.writeLong(rv.getRootItemVersion().getItemHash());
                     }
                     break;
             }
@@ -227,7 +351,6 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
 
     @Override
     public void onChildChanged(MutableResource r) {
-        System.out.println("onChildChanged: " + getName());
         dirty = true;
     }
 
@@ -236,10 +359,10 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
         return dirty;
     }
 
-    /** 
+    /**
      * may be null
-     * 
-     * @return 
+     *
+     * @return
      */
     public RepoVersion getRepoVersion() {
         return repoVersion;
@@ -249,7 +372,9 @@ public class RepoResource extends AbstractSpliffyCollectionResource implements M
     public MutableCollection getParent() {
         return null; // no mutable parents
     }
-    
-    
-    
+
+    @Override
+    public String getType() {
+        return "d";
+    }
 }

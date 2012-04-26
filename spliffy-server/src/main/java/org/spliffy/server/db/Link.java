@@ -1,16 +1,15 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
-import java.util.UUID;
-import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
  * Represents a symbolic link, or shared folder
  * 
- * A Link is a pointer to the ResourceMeta of the shared folder. When the
+ * A Link is a pointer to the Item of the shared folder. When the
  * Share invitation is accepted it is connected to a new resource in the recipients repository,
  * and the sharedTo value is set
  * 
@@ -29,35 +28,36 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 public class Link implements Serializable {
-    private UUID id;
-    private ResourceMeta sharedFrom;
-    private ResourceMeta sharedTo;
+    private long id;
+    private Item sharedFrom;
+    private Item sharedTo;
 
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 
     @ManyToOne(optional=false)
-    public ResourceMeta getSharedFrom() {
+    public Item getSharedFrom() {
         return sharedFrom;
     }
 
-    public void setSharedFrom(ResourceMeta sharedFrom) {
+    public void setSharedFrom(Item sharedFrom) {
         this.sharedFrom = sharedFrom;
     }
 
     @ManyToOne(optional=true)
-    public ResourceMeta getSharedTo() {
+    public Item getSharedTo() {
         return sharedTo;
     }
 
-    public void setSharedTo(ResourceMeta sharedTo) {
+    public void setSharedTo(Item sharedTo) {
         this.sharedTo = sharedTo;
     }
                

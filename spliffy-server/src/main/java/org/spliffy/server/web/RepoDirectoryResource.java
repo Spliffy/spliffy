@@ -9,13 +9,14 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.DirEntry;
-import org.spliffy.server.db.ResourceVersionMeta;
+import org.spliffy.server.db.DirectoryMember;
+import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.SessionManager;
 
 /**
@@ -27,9 +28,8 @@ import org.spliffy.server.db.SessionManager;
 public class RepoDirectoryResource extends AbstractMutableSpliffyResource implements PutableResource, GetableResource, MutableCollection {
 
     private List<MutableResource> children;
-    private boolean dirty;
 
-    public RepoDirectoryResource(String name, ResourceVersionMeta meta, MutableCollection parent, Services services) {
+    public RepoDirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
     }
 
@@ -40,7 +40,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
             Transaction tx = session.beginTransaction();
 
             MutableCollection newParent = (MutableCollection) toCollection;
-            ResourceVersionMeta newMeta = Utils.newFileMeta();
+            ItemVersion newMeta = Utils.newFileItemVersion();
             RepoDirectoryResource newDir = new RepoDirectoryResource(newName, newMeta, newParent, services);
             newDir.setHash(hash);
             newParent.addChild(newDir);
@@ -84,8 +84,14 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     @Override
     public List<MutableResource> getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
-            List<DirEntry> childDirEntries = DirEntry.listEntries(SessionManager.session(), hash);
-            children = Utils.toResources(this, childDirEntries);
+            if( getItemVersion() != null ) {
+                System.out.println("get members of version: " + getItemVersion().getId());
+                List<DirectoryMember> members = getItemVersion().getMembers();
+                System.out.println("members: " + members.size());
+                children = Utils.toResources(this, members);
+            } else {
+                children = new ArrayList<>();
+            }
         }
         return children;
     }
@@ -95,11 +101,9 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
-        ResourceVersionMeta newMeta = Utils.newDirMeta();
+        ItemVersion newMeta = Utils.newDirItemVersion();
         RepoDirectoryResource rdr = new RepoDirectoryResource(newName, newMeta, this, services);
-        getChildren(); // ensure loaded
-        children.add(rdr);
-
+        addChild(rdr);
         save(session);
 
         tx.commit();
@@ -115,31 +119,8 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
      * @return
      */
     @Override
-    public long save(Session session) {
-        return parent.save(session);
-    }
-
-    /**
-     * Recalculate this directories hash (and sub-dirs if required) and then
-     * create DirEntry records for each member in this directory
-     *
-     * @param session
-     * @return
-     */
-    public void saveHashes(Session session) {
-        if (!dirty) {
-            return;
-        }
-        for (MutableResource r : children) { // if is dirty then children must be loaded
-            if (r instanceof RepoDirectoryResource) {
-                RepoDirectoryResource col = (RepoDirectoryResource) r;
-                col.saveHashes(session);
-            }
-        }
-        // calc new dirHash and save dir entries for children
-        hash = HashCalc.calcResourceesHash(children);
-        HashCalc.saveKids(session, hash, children);
-        return;
+    public void save(Session session) {
+        parent.save(session);
     }
 
     @Override
@@ -148,7 +129,7 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
-        ResourceVersionMeta newMeta = Utils.newFileMeta();
+        ItemVersion newMeta = Utils.newFileItemVersion();
         RepoFileResource fileResource = new RepoFileResource(newName, newMeta, this, services);
 
         String ct = HttpManager.request().getContentTypeHeader();
@@ -167,13 +148,10 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
             // add a reference to the new child
             getChildren();
             fileResource.setHash(fileHash);
+            System.out.println("Set hash: " + fileHash + " on resource: " + fileResource.getName());
         }
         addChild(fileResource);
-
-        long repoVersionNum = save(session);
-        newMeta.setRepoVersionNum(repoVersionNum);
-        SessionManager.session().save(newMeta);
-
+        save(session);
         tx.commit();
 
         return fileResource;
@@ -227,6 +205,14 @@ public class RepoDirectoryResource extends AbstractMutableSpliffyResource implem
     public boolean isDir() {
         return true;
     }
-    
-    
+
+    @Override
+    public String getType() {
+        return "d";
+    }
+        
+    @Override
+    public void setEntryHash(long hash) {
+        this.hash = hash;
+    }    
 }

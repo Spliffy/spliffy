@@ -19,7 +19,7 @@ import org.spliffy.server.db.VolumeInstance;
  */
 public class SingleVolumeInstanceAllocator implements VolumeInstanceAllocator {
 
-    private UUID theVolumeId;
+    private Long theVolumeId;
     
     private int replicationFactor = 2;
 
@@ -42,7 +42,7 @@ public class SingleVolumeInstanceAllocator implements VolumeInstanceAllocator {
 
     }
     @Override
-    public VolumeInstance getReaderInstance(UUID volumeId, List<VolumeInstance> previouslyFailed) {
+    public VolumeInstance getReaderInstance(long volumeId, List<VolumeInstance> previouslyFailed) {
         Session session = SessionManager.session();
         if (theVolumeId == null) {
             // select a volume
@@ -62,7 +62,6 @@ public class SingleVolumeInstanceAllocator implements VolumeInstanceAllocator {
 
     private Volume createVolume(Session session) {
         Volume volume = new Volume();
-        volume.setId(UUID.randomUUID());
         volume.setTargetCapacity(Long.MAX_VALUE);
         volume.setUsedBytes(0);
         volume.setInstances(new ArrayList<VolumeInstance>());

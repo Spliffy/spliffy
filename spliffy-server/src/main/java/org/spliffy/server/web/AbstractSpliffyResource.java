@@ -7,6 +7,7 @@ import com.bradmcevoy.http.Request.Method;
 import java.util.UUID;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
+import org.spliffy.server.db.ItemVersion;
 
 /**
  *
@@ -18,7 +19,7 @@ public abstract class AbstractSpliffyResource implements PropFindableResource {
     
     public abstract Long getEntryHash();
     
-    public abstract UUID getMetaId();
+    public abstract ItemVersion getItemVersion();
     
     /**
      * For templating, return true if this is a directory, false for a file

@@ -3,8 +3,8 @@ package org.spliffy.server.db;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import org.hibernate.Criteria;
@@ -33,10 +33,10 @@ public class Volume implements Serializable{
         return list;
     }
 
-    public static Volume get(UUID theVolumeId) {
+    public static Volume get(long theVolumeId) {
         return (Volume) SessionManager.session().get(Volume.class, theVolumeId);
     }
-    private UUID id;
+    private long id;
     
     private List<VolumeInstance> instances;
     
@@ -45,11 +45,12 @@ public class Volume implements Serializable{
     private long usedBytes;
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 

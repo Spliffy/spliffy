@@ -14,7 +14,7 @@ import java.util.Map;
 import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.ResourceVersionMeta;
+import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.SessionManager;
 
 /**
@@ -27,8 +27,8 @@ import org.spliffy.server.db.SessionManager;
 public class RepoFileResource extends AbstractMutableSpliffyResource implements ReplaceableResource {
 
     private Fanout fanout;
-
-    public RepoFileResource(String name, ResourceVersionMeta meta, MutableCollection parent, Services services) {
+        
+    public RepoFileResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
     }
 
@@ -39,7 +39,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
             Transaction tx = session.beginTransaction();
 
             MutableCollection newParent = (MutableCollection) toCollection;
-            ResourceVersionMeta newMeta = Utils.newFileMeta();
+            ItemVersion newMeta = Utils.newFileItemVersion();
             RepoFileResource fileResource = new RepoFileResource(newName, newMeta, newParent, services);
             fileResource.setHash(hash);
             newParent.addChild(fileResource);
@@ -55,6 +55,10 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
+        // a note on file dirtiness: a file is only dirty if its content has changed. If it is moved
+        // or deleted then that is a change to the directories affected, not the file
+        dirty = true;        
+        
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {
             // read the new hash and set it on this
@@ -77,7 +81,7 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
             setHash(fileHash);
 
             // Create a new Version Meta record
-            meta = Utils.newFileMeta(meta.getResourceMeta());
+            itemVersion = Utils.newFileItemVersion(itemVersion.getItem() );
         }
         // update parent
         parent.onChildChanged(this);
@@ -119,4 +123,16 @@ public class RepoFileResource extends AbstractMutableSpliffyResource implements 
     public boolean isDir() {
         return false;
     }    
+    
+    @Override
+    public String getType() {
+        return "f";
+    }
+
+    @Override
+    public boolean isDirty() {
+        return dirty;
+    }
+    
+    
 }

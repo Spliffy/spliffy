@@ -2,7 +2,6 @@ package org.spliffy.server.db;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Just uses locking. Only useful for single server - will not work in a cluster!
@@ -15,7 +14,7 @@ import java.util.UUID;
  */
 public class DefaultVersionNumberGenerator implements VersionNumberGenerator{
 
-    private Map<UUID,Long> mapOfCounters = new HashMap<>();
+    private Map<Long,Long> mapOfCounters = new HashMap<>();
     
     @Override
     public synchronized long nextVersionNumber(Repository r) {

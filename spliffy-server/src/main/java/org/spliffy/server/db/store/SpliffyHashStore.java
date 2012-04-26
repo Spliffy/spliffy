@@ -2,12 +2,10 @@ package org.spliffy.server.db.store;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import org.hashsplit4j.api.Fanout;
 import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.FanoutEntry;
 import org.spliffy.server.db.FanoutHash;
-import org.spliffy.server.db.MiltonOpenSessionInViewFilter;
 import org.spliffy.server.db.SessionManager;
 
 /**
@@ -29,7 +27,6 @@ public class SpliffyHashStore implements HashStore{
             FanoutEntry fe = new FanoutEntry();
             fe.setChunkHash(l);
             fe.setFanout(fanout);
-            fe.setId(UUID.randomUUID());
             list.add(fe);
         }
         fanout.setFanoutEntrys(list);

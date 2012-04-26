@@ -42,7 +42,7 @@ public class HAVolumeBlobStore implements BlobStore {
             return;
         }
 
-        UUID volumeId;
+        long volumeId;
         try {
             volumeId = writeBytes(hash, bytes);
         } catch (Exception ex) {
@@ -95,7 +95,7 @@ public class HAVolumeBlobStore implements BlobStore {
      * @return - ID of the volume (not volume instance!) written to
      * @throws Exception
      */
-    public UUID writeBytes(long hash, byte[] bytes) throws Exception {
+    public long writeBytes(long hash, byte[] bytes) throws Exception {
         VolumeInstance vi = allocator.nextWriteInstance(null); // todo: imlpement retries, with previouslyFailed list
         VolumeInstanceType type = mapOfInstanceTypes.get(vi.getInstanceType());
         if (type == null) {

@@ -2,20 +2,23 @@ package org.spliffy.server.db;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Temporal;
+import javax.persistence.*;
 
 /**
+ * A RepoVersion is a link between a Repository and an ItemVersion
+ * 
+ * The ItemVersion linked to is a directory, and its members are the 
+ * members of the Repository for this version
+ * 
+ * The latest version for a Repository (ie with the highest versionNum)
+ * is the current version of the repository (ie the Head)
  *
  * @author brad
  */
 @javax.persistence.Entity
 public class RepoVersion implements Serializable {
-    private UUID id;
-    private long dirHash;
+    private long id;
+    private ItemVersion rootItemVersion; // this is the root directory for the repository (in this version)
     private long versionNum;
     // parent
     private Repository repo;
@@ -29,12 +32,13 @@ public class RepoVersion implements Serializable {
     public RepoVersion() {
     }
         
-    public long getDirHash() {
-        return dirHash;
+    @ManyToOne
+    public ItemVersion getRootItemVersion() {
+        return rootItemVersion;
     }
 
-    public void setDirHash(long dirHash) {
-        this.dirHash = dirHash;
+    public void setRootItemVersion(ItemVersion rootItemVersion) {
+        this.rootItemVersion = rootItemVersion;
     }    
     
     @ManyToOne
@@ -65,14 +69,21 @@ public class RepoVersion implements Serializable {
     }
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 
+    /**
+     * Monotonically increasing version number for the repository. Might
+     * not be sequential
+     * 
+     * @return 
+     */
     @Column(nullable=false)
     public long getVersionNum() {
         return versionNum;

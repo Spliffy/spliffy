@@ -5,6 +5,7 @@ import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.hibernate.Session;
+import org.spliffy.server.db.ItemVersion;
 
 /**
  * Used for parent references. The parent can be either a RepoResource or
@@ -14,7 +15,7 @@ import org.hibernate.Session;
  */
 public interface MutableCollection extends MutableResource, CollectionResource, MakeCollectionableResource {
 
-    long save(Session session);
+    void save(Session session);
 
     void removeChild(MutableResource r) throws NotAuthorizedException, BadRequestException;
 
@@ -26,13 +27,17 @@ public interface MutableCollection extends MutableResource, CollectionResource, 
      */
     void onChildChanged(MutableResource r);
     
-    /**
-     * Flag which indicates that some members have changed
-     * 
-     * @return 
-     */
-    boolean isDirty();
+    MutableCollection getParent();
 
-    public MutableCollection getParent();
+    /**
+     * Called during the save procedure, the system will recalculate the
+     * hash for this directory and set it here. Then it will be used to
+     * create a new ItemVersion if necessary
+     * 
+     * @param newHash 
+     */
+    void setEntryHash(long newHash);
+
+
     
 }

@@ -16,27 +16,28 @@ import javax.persistence.*;
  * @author brad
  */
 @javax.persistence.Entity
-public class ResourceMeta implements Serializable {
-    private UUID id;
+public class Item implements Serializable {
+    private long id;
     private String type; // "f" = file, "d" = directory
     private Date createDate;
     private List<Permission> grantedPermissions;
-    private List<ResourceVersionMeta> versions;
+    private List<ItemVersion> versions;
 
-    public static ResourceMeta find(UUID id) {
-        return (ResourceMeta) SessionManager.session().get(ResourceMeta.class, id);
+    public static Item find(UUID id) {
+        return (Item) SessionManager.session().get(Item.class, id);
     }
 
-    public ResourceMeta() {
+    public Item() {
     }
         
     
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -70,12 +71,12 @@ public class ResourceMeta implements Serializable {
         this.grantedPermissions = grantedPermissions;
     }
 
-    @OneToMany(cascade= CascadeType.ALL, mappedBy="resourceMeta")
-    public List<ResourceVersionMeta> getVersions() {
+    @OneToMany(cascade= CascadeType.ALL, mappedBy="item")
+    public List<ItemVersion> getVersions() {
         return versions;
     }
 
-    public void setVersions(List<ResourceVersionMeta> versions) {
+    public void setVersions(List<ItemVersion> versions) {
         this.versions = versions;
     }
         

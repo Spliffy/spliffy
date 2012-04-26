@@ -22,29 +22,38 @@ public class Utils {
         return null;
     }
 
-    public static MutableResource toResource(MutableCollection parent, DirEntry de) {
-        UUID metaId = de.getMetaId();
-        ResourceVersionMeta meta = ResourceVersionMeta.find(metaId); 
-        String type = meta.getResourceMeta().getType();
+    /**
+     * Produce a web resource representation of the given DirectoryMember.
+     * 
+     * This will be either a RepoFileResource or a RepoDirectoryResource, depending
+     * on the type associated with the member
+     * 
+     * @param parent
+     * @param de
+     * @return 
+     */
+    public static MutableResource toResource(MutableCollection parent, DirectoryMember de) {
+        ItemVersion itemVersion = de.getMemberItem();
+        String type = itemVersion.getItem().getType();
         System.out.println("toResource: " + de.getName() + " type: " + type);
         switch (type) {
             case "d":
-                RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(),meta, parent, parent.getServices());
-                rdr.setHash(de.getEntryHash());
+                RepoDirectoryResource rdr = new RepoDirectoryResource(de.getName(),itemVersion, parent, parent.getServices());
+                rdr.setHash(de.getMemberItem().getItemHash());
                 return rdr;
             case "f":
-                RepoFileResource rfr = new RepoFileResource(de.getName(), meta, parent, parent.getServices());
-                rfr.setHash(de.getEntryHash());
+                RepoFileResource rfr = new RepoFileResource(de.getName(), itemVersion, parent, parent.getServices());
+                rfr.setHash(de.getMemberItem().getItemHash() );
                 return rfr;
             default:
                 throw new RuntimeException("Unknown resource type: " + type);
         }
     }
 
-    public static List<MutableResource> toResources(MutableCollection parent, List<DirEntry> dirEntries) {
+    public static List<MutableResource> toResources(MutableCollection parent, List<DirectoryMember> dirEntries) {
         List<MutableResource> list = new ArrayList<>();
         Set<String> names = new HashSet<>();
-        for (DirEntry de : dirEntries) {
+        for (DirectoryMember de : dirEntries) {
             String name = de.getName();
             if( names.contains(name )) {
                 throw new RuntimeException("Name not unique within collection: " + name);
@@ -57,36 +66,59 @@ public class Utils {
         return list;
     }
 
-    public static ResourceVersionMeta newDirMeta() {
-        return newMeta(null, "d");
+    public static ItemVersion newDirItemVersion() {
+        return newItemVersion((Item)null, "d");
+    }
+
+    public static ItemVersion newDirItemVersion(Item item) {
+        return newItemVersion(item, "d");
     }
     
-    public static ResourceVersionMeta newFileMeta() {
-        return newMeta(null, "f");
+    public static ItemVersion newFileItemVersion() {
+        return newItemVersion((Item)null, "f");
     }    
 
-    public static ResourceVersionMeta newFileMeta(ResourceMeta meta) {
-        return newMeta(meta, "f");
+    public static ItemVersion newFileItemVersion(Item item) {
+        return newItemVersion(item, "f");
     }    
     
-    private static ResourceVersionMeta newMeta(ResourceMeta meta, String type) {
-        if( meta == null ) {
-            meta = new ResourceMeta();
-            meta.setId(UUID.randomUUID());
-            meta.setType(type);
-            meta.setCreateDate(new Date());
+    public static ItemVersion newItemVersion(ItemVersion currentVersion, String type) {
+        Item item = null;
+        if( currentVersion != null ) {
+            item = currentVersion.getItem();
+        }
+        return newItemVersion(item, type);
+    }
+    
+    /**
+     * Produces a new ItemVersion, and a new Item if required, to represent
+     * either a new resource or a modification to an existing one.
+     * 
+     * @param item - the existing item identifier if it exists, or null to create a new one
+     * @param type - type of the resource, d=directory, f=file
+     * @return 
+     */
+    public static ItemVersion newItemVersion(Item item, String type) {
+        if( item == null ) {
+            item = new Item();
+            item.setType(type);
+            item.setCreateDate(new Date());
         }
         
-        ResourceVersionMeta versionMeta = new ResourceVersionMeta();
-        versionMeta.setId(UUID.randomUUID());
-        versionMeta.setModifiedDate(new Date());
-        versionMeta.setResourceMeta(meta);
+        ItemVersion itemVersion = new ItemVersion();
+        itemVersion.setModifiedDate(new Date());
+        itemVersion.setItem(item);
         
-        List<ResourceVersionMeta> list = new ArrayList<>();
-        list.add(versionMeta);
-        meta.setVersions(list);
+        if( item.getVersions() == null ) {
+            List<ItemVersion> list = new ArrayList<>();
+            item.setVersions(list);
+        }
+        item.getVersions().add(itemVersion);        
         
-        SessionManager.session().save(meta);
-        return versionMeta;
-    }    
+        SessionManager.session().save(item);
+        SessionManager.session().save(itemVersion);
+        return itemVersion;
+    }
+
+
 }

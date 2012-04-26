@@ -19,8 +19,8 @@ public class HashUtils {
      * @param type - "f" = file, "d" = directory
      * @return 
      */
-    public static String toHashableText(String name, Long crc, UUID metaId, String type) {
-        String line = name + ":" + crc + ":" + metaId + ":" + type  + '\n';
+    public static String toHashableText(String name, Long crc, String type) {
+        String line = name + ":" + crc + ":" + type  + '\n';
         return line;
     }
 
@@ -53,8 +53,6 @@ public class HashUtils {
         FileTriplet triplet = new FileTriplet();
         triplet.setName(arr[0]);
         triplet.setHash(Long.parseLong(arr[1]));
-        UUID metaId = UUID.fromString(arr[2]);
-        triplet.setMetaId(metaId);
         triplet.setType(arr[3]);
         return triplet;
     }

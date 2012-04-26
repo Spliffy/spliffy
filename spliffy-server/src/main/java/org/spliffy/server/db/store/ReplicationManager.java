@@ -7,5 +7,5 @@ import java.util.UUID;
  * @author brad
  */
 public interface ReplicationManager {
-    void newBlob(UUID volumeInstanceId, long hash);
+    void newBlob(long volumeInstanceId, long hash);
 }

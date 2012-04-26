@@ -1,7 +1,6 @@
 package org.spliffy.server.db.store;
 
 import java.util.List;
-import java.util.UUID;
 import org.spliffy.server.db.VolumeInstance;
 
 /**
@@ -33,6 +32,6 @@ public interface VolumeInstanceAllocator {
      * @return - null if no acceptable VI can be found, otherwise the best VI to read
      * from for the given volume
      */
-    public VolumeInstance getReaderInstance(UUID volumeId, List<VolumeInstance> previouslyFailed);
+    public VolumeInstance getReaderInstance(long volumeId, List<VolumeInstance> previouslyFailed);
     
 }

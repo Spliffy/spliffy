@@ -3,8 +3,8 @@ package org.spliffy.server.db;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.io.Serializable;
-import java.util.UUID;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
@@ -14,18 +14,19 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 public class Permission implements Serializable {
-    private UUID id;
+    private long id;
     private AccessControlledResource.Priviledge priviledge;
     private BaseEntity grantee;
-    private ResourceMeta grantedOn;
+    private Item grantedOn;
         
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -47,11 +48,11 @@ public class Permission implements Serializable {
     }
 
     @ManyToOne
-    public ResourceMeta getGrantedOn() {
+    public Item getGrantedOn() {
         return grantedOn;
     }
 
-    public void setGrantedOn(ResourceMeta grantedOn) {
+    public void setGrantedOn(Item grantedOn) {
         this.grantedOn = grantedOn;
     }
     

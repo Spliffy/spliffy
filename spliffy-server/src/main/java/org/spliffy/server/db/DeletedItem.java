@@ -1,8 +1,8 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
-import java.util.UUID;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
@@ -13,35 +13,36 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 public class DeletedItem implements Serializable {
-    private UUID id;
-    private ResourceVersionMeta deletedResource;
-    private ResourceVersionMeta deletedFrom;
+    private long id;
+    private ItemVersion deletedResource;
+    private ItemVersion deletedFrom;
     private RepoVersion repoVersion;
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
        
     @ManyToOne
-    public ResourceVersionMeta getDeletedFrom() {
+    public ItemVersion getDeletedFrom() {
         return deletedFrom;
     }
 
-    public void setDeletedFrom(ResourceVersionMeta deletedFrom) {
+    public void setDeletedFrom(ItemVersion deletedFrom) {
         this.deletedFrom = deletedFrom;
     }
 
     @ManyToOne
-    public ResourceVersionMeta getDeletedResource() {
+    public ItemVersion getDeletedResource() {
         return deletedResource;
     }
 
-    public void setDeletedResource(ResourceVersionMeta deletedResource) {
+    public void setDeletedResource(ItemVersion deletedResource) {
         this.deletedResource = deletedResource;
     }
 

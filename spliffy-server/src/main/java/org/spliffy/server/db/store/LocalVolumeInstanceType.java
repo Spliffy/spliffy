@@ -2,14 +2,11 @@ package org.spliffy.server.db.store;
 
 import org.spliffy.server.db.VolumeInstance;
 import java.io.*;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.User;
 
 /**
  * A volume instance type for storing blobs in a local directory
@@ -55,7 +52,6 @@ public class LocalVolumeInstanceType implements VolumeInstanceType {
                 vi = new VolumeInstance();
                 vi.setCapacity(10000000l); // 10M
                 vi.setCost(10);
-                vi.setId(UUID.randomUUID());
                 vi.setInstanceType(id);
                 vi.setLocation(f.getAbsolutePath());
                 vi.setOnline(true);

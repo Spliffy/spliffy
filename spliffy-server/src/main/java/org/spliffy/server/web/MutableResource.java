@@ -1,23 +1,37 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.Resource;
-import java.util.UUID;
-import org.hashsplit4j.api.BlobStore;
-import org.hashsplit4j.api.HashStore;
+import org.spliffy.server.db.ItemVersion;
 
 /**
+ * Represents a web resource which can be changed (ie is mutable)
+ * 
+ * Being mutable is has a hash value
  *
  * @author brad
  */
 public interface MutableResource extends Resource {
 
-    BlobStore getBlobStore();
-
-    HashStore getHashStore();
-    
+    /**
+     * Flag which indicates that this resource or its members (if a directory) have changed
+     * 
+     * @return 
+     */
+    boolean isDirty();    
+       
     Services getServices();
     
-    public abstract Long getEntryHash();
+    Long getEntryHash();
     
-    public abstract UUID getMetaId();    
+    ItemVersion getItemVersion();
+
+    /**
+     * Called during the save process
+     * 
+     * @param newVersion 
+     */
+    void setItemVersion(ItemVersion newVersion);
+    
+    
+    public String getType();
 }

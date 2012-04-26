@@ -29,15 +29,14 @@
             <list>
                 <value>org.spliffy.server.db.BaseEntity</value>
                 <value>org.spliffy.server.db.BlobHash</value>
-                <value>org.spliffy.server.db.DirEntry</value>
+                <value>org.spliffy.server.db.DirectoryMember</value>
                 <value>org.spliffy.server.db.RepoVersion</value>
                 <value>org.spliffy.server.db.Repository</value>
-                <value>org.spliffy.server.db.ResourceMeta</value>
+                <value>org.spliffy.server.db.Item</value>
                 <value>org.spliffy.server.db.User</value>
                 <value>org.spliffy.server.db.FanoutHash</value>
                 <value>org.spliffy.server.db.FanoutEntry</value>
-                <value>org.spliffy.server.db.ResourceMeta</value>
-                <value>org.spliffy.server.db.ResourceVersionMeta</value>
+                <value>org.spliffy.server.db.ItemVersion</value>
                 <value>org.spliffy.server.db.Permission</value>
                 <value>org.spliffy.server.db.Link</value>
                 <value>org.spliffy.server.db.DeletedItem</value>

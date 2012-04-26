@@ -18,12 +18,13 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
 
     protected String name;
     protected final MutableCollection parent;
-    protected ResourceVersionMeta meta;
+    protected ItemVersion itemVersion;
     protected long hash;
+    protected boolean dirty;
 
-    public AbstractMutableSpliffyResource(String name, ResourceVersionMeta meta, MutableCollection parent, Services services) {
+    public AbstractMutableSpliffyResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(services);
-        this.meta = meta;
+        this.itemVersion = meta;
         this.name = name;
         this.parent = parent;
     }
@@ -39,8 +40,7 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
-
-        if (newParent.getMetaId().equals(parent.getMetaId())) {
+        if (newParent.getItemVersion().getId() == parent.getItemVersion().getId()) {
             // just rename
             this.name = newName;
             parent.onChildChanged(this);
@@ -60,14 +60,11 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
         Transaction tx = session.beginTransaction();
 
         DeletedItem deletedItem = new DeletedItem();
-        deletedItem.setId(UUID.randomUUID());
-        if (parent.getMetaId() != null) { // will be null for folders directly in a RepoVersion
-            ResourceVersionMeta deletedFrom = ResourceVersionMeta.find(parent.getMetaId());
-            deletedItem.setDeletedFrom(deletedFrom);
+        if (parent.getItemVersion() != null) { // will be null for folders directly in a RepoVersion
+            deletedItem.setDeletedFrom(parent.getItemVersion());
 
         }
-        ResourceVersionMeta deletedResource = ResourceVersionMeta.find(getMetaId());
-        deletedItem.setDeletedResource(deletedResource);
+        deletedItem.setDeletedResource(getItemVersion());
         deletedItem.setRepoVersion(currentRepoVersion());
         session.save(deletedItem);
 
@@ -78,12 +75,12 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
 
     @Override
     public Date getCreateDate() {
-        return meta.getResourceMeta().getCreateDate();
+        return itemVersion.getItem().getCreateDate();
     }
 
     @Override
     public Date getModifiedDate() {
-        return meta.getModifiedDate();
+        return itemVersion.getModifiedDate();
     }
 
     @Override
@@ -102,13 +99,23 @@ public abstract class AbstractMutableSpliffyResource extends AbstractSpliffyReso
     }
 
     public void setHash(long hash) {
+        if (this.hash != hash) {
+            dirty = true;
+        }
         this.hash = hash;
     }
 
     @Override
-    public UUID getMetaId() {
-        return meta.getId();
+    public ItemVersion getItemVersion() {
+        return itemVersion;
     }
+
+    @Override
+    public void setItemVersion(ItemVersion itemVersion) {
+        this.itemVersion = itemVersion;
+    }
+    
+    
 
     @Override
     public Long getMaxAgeSeconds(Auth auth) {

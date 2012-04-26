@@ -1,7 +1,6 @@
 package org.spliffy.common;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Represents an entry in the filesystem, with a name, a hash and a 
@@ -12,7 +11,6 @@ import java.util.UUID;
 public class FileTriplet {
     private String name;
     private long hash;
-    private UUID metaId;
     private String type;
     
     private List<FileTriplet> children;
@@ -25,13 +23,6 @@ public class FileTriplet {
         this.hash = hash;
     }
 
-    public UUID getMetaId() {
-        return metaId;
-    }
-
-    public void setMetaId(UUID metaId) {
-        this.metaId = metaId;
-    }
 
     public String getName() {
         return name;

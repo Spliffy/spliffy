@@ -1,11 +1,7 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
-import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 /**
  *
@@ -13,7 +9,7 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 public class FanoutEntry implements Serializable{
-    private UUID id;
+    private long id;
     private FanoutHash fanout;
     private long chunkHash;
 
@@ -36,11 +32,12 @@ public class FanoutEntry implements Serializable{
     }
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
     

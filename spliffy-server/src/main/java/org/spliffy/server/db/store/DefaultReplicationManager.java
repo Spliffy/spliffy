@@ -1,7 +1,6 @@
 package org.spliffy.server.db.store;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -45,7 +44,7 @@ public class DefaultReplicationManager implements ReplicationManager {
     }
 
     @Override
-    public void newBlob(UUID volumeInstanceId, long hash) {
+    public void newBlob(long volumeInstanceId, long hash) {
         ReplicationItem item = new ReplicationItem(volumeInstanceId, hash);
         queue.add(item);
     }
@@ -67,7 +66,7 @@ public class DefaultReplicationManager implements ReplicationManager {
             byte[] arr = sourceType.getBlob(viSource.getLocation(), item.hash);
                                     
             for( VolumeInstance viDest : viSource.getVolume().getInstances()) {
-                if( viDest.getId().equals(item.volumeInstanceId)) {
+                if( viDest.getId() == item.volumeInstanceId) {
                     // ignore, since it is the source
                 } else {
                     VolumeInstanceType destType = mapOfInstanceTypes.get(viDest.getInstanceType());
@@ -99,10 +98,10 @@ public class DefaultReplicationManager implements ReplicationManager {
 
     private class ReplicationItem {
 
-        final UUID volumeInstanceId;
+        final long volumeInstanceId;
         final long hash;
 
-        ReplicationItem(UUID volumeInstanceId, long hash) {
+        ReplicationItem(long volumeInstanceId, long hash) {
             this.volumeInstanceId = volumeInstanceId;
             this.hash = hash;
         }

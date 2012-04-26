@@ -3,7 +3,6 @@ package org.spliffy.server.db;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import javax.persistence.*;
 
 /**
@@ -12,18 +11,19 @@ import javax.persistence.*;
  */
 @javax.persistence.Entity
 public class Repository implements Serializable {
-    private UUID id;
+    private long id;
     private String name;
     private List<RepoVersion> versions;
     private User user;
     private Date createdDate;
 
     @Id
-    public UUID getId() {
+    @GeneratedValue
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 
