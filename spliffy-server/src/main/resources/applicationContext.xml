@@ -45,6 +45,23 @@
 
     <bean id="hash.store" class="org.spliffy.server.db.store.SpliffyHashStore"/>
     
+    <!--
+    <bean id="mail.sender" class="com.ettrema.mail.send.RemoteSmtpMailSender" init-method="start">
+        <constructor-arg value="${mail.smtp.host}"/>
+        <constructor-arg value="${mail.smtp.user}"/>
+        <constructor-arg value="${mail.smtp.password}"/>
+        <constructor-arg value="${mail.smtp.port}"/>
+    </bean>
+    -->
+
+    
+    <bean id="mail.sender" class="com.ettrema.mail.send.MockMailSender"></bean>
+    
+    <!--
+    <bean id="mail.sender.aspirin" class="com.ettrema.mail.send.AspirinMailSender"></bean>
+    -->
+    
+    
     <bean id="version.number.generator" class="org.spliffy.server.db.DefaultVersionNumberGenerator"/>
 
     <bean id="password.manager" class="org.spliffy.server.web.PasswordManager"/>
@@ -57,6 +74,14 @@
         <constructor-arg ref="dao.user" />
         <constructor-arg ref="password.manager" />
     </bean>
+    
+    <bean id="services" class="org.spliffy.server.web.Services">
+        <constructor-arg ref="hash.store"/>
+        <constructor-arg ref="blob.store"/>
+        <constructor-arg ref="templater"/>
+        <constructor-arg ref="security.manager"/>
+        <constructor-arg ref="mail.sender"/>
+    </bean>    
     
     <bean id="test.data.creator" class="org.spliffy.server.db.TestDataCreator" init-method="initTestData" >
         <constructor-arg ref="sessionFactory"/>
@@ -73,11 +98,9 @@
         <constructor-arg ref="lock.manager"/>
         -->
         <constructor-arg ref="dao.user"/>
-        <constructor-arg ref="blob.store"/>
-        <constructor-arg ref="hash.store"/>
         <constructor-arg ref="version.number.generator"/>
         <constructor-arg ref="security.manager"/>
-        <constructor-arg ref="templater"/>
+        <constructor-arg ref="services"/>
     </bean>
     
     <bean id="sync.spliffy.resource.factory" class="org.spliffy.server.web.sync.SpliffySyncResourceFactory">

@@ -1,6 +1,6 @@
 <!-- Home page for the spliffy instance -->
 <#import "defaultLayout.ftl" as layout>
-<@layout.myLayout "User home" false>
+<@layout.myLayout "Home" false>
 
 <h1>Welcome to spliffy!</h1>
 

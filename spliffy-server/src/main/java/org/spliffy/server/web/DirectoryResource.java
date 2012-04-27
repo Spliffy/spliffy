@@ -5,19 +5,22 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.mail.MailboxAddress;
+import com.ettrema.mail.StandardMessage;
+import com.ettrema.mail.StandardMessageImpl;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.DirectoryMember;
-import org.spliffy.server.db.ItemVersion;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.*;
 
 /**
  * Represents a version of a directory, containing the members which are in that
@@ -25,9 +28,11 @@ import org.spliffy.server.db.SessionManager;
  *
  * @author brad
  */
-public class DirectoryResource extends AbstractMutableResource implements PutableResource, GetableResource, MutableCollection {
+public class DirectoryResource extends AbstractMutableResource implements PutableResource, GetableResource, MutableCollection, PostableResource {
 
     private List<MutableResource> children;
+    
+    private JsonResult jsonResult; // set after completing a POST
 
     public DirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
@@ -151,12 +156,14 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         tx.commit();
 
         return fileResource;
-
-
     }
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
+        if( jsonResult != null ) {
+            jsonResult.write(out);
+            return ;
+        }
         String type = HttpManager.request().getParams().get("type");
         if (type == null) {
             // output directory listing
@@ -206,5 +213,85 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
     @Override
     public void setEntryHash(long hash) {
         this.hash = hash;
+    }    
+    
+    /**
+     * Supports sending folder share invitations by email. Note that this
+     * is intended to be used with ajax, so returns a JSON result
+     * 
+     * It does this by settnig the generic JsonResult object on the resource
+     * 
+     * @param parameters
+     * @param files
+     * @return
+     * @throws BadRequestException
+     * @throws NotAuthorizedException
+     * @throws ConflictException 
+     */
+    @Override
+    public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
+        String shareWith = parameters.get("shareWith");
+        String priv = parameters.get("priviledge");
+        String message = parameters.get("message");
+        if( shareWith != null ) {            
+            Session session = SessionManager.session();
+            Transaction tx = session.beginTransaction();                        
+            List<StandardMessage> toSend = createShares(shareWith, priv, message, session);
+            tx.commit();
+            sendMail(toSend);
+            this.jsonResult = new JsonResult(true);
+        }
+        return null;
+    }
+
+    private List<StandardMessage> createShares(String shareWith, String priv, String message, Session session) {
+        Priviledge p = Priviledge.valueOf(priv);
+        String[] arr = shareWith.split(",");
+        User curUser = getCurrentUser();
+        if( curUser == null ) {
+            throw new RuntimeException("No current user");
+        }
+        MailboxAddress from = MailboxAddress.parse( curUser.getEmail() );
+        List<StandardMessage> list = new ArrayList<>();
+        String inviteBaseHref = HttpManager.request().getAbsoluteUrl(); // http://asdada/asd/ad
+        inviteBaseHref = inviteBaseHref.substring(0, inviteBaseHref.indexOf("/", 7)+1);// http://asdada/
+        inviteBaseHref += "shares/";
+        System.out.println("invite base href: " + inviteBaseHref) ;
+        for( String recip : arr ) {
+            System.out.println("Send invite to: " + recip);
+            StandardMessageImpl sm = createEmailShare(from, recip, p,message, inviteBaseHref, session);
+            list.add(sm);
+        }
+        return list;
+    }
+    
+    private void sendMail(List<StandardMessage> list) {
+        for( StandardMessage sm : list ) {
+            getServices().getMailSender().sendMail(sm);
+        }
+        
+    }
+
+    private StandardMessageImpl createEmailShare(MailboxAddress from, String sRecip, Priviledge p, String message, String inviteBaseHref, Session session) {
+        
+        Link link = new Link();
+        link.setId(UUID.randomUUID());
+        link.setSharedFrom(getItemVersion().getItem());
+        link.setShareRecip(sRecip);
+        link.setPriviledge(p);
+        session.save(link);
+        
+        String inviteHref = inviteBaseHref + link.getId();
+        
+        MailboxAddress recip = MailboxAddress.parse(sRecip);
+        
+        StandardMessageImpl sm = new StandardMessageImpl();
+        sm.setFrom(from);
+        sm.setTo(Arrays.asList(recip));
+        sm.setSubject("Share folder");
+        System.out.println("Share invitation href: " + inviteHref);
+        sm.setText(message + "\n\nTo see the files please click here: " + inviteHref);
+        getServices().getMailSender().sendMail(sm);
+        return sm;
     }    
 }

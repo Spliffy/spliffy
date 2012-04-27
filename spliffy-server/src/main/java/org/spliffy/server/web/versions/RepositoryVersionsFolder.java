@@ -7,6 +7,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -69,11 +70,6 @@ public class RepositoryVersionsFolder extends AbstractCollectionResource impleme
     public Long getContentLength() {
         return null;
     }    
-    
-    @Override
-    public ItemVersion getItemVersion() {
-        return null;
-    }
 
     @Override
     public Date getCreateDate() {
@@ -108,6 +104,11 @@ public class RepositoryVersionsFolder extends AbstractCollectionResource impleme
     @Override
     public void addPrivs(List<Priviledge> list, User user) {
         parent.addPrivs(list, user);
+    }
+
+    @Override
+    public Map<Principal, List<Priviledge>> getAccessControlList() {
+        return null;
     }
     
     

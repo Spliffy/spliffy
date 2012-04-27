@@ -13,12 +13,11 @@ import java.io.PrintWriter;
 import java.util.*;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import org.hashsplit4j.api.BlobStore;
-import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.UserDao;
 import org.spliffy.server.db.VersionNumberGenerator;
+import org.spliffy.server.web.sharing.SharesFolder;
 
 /**
  *
@@ -35,11 +34,11 @@ public class SpliffyResourceFactory implements ResourceFactory {
     private final SpliffySecurityManager securityManager;
     private final Services services;
 
-    public SpliffyResourceFactory(UserDao userDao, HashStore hashStore, BlobStore blobStore, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Templater templater) {
+    public SpliffyResourceFactory(UserDao userDao, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Services services) {
         this.userDao = userDao;
         this.versionNumberGenerator = versionNumberGenerator;
         this.securityManager = securityManager;
-        this.services = new Services(hashStore, blobStore, templater, securityManager);
+        this.services = services;
     }
 
     @Override
@@ -77,7 +76,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         private Map<String,PrincipalResource> children = new HashMap<>();
         
-        protected User currentUser;
+        protected User currentUser;        
         
         @Override
         public String getUniqueId() {
@@ -125,6 +124,8 @@ public class SpliffyResourceFactory implements ResourceFactory {
         public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
             if( childName.equals("login")) {
                 return new LoginPage(securityManager, this);
+            } else if( childName.equals("shares")) {
+                return new SharesFolder("shares", this);
             }
             return findEntity(childName);
         }

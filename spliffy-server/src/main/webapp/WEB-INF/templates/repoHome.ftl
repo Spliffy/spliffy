@@ -1,5 +1,5 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.dirLayout "User home">
+<@layout.dirLayout "Repository home">
 
 <#list page.children as x>
   

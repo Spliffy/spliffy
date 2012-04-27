@@ -1,6 +1,7 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,9 @@ import javax.persistence.*;
  */
 @javax.persistence.Entity
 public class Item implements Serializable {
+    
+            
+    
     private long id;
     private String type; // "f" = file, "d" = directory
     private Date createDate;
@@ -30,6 +34,22 @@ public class Item implements Serializable {
     public Item() {
     }
         
+    /**
+     * Find the permissions on this item which are granted to the given user
+     * 
+     * @param user
+     * @return 
+     */
+    public List<Permission> grantedPermissions(User user) {
+        List<Permission> list = new ArrayList<>();
+        for( Permission p : getGrantedPermissions()) {
+            if( p.getGrantee() == user ) {
+                list.add(p);
+            }
+        }
+        return list;
+    }
+    
     
     @Id
     @GeneratedValue
@@ -80,10 +100,7 @@ public class Item implements Serializable {
         this.versions = versions;
     }
 
-    public List<Permission> grantedPermissions(User user) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-        
+
         
     
 }

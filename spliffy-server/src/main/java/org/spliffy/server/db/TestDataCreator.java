@@ -44,6 +44,7 @@ public class TestDataCreator {
             passwordManager.setPassword(t, password);
             t.setCreatedDate(new Date());
             t.setModifiedDate(new Date());
+            t.setEmail(name + "@spliffy.org");
             session.save(t);
             System.out.println("created test user");
             

@@ -1,6 +1,8 @@
 package org.spliffy.server.db;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Table;
 
 /**
  *
@@ -12,6 +14,8 @@ import javax.persistence.*;
 public class User extends BaseEntity {
 
     private String passwordDigest;
+    
+    private String email;
 
     @Column
     public String getPasswordDigest() {
@@ -22,7 +26,16 @@ public class User extends BaseEntity {
         this.passwordDigest = password;
     }
 
+    @Column(nullable=false)
+    public String getEmail() {
+        return email;
+    }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    
     
     
 }

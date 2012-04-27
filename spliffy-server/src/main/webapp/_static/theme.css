@@ -740,4 +740,18 @@ div.bar {
 .error, .validationError, #validationMessage {
     font-size: 0.8em;
 }
+
+a.share {
+    display: block;    
+    float: right;
+    border: solid gray 1px;
+    padding: 0.3em;
+    border-radius: 0.3em;    
+}
+
+#shareModal textarea {
+    width: 350px;
+}
+
 /**    End theme.css    */
+

@@ -4,6 +4,8 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.acl.Principal;
 import java.util.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -20,8 +22,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     protected ItemVersion itemVersion;
     protected long hash;
     protected boolean dirty;
-    
-    
+        
     public AbstractMutableResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(services);
         this.itemVersion = meta;
@@ -146,17 +147,26 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     }
 
     @Override
-    public Object authenticate(String user, String password) {
-        return services.getSecurityManager().authenticate(user, password);
-    }
-
-    @Override
-    public boolean authorise(Request request, Request.Method method, Auth auth) {
-        return services.getSecurityManager().authorise(request, method, auth, this);
-    }
-
-    @Override
     public BaseEntity getOwner() {
         return parent.getOwner(); // go up until we get an entity
     }
+    
+    /**
+     * Get all allowed priviledges for all principals on this resource. Note
+     * that a principal might be a user, a group, or a built-in webdav group
+     * such as AUTHENTICATED
+     *
+     * @return
+     */
+    @Override
+    public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
+        ItemVersion v = this.getItemVersion();
+        if (v == null) {
+            return null;
+        } else {
+            List<Permission> perms = v.getItem().getGrantedPermissions();
+            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
+            return map;
+        }
+    }    
 }

@@ -5,8 +5,10 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.ettrema.http.CalendarResource;
+import com.ettrema.http.acl.Principal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.User;
@@ -26,11 +28,6 @@ public class CalendarFolder extends AbstractCollectionResource implements Calend
         super(services);
         this.parent = parent;
         this.name = name;
-    }
-
-    @Override
-    public ItemVersion getItemVersion() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -91,6 +88,11 @@ public class CalendarFolder extends AbstractCollectionResource implements Calend
     @Override
     public String getCTag() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    @Override
+    public Map<Principal, List<Priviledge>> getAccessControlList() {
+        return null;
     }
     
 }

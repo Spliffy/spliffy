@@ -4,6 +4,7 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.Repository;
 import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractCollectionResource;
@@ -57,13 +57,7 @@ public class VersionsRootFolder extends  AbstractCollectionResource implements G
         }
         return children;
     }
-    
-    
-    @Override
-    public ItemVersion getItemVersion() {
-        return null;
-    }
-
+       
     @Override
     public Date getCreateDate() {
         return baseEntity.getCreatedDate();
@@ -114,5 +108,9 @@ public class VersionsRootFolder extends  AbstractCollectionResource implements G
         parent.addPrivs(list, user);
     }
     
+    @Override
+    public Map<Principal, List<Priviledge>> getAccessControlList() {
+        return null;
+    }
     
 }

@@ -5,6 +5,8 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.acl.Principal;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -386,5 +388,24 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     @Override
     public void addPrivs(List<Priviledge> list, User user) {
         parent.addPrivs(list, user);
+    }
+
+    /**
+     * Get all allowed priviledges for all principals on this resource. Note
+     * that a principal might be a user, a group, or a built-in webdav group
+     * such as AUTHENTICATED
+     *
+     * @return
+     */
+    @Override
+    public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
+        ItemVersion v = this.getItemVersion();
+        if (v == null) {
+            return null;
+        } else {
+            List<Permission> perms = v.getItem().getGrantedPermissions();
+            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
+            return map;
+        }
     }    
 }

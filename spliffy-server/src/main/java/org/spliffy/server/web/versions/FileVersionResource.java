@@ -28,7 +28,6 @@ public class FileVersionResource extends AbstractVersionResource implements Geta
         super(parent, directoryMember);
     }
 
-    @Override
     public ItemVersion getItemVersion() {
         return directoryMember.getMemberItem();
     }

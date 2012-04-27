@@ -24,8 +24,7 @@ import org.spliffy.server.db.User;
  * @author brad
  */
 public abstract class AbstractResource implements SpliffyResource, PropFindableResource, AccessControlledResource {
-
-    public abstract ItemVersion getItemVersion();
+    
 
     /**
      * For templating, return true if this is a directory, false for a file
@@ -143,24 +142,6 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     }
     
 
-    /**
-     * Get all allowed priviledges for all principals on this resource. Note
-     * that a principal might be a user, a group, or a built-in webdav group
-     * such as AUTHENTICATED
-     *
-     * @return
-     */
-    @Override
-    public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
-        ItemVersion v = this.getItemVersion();
-        if (v == null) {
-            return null;
-        } else {
-            List<Permission> perms = v.getItem().getGrantedPermissions();
-            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
-            return map;
-        }
-    }
 
     @Override
     public void setAccessControlList(Map<Principal, List<Priviledge>> privs) {

@@ -10,6 +10,7 @@
         <link rel="stylesheet" type="text/css" href="/_static/theme.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/base.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/validation.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="/_static/jquery-ui-1.8.11.custom.css" media="screen" />        
 
         <script type="text/javascript" src="/_static/js/10_jquery.js" >//</script>
         <script type="text/javascript" src="/_static/js/11_jquery.cookie.js" >//</script>
@@ -186,7 +187,7 @@
 </#macro>
 
 <#macro dirLayout title="Home">
-<@layout.myLayout "User home">
+<@layout.myLayout title>
 
 <@breadCrumbs node=page path="."/>
 

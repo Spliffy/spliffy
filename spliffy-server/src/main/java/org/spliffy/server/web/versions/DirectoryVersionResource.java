@@ -4,14 +4,11 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import org.spliffy.server.db.DirectoryMember;
 import org.spliffy.server.db.ItemVersion;
-import org.spliffy.server.db.RepoVersion;
-import org.spliffy.server.web.*;
 import org.spliffy.server.web.Utils;
 
 /**
@@ -28,7 +25,6 @@ public class DirectoryVersionResource extends AbstractVersionResource implements
         super(parent, directoryMember);
     }
 
-    @Override
     public ItemVersion getItemVersion() {
         return directoryMember.getMemberItem();
     }

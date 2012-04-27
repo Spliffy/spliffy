@@ -6,7 +6,9 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.values.HrefList;
+import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.acl.HrefPrincipleId;
+import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -92,11 +94,6 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         return new RepositoryFolder(this, r, rv,  versionNumberGenerator);
     }
 
-
-    @Override
-    public ItemVersion getItemVersion() {
-        return null;
-    }
 
     @Override
     public Date getCreateDate() {
@@ -195,6 +192,20 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         }
     }
 
-    
+    /**
+     * Get all allowed priviledges for all principals on this resource. Note
+     * that a principal might be a user, a group, or a built-in webdav group
+     * such as AUTHENTICATED
+     *
+     * @return
+     */
+    @Override
+    public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
+        Map<Principal, List<AccessControlledResource.Priviledge>> map = new HashMap<>();
+        List<Priviledge> list = new ArrayList<>();
+        addPrivs(list, user);
+        map.put(this, list);
+        return map;
+    }        
     
 }

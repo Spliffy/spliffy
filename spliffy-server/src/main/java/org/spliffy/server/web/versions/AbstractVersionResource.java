@@ -1,7 +1,10 @@
 package org.spliffy.server.web.versions;
 
+import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.acl.Principal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.spliffy.server.db.*;
 import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.SecurityUtils;
@@ -61,4 +64,22 @@ public abstract class AbstractVersionResource extends AbstractResource{
         getParent().addPrivs(list, user);
     }    
     
+   /**
+     * Get all allowed priviledges for all principals on this resource. Note
+     * that a principal might be a user, a group, or a built-in webdav group
+     * such as AUTHENTICATED
+     *
+     * @return
+     */
+    @Override
+    public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
+        ItemVersion v = directoryMember.getMemberItem();
+        if (v == null) {
+            return null;
+        } else {
+            List<Permission> perms = v.getItem().getGrantedPermissions();
+            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
+            return map;
+        }
+    }        
 }

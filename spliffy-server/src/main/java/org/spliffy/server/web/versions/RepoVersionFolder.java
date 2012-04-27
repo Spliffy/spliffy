@@ -7,6 +7,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -35,11 +36,6 @@ public class RepoVersionFolder extends AbstractCollectionResource implements Ver
         super(services);
         this.parent = parent;
         this.repoVersion = repoVersion;
-    }
-
-    @Override
-    public ItemVersion getItemVersion() {
-        return null;
     }
 
     @Override
@@ -110,6 +106,12 @@ public class RepoVersionFolder extends AbstractCollectionResource implements Ver
 
     }
 
+    @Override
+    public Map<Principal, List<Priviledge>> getAccessControlList() {
+        return null;
+    }
+
+    
     
 
 }

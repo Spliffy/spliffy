@@ -1,5 +1,6 @@
-package org.spliffy.server.web.calendar;
+package org.spliffy.server.web.sharing;
 
+import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -7,29 +8,36 @@ import com.ettrema.http.acl.Principal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.ItemVersion;
+import org.spliffy.server.db.Link;
+import org.spliffy.server.db.SessionManager;
 import org.spliffy.server.db.User;
-import org.spliffy.server.web.AbstractCollectionResource;
+import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyCollectionResource;
-import org.spliffy.server.web.UserResource;
-import org.spliffy.server.web.Utils;
 
 /**
  *
  * @author brad
  */
-public class CalendarHomeFolder extends AbstractCollectionResource {
-    private final String name;
-    private final UserResource parent;
+public class SharesFolder extends AbstractResource implements CollectionResource{
 
-    public CalendarHomeFolder(UserResource parent, Services services, String name) {
-        super(services);
-        this.parent = parent;
+    private final String name;
+    
+    private final SpliffyCollectionResource parent;
+
+    public SharesFolder(String name, SpliffyCollectionResource parent) {
+        super(parent.getServices());
         this.name = name;
+        this.parent = parent;
     }
 
+
+    @Override
+    public boolean isDir() {
+        return false;
+    }
 
     @Override
     public SpliffyCollectionResource getParent() {
@@ -38,12 +46,12 @@ public class CalendarHomeFolder extends AbstractCollectionResource {
 
     @Override
     public BaseEntity getOwner() {
-        return parent.getOwner();
+        return null;
     }
 
     @Override
     public void addPrivs(List<Priviledge> list, User user) {
-        parent.addPrivs(list, user);
+        
     }
 
     @Override
@@ -63,18 +71,29 @@ public class CalendarHomeFolder extends AbstractCollectionResource {
 
     @Override
     public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
-        return Utils.childOf(getChildren(), childName);
+        UUID id;
+        try {
+            id = UUID.fromString(childName);
+        } catch (Exception e) {
+            return null; // not a UUID
+        }
+        Link link = Link.get(id, SessionManager.session());
+        if( link == null) {
+            return null;
+        }
+        return new ShareResource(link, parent);
     }
 
     @Override
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @Override
     public Map<Principal, List<Priviledge>> getAccessControlList() {
         return null;
     }
     
+
     
 }
