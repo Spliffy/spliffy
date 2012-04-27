@@ -6,6 +6,7 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
+import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -25,6 +26,10 @@ import org.spliffy.server.db.VersionNumberGenerator;
  */
 public class SpliffyResourceFactory implements ResourceFactory {
 
+    public static RootFolder getRootFolder() {
+        return (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
+    }
+    
     private final UserDao userDao;    
     private final VersionNumberGenerator versionNumberGenerator;
     private final SpliffySecurityManager securityManager;
@@ -67,9 +72,10 @@ public class SpliffyResourceFactory implements ResourceFactory {
         }
     }
 
+
     public class RootFolder implements SpliffyCollectionResource, GetableResource {
 
-        private Map<String,Resource> children = new HashMap<>();
+        private Map<String,PrincipalResource> children = new HashMap<>();
         
         protected User currentUser;
         
@@ -120,19 +126,24 @@ public class SpliffyResourceFactory implements ResourceFactory {
             if( childName.equals("login")) {
                 return new LoginPage(securityManager, this);
             }
-            Resource r = children.get(childName);
+            return findEntity(childName);
+        }
+        
+        public PrincipalResource findEntity(String name) {
+            PrincipalResource r = children.get(name);
             if( r != null ) {
                 return r;
             }
-            User u = userDao.getUser(childName);
+            User u = userDao.getUser(name);
             if (u == null) {
                 return null;
             } else {
                 UserResource ur = new UserResource(this, u, versionNumberGenerator);
-                children.put(childName, ur);
+                children.put(name, ur);
                 return ur;
-            }
+            }            
         }
+        
 
         @Override
         public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
@@ -183,8 +194,11 @@ public class SpliffyResourceFactory implements ResourceFactory {
         public User getCurrentUser() {
             return currentUser;
         }
-        
-        
+
+        @Override
+        public void addPrivs(List<Priviledge> list, User user) {
+
+        }                               
     }
 
     public class JspResponse implements HttpServletResponse {

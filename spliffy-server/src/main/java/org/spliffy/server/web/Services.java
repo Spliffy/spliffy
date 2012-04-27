@@ -15,7 +15,7 @@ public class Services {
     private final Templater templater;
     
     private final SpliffySecurityManager securityManager;
-
+    
     public Services(HashStore hashStore, BlobStore blobStore, Templater templater, SpliffySecurityManager securityManager) {
         this.hashStore = hashStore;
         this.blobStore = blobStore;
@@ -38,6 +38,4 @@ public class Services {
     public SpliffySecurityManager getSecurityManager() {
         return securityManager;
     }
-    
-    
 }

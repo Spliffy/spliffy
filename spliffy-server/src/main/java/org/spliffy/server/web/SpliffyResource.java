@@ -1,6 +1,8 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.DigestResource;
+import com.ettrema.http.AccessControlledResource;
+import java.util.List;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
 
@@ -27,4 +29,12 @@ public interface SpliffyResource extends DigestResource{
      * @return 
      */
     User getCurrentUser();
+    
+    /**
+     * Add whatever permissions are defined on this resource for the given user
+     * 
+     * @param list
+     * @param user 
+     */
+    void addPrivs(List<AccessControlledResource.Priviledge> list, User user);    
 }

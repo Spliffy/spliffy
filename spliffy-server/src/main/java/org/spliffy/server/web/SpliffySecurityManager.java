@@ -5,6 +5,9 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
+import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.AccessControlledResource.Priviledge;
+import java.util.List;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.UserDao;
@@ -59,22 +62,25 @@ public class SpliffySecurityManager {
     }
 
     public boolean authorise(Request rqst, Method method, Auth auth, Resource aThis) {
-        if (aThis instanceof SpliffyResource) {
-            SpliffyResource sr = (SpliffyResource) aThis;
-            BaseEntity owner = sr.getOwner();
-            if (owner == null) {
-                return true;
+        if (aThis instanceof AccessControlledResource) {
+            AccessControlledResource acr = (AccessControlledResource) aThis;
+            List<Priviledge> privs = acr.getPriviledges(auth);
+            boolean result;
+            if( method.isWrite ) {
+                result = SecurityUtils.hasWrite(privs);
             } else {
-                // check owner matches current user
-                if (auth != null && auth.getTag() != null) {
-                    User user = (User) auth.getTag();
-                    return owner.containsUser(user);
-                } else {
-                    return false;
+                result = SecurityUtils.hasRead(privs);
+            }
+            if( !result ) {
+                System.out.println("Denied access of: " + auth + " to resource: " + aThis.getName() + " (" + aThis.getClass() + ")");
+                System.out.println("Allowed privs are:");
+                for( Priviledge p : privs ) {
+                    System.out.println("   - " + p);
                 }
             }
+            return result;
         } else {
-            return true;
+            return true; // not access controlled so must be ok!
         }
     }
 }

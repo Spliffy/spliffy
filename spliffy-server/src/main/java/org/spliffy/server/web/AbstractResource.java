@@ -6,27 +6,32 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
+import com.bradmcevoy.http.values.HrefList;
+import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.acl.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
+import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.ItemVersion;
+import org.spliffy.server.db.Permission;
 import org.spliffy.server.db.User;
 
 /**
  *
  * @author brad
  */
-public abstract class AbstractResource implements SpliffyResource,PropFindableResource {
+public abstract class AbstractResource implements SpliffyResource, PropFindableResource, AccessControlledResource {
 
-    
     public abstract ItemVersion getItemVersion();
-    
+
     /**
      * For templating, return true if this is a directory, false for a file
      */
     public abstract boolean isDir();
-   
     protected final Services services;
-    
     protected User currentUser;
 
     public AbstractResource(Services services) {
@@ -49,7 +54,7 @@ public abstract class AbstractResource implements SpliffyResource,PropFindableRe
         currentUser = (User) services.getSecurityManager().authenticate(digestRequest);
         return currentUser;
     }
-        
+
     @Override
     public boolean authorise(Request request, Method method, Auth auth) {
         return services.getSecurityManager().authorise(request, method, auth, this);
@@ -62,20 +67,20 @@ public abstract class AbstractResource implements SpliffyResource,PropFindableRe
 
     /**
      * Check for correctly formed folder paths on GET requests
-     * 
-     * If request is a GET, and the resource is a collection, then if
-     * the url does NOT end with a slash redirect to ../
-     * 
+     *
+     * If request is a GET, and the resource is a collection, then if the url
+     * does NOT end with a slash redirect to ../
+     *
      * @param request
-     * @return 
+     * @return
      */
     @Override
     public String checkRedirect(Request request) {
-        if( request.getMethod().equals(Request.Method.GET)) {
-            if( this instanceof CollectionResource) {
+        if (request.getMethod().equals(Request.Method.GET)) {
+            if (this instanceof CollectionResource) {
                 String url = request.getAbsolutePath();
-                if( !url.endsWith("/")) {
-                    return url + "/";  
+                if (!url.endsWith("/")) {
+                    return url + "/";
                 }
             }
         }
@@ -89,7 +94,7 @@ public abstract class AbstractResource implements SpliffyResource,PropFindableRe
     public HashStore getHashStore() {
         return services.getHashStore();
     }
-    
+
     public Templater getTemplater() {
         return services.getTemplater();
     }
@@ -108,7 +113,79 @@ public abstract class AbstractResource implements SpliffyResource,PropFindableRe
     public User getCurrentUser() {
         return currentUser;
     }
-
     
+
+    @Override
+    public String getPrincipalURL() {
+        BaseEntity entity = getOwner();
+        if (entity == null) {
+            return null;
+        } else {
+            return "/" + entity.getName(); // probably would be good to put this into a UrlMapper interface
+        }
+    }
+
+    /**
+     * Return the list of privlidges which the current user (given by the auth
+     * object) has access to, on this resource.
+     *
+     * @param auth
+     * @return
+     */
+    @Override
+    public List<AccessControlledResource.Priviledge> getPriviledges(Auth auth) {
+        List<AccessControlledResource.Priviledge> list = new ArrayList<>();
+        if (auth != null && auth.getTag() != null) {
+            User user = (User) auth.getTag();
+            addPrivs(list, user);
+        }
+        return list;
+    }
+    
+
+    /**
+     * Get all allowed priviledges for all principals on this resource. Note
+     * that a principal might be a user, a group, or a built-in webdav group
+     * such as AUTHENTICATED
+     *
+     * @return
+     */
+    @Override
+    public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
+        ItemVersion v = this.getItemVersion();
+        if (v == null) {
+            return null;
+        } else {
+            List<Permission> perms = v.getItem().getGrantedPermissions();
+            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
+            return map;
+        }
+    }
+
+    @Override
+    public void setAccessControlList(Map<Principal, List<Priviledge>> privs) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    
+
+    /**
+     * Return the hrefs (either fully qualified URLs or absolute paths) to the
+     * collections which contain principals. This is to allow user agents to
+     * display a list of users to display.
+     *
+     * Most implementations will only have a single value which will be the path
+     * to the users folder. Eg:
+     *
+     * return Arrays.asList("/users/");
+     *
+     * @return - a list of hrefs
+     */
+    @Override
+    public HrefList getPrincipalCollectionHrefs() {
+        HrefList list = new HrefList();
+        list.add("/users/");
+        return list;
+    }
     
 }

@@ -79,6 +79,10 @@ public class Item implements Serializable {
     public void setVersions(List<ItemVersion> versions) {
         this.versions = versions;
     }
+
+    public List<Permission> grantedPermissions(User user) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
         
         
     

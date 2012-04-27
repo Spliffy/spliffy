@@ -9,9 +9,11 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
+import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
@@ -120,6 +122,11 @@ public class LoginPage implements GetableResource, SpliffyResource {
     @Override
     public User getCurrentUser() {
         return null;
+    }
+
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+
     }
     
     

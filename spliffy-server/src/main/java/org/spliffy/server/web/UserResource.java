@@ -5,6 +5,8 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.bradmcevoy.http.values.HrefList;
+import com.ettrema.http.acl.HrefPrincipleId;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -16,8 +18,11 @@ import org.spliffy.server.web.versions.VersionsRootFolder;
  *
  * @author brad
  */
-public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource {
+public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource, PrincipalResource {
 
+    public static final String ADDRESS_BOOK_HOME_NAME = "abs";
+    public static final String CALENDAR_HOME_NAME = "cal";
+    
     private final User user; 
     private final SpliffyCollectionResource parent;
     private final VersionNumberGenerator versionNumberGenerator;
@@ -33,6 +38,12 @@ public class UserResource extends AbstractCollectionResource implements Collecti
 
     @Override
     public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
+        switch (childName) {
+            case CALENDAR_HOME_NAME:
+                break;
+            case ADDRESS_BOOK_HOME_NAME:
+                break;
+        }
         return Utils.childOf(getChildren(), childName);
     }
 
@@ -126,6 +137,64 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     public BaseEntity getOwner() {
         return user;
     }
+
+    public String getHref() {
+        return "/" + getName() + "/";
+    }
+    
+    @Override
+    public PrincipleId getIdenitifer() {
+        return new HrefPrincipleId(getHref());
+    }
+
+    @Override
+    public HrefList getCalendarHomeSet() {
+        return HrefList.asList(getHref() + "calendars/");
+    }
+
+    @Override
+    public HrefList getCalendarUserAddressSet() {
+        return HrefList.asList(getHref());
+    }
+
+    @Override
+    public String getScheduleInboxUrl() {
+        return null;
+    }
+
+    @Override
+    public String getScheduleOutboxUrl() {
+        return null;
+    }
+
+    @Override
+    public String getDropBoxUrl() {
+        return null;
+    }
+
+    @Override
+    public HrefList getAddressBookHomeSet() {
+        return HrefList.asList(getHref() + "abs/"); // the address books folder
+    }
+
+    @Override
+    public String getAddress() {
+        return getHref() + "abs/";
+    }
+
+    @Override
+    public void addPrivs(List<Priviledge> list, User u) {
+        // Give this user special permissions
+        if( user.getName().equals(u.getName())) {
+            list.add(Priviledge.READ);
+            list.add(Priviledge.WRITE);
+            list.add(Priviledge.READ_ACL);
+            list.add(Priviledge.UNLOCK);
+            list.add(Priviledge.WRITE_CONTENT);
+            list.add(Priviledge.WRITE_PROPERTIES);
+        }
+    }
+
     
     
 }

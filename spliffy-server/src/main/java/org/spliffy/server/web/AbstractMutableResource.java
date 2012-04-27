@@ -4,7 +4,7 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import java.util.Date;
+import java.util.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
@@ -20,7 +20,8 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     protected ItemVersion itemVersion;
     protected long hash;
     protected boolean dirty;
-
+    
+    
     public AbstractMutableResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(services);
         this.itemVersion = meta;
@@ -28,6 +29,17 @@ public abstract class AbstractMutableResource extends AbstractResource implement
         this.parent = parent;
     }
 
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+        if( itemVersion != null ) {
+            List<Permission> perms = itemVersion.getItem().grantedPermissions(user);
+            SecurityUtils.addPermissions(perms, list);
+        }
+        getParent().addPrivs(list, user);
+    }
+
+    
+    
     @Override
     public void moveTo(CollectionResource rDest, String newName) throws ConflictException, NotAuthorizedException, BadRequestException {
 
@@ -113,8 +125,6 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     public void setItemVersion(ItemVersion itemVersion) {
         this.itemVersion = itemVersion;
     }
-    
-    
 
     @Override
     public Long getMaxAgeSeconds(Auth auth) {
@@ -149,7 +159,4 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     public BaseEntity getOwner() {
         return parent.getOwner(); // go up until we get an entity
     }
-    
-    
-
 }

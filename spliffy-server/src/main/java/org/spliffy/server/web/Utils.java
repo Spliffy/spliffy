@@ -1,6 +1,9 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.Resource;
+import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.AccessControlledResource.Priviledge;
+import com.ettrema.http.acl.Principal;
 import java.util.*;
 import org.spliffy.server.db.*;
 
@@ -67,6 +70,7 @@ public class Utils {
         }
         return list;
     }
+    
 
     public static ItemVersion newDirItemVersion() {
         return newItemVersion((Item) null, "d");
@@ -122,4 +126,6 @@ public class Utils {
         SessionManager.session().save(itemVersion);
         return itemVersion;
     }
+
+
 }

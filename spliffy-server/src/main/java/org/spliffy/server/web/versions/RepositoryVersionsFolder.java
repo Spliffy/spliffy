@@ -13,10 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.ItemVersion;
-import org.spliffy.server.db.RepoVersion;
-import org.spliffy.server.db.Repository;
+import org.spliffy.server.db.*;
 import org.spliffy.server.web.AbstractCollectionResource;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyCollectionResource;
@@ -106,6 +103,11 @@ public class RepositoryVersionsFolder extends AbstractCollectionResource impleme
     @Override
     public BaseEntity getOwner() {
         return repo.getBaseEntity();
+    }
+
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+        parent.addPrivs(list, user);
     }
     
     

@@ -382,4 +382,9 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     public BaseEntity getOwner() {
         return parent.getOwner();
     }
+    
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+        parent.addPrivs(list, user);
+    }    
 }

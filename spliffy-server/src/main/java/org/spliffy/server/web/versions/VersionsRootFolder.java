@@ -13,6 +13,7 @@ import java.util.Map;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.Repository;
+import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractCollectionResource;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyCollectionResource;
@@ -106,6 +107,11 @@ public class VersionsRootFolder extends  AbstractCollectionResource implements G
     @Override
     public BaseEntity getOwner() {
         return baseEntity;
+    }
+
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+        parent.addPrivs(list, user);
     }
     
     

@@ -1,9 +1,10 @@
 package org.spliffy.server.web.versions;
 
 import java.util.Date;
-import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.DirectoryMember;
+import java.util.List;
+import org.spliffy.server.db.*;
 import org.spliffy.server.web.AbstractResource;
+import org.spliffy.server.web.SecurityUtils;
 
 /**
  * Based class for files and directories accessed within a versions folder
@@ -50,5 +51,14 @@ public abstract class AbstractVersionResource extends AbstractResource{
         return parent.getOwner();
     }
 
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+        ItemVersion itemVersion = directoryMember.getMemberItem();
+        if( itemVersion != null ) {
+            List<Permission> perms = itemVersion.getItem().grantedPermissions(user);
+            SecurityUtils.addPermissions(perms, list);
+        }
+        getParent().addPrivs(list, user);
+    }    
     
 }
