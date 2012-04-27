@@ -13,11 +13,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.DirectoryMember;
 import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.RepoVersion;
 import org.spliffy.server.web.AbstractCollectionResource;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyCollectionResource;
 import org.spliffy.server.web.Utils;
 
 /**
@@ -28,11 +30,11 @@ import org.spliffy.server.web.Utils;
 public class RepoVersionFolder extends AbstractCollectionResource implements VersionCollectionResource, GetableResource{
     private final RepoVersion repoVersion;
     
-    private final Resource parent;
+    private final SpliffyCollectionResource parent;
     
     private List<AbstractVersionResource> children;
 
-    public RepoVersionFolder(Resource parent, RepoVersion repoVersion, Services services) {
+    public RepoVersionFolder(SpliffyCollectionResource parent, RepoVersion repoVersion, Services services) {
         super(services);
         this.parent = parent;
         this.repoVersion = repoVersion;
@@ -96,10 +98,16 @@ public class RepoVersionFolder extends AbstractCollectionResource implements Ver
         return null;
     }
 
-    public Resource getParent() {
+    @Override
+    public SpliffyCollectionResource getParent() {
         return parent;
     }
+
+    @Override
+    public BaseEntity getOwner() {
+        return parent.getOwner();
+    }
+
     
-    
-    
+
 }

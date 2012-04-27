@@ -29,14 +29,16 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     private final Repository repository;
     private final VersionNumberGenerator versionNumberGenerator;
+    private final SpliffyCollectionResource parent;
     private List<MutableResource> children;
     private long hash;
     private boolean dirty;
     private RepoVersion repoVersion; // may be null
     private ItemVersion rootItemVersion;
 
-    public RepositoryFolder(Repository repository, RepoVersion repoVersion, Services services, VersionNumberGenerator versionNumberGenerator) {
-        super(services);
+    public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, RepoVersion repoVersion, VersionNumberGenerator versionNumberGenerator) {
+        super(parent.getServices());
+        this.parent = parent;
         this.repository = repository;
         this.versionNumberGenerator = versionNumberGenerator;
         this.repoVersion = repoVersion;
@@ -47,6 +49,8 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
             }
         }
     }
+    
+    
 
     @Override
     public Resource child(String childName) {
@@ -365,12 +369,17 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     }
 
     @Override
-    public MutableCollection getParent() {
-        return null; // no mutable parents
+    public SpliffyCollectionResource getParent() {
+        return parent;
     }
 
     @Override
     public String getType() {
         return "d";
+    }
+
+    @Override
+    public BaseEntity getOwner() {
+        return parent.getOwner();
     }
 }

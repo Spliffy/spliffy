@@ -13,11 +13,14 @@ public class Services {
     private final BlobStore blobStore;
     
     private final Templater templater;
+    
+    private final SpliffySecurityManager securityManager;
 
-    public Services(HashStore hashStore, BlobStore blobStore, Templater templater) {
+    public Services(HashStore hashStore, BlobStore blobStore, Templater templater, SpliffySecurityManager securityManager) {
         this.hashStore = hashStore;
         this.blobStore = blobStore;
         this.templater = templater;
+        this.securityManager = securityManager;
     }
 
     public BlobStore getBlobStore() {
@@ -30,6 +33,10 @@ public class Services {
 
     public Templater getTemplater() {
         return templater;
+    }
+
+    public SpliffySecurityManager getSecurityManager() {
+        return securityManager;
     }
     
     

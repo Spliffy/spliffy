@@ -1,6 +1,7 @@
 package org.spliffy.server.web.versions;
 
 import java.util.Date;
+import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.DirectoryMember;
 import org.spliffy.server.web.AbstractResource;
 
@@ -39,8 +40,15 @@ public abstract class AbstractVersionResource extends AbstractResource{
         return directoryMember.getMemberItem().getModifiedDate();
     }
 
+    @Override
     public VersionCollectionResource getParent() {
         return parent;
     }
 
+    @Override
+    public BaseEntity getOwner() {
+        return parent.getOwner();
+    }
+
+    
 }

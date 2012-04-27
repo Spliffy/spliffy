@@ -1,11 +1,9 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.hibernate.Session;
-import org.spliffy.server.db.ItemVersion;
 
 /**
  * Used for parent references. The parent can be either a RepoResource or
@@ -13,7 +11,7 @@ import org.spliffy.server.db.ItemVersion;
  *
  * @author brad
  */
-public interface MutableCollection extends MutableResource, CollectionResource, MakeCollectionableResource {
+public interface MutableCollection extends MutableResource, SpliffyCollectionResource, MakeCollectionableResource {
 
     void save(Session session);
 
@@ -26,9 +24,7 @@ public interface MutableCollection extends MutableResource, CollectionResource, 
      * 
      */
     void onChildChanged(MutableResource r);
-    
-    MutableCollection getParent();
-
+        
     /**
      * Called during the save procedure, the system will recalculate the
      * hash for this directory and set it here. Then it will be used to

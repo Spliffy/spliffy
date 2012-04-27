@@ -1,4 +1,4 @@
-<#macro myLayout title="Home">
+<#macro myLayout title="Home" showNav=true>
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
@@ -41,15 +41,21 @@
                 <div class="headRight">
                     <div class="formBox">
                         <div class="userBtn Login"> 
-                            <a class="Link sansuser" href="/login.html">Login</a>
+                            
 
-                            <a class="Link requiresuser" id="currentuser" href="#">Hi $!user.title</a>
+                            <#if page.currentUser??>
+                            <a class="Link" id="currentuser" href="#">Hi ${page.currentUser.name}</a>
+                            <#else>
+                            <a class="Link" href="/login">Login</a>
+                            </#if>
                             <div class="dropBox">
-                                <ul class="list requiresuser">
+                                <#if page.currentUser??>
+                                <ul class="list">
                                     <li>
-                                        <a class="logout">Logout</a>
+                                        <a class="logout">Logout</a> <!-- cant logout while using digest/basic auth -->
                                     </li>
                                 </ul>
+                                <#else>
                                 <ul class="list sansuser">
                                     <li>
                                         <a href="/register.html">Register</a>
@@ -65,7 +71,8 @@
                                         <button class="Login Button" ><span>Login</span></button>                                     
                                         <a href="/password-reset.html" title="Forgotten password" class="Forgot">Forgotten password</a>                                        
                                     </fieldset>
-                                </form>                                
+                                </form>
+                                </#if>
                                 <div class="accessBox">
                                     <div class="greyBox FontSize"> 
                                         <a class="linkText ZoomIn" href="#">A</a> 
@@ -96,7 +103,8 @@
 
                 <div class="clr"></div>
                 <!--nav-->
-                <div class="nav">
+                <#if showNav>
+                <div class="nav">                    
                     <ul>
                         <li class="nav-myDashboard">
                             <a href="/dashboard" shape="rect">Dashboard</a>
@@ -126,15 +134,13 @@
                     </ul>  
                     <div class="clr">.</div>
                 </div>
+                </#if>
                 <!--navEnd-->
             </div>
             <!--headerEnd-->
             <!--content-->
             <div class="content">
-                
-                
-                <@breadCrumbs node=page path=".."/>
-                
+                                               
                 <#nested/>
 
                 <div class="clr"></div>
@@ -182,6 +188,8 @@
 <#macro dirLayout title="Home">
 <@layout.myLayout "User home">
 
+<@breadCrumbs node=page path="."/>
+
 <#nested/>
 
 <table>
@@ -220,9 +228,12 @@
 <#if node.parent??>
     <#assign p = path + "/..">  
     <@breadCrumbs node=node.parent path=p/>
+    / <a href="${path}">${node.name}</a>
+<#else>
+    / <a href="/">home</a>
 </#if>
 
-/ <a href="${path}">${node.name}</a>
+
 
 
 </#macro>

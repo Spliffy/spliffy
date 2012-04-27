@@ -1,12 +1,10 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.CollectionResource;
-
 /**
  *
  * @author brad
  */
-public abstract class AbstractCollectionResource extends AbstractResource implements CollectionResource{
+public abstract class AbstractCollectionResource extends AbstractResource implements SpliffyCollectionResource{
 
        
     public AbstractCollectionResource(Services services) {

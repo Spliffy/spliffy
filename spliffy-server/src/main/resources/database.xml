@@ -75,8 +75,5 @@
 
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
 
-    <bean id="dao.user" class="org.spliffy.server.db.UserDao">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
 
 </beans>

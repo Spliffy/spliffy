@@ -71,6 +71,16 @@ public class BaseEntity implements Serializable {
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
+
+    /**
+     * Return true if this entity contains or is the given user
+     * 
+     * @param user
+     * @return 
+     */
+    public boolean containsUser(User user) {
+        return user.getName().equals(this.getName()); // very simple because currenly only have users
+    }
     
     
 }

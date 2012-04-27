@@ -15,6 +15,7 @@ import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.Repository;
 import org.spliffy.server.web.AbstractCollectionResource;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyCollectionResource;
 import org.spliffy.server.web.Utils;
 
 /**
@@ -25,11 +26,11 @@ public class VersionsRootFolder extends  AbstractCollectionResource implements G
 
     private final BaseEntity baseEntity;
     
-    private final CollectionResource parent;
+    private final SpliffyCollectionResource parent;
     
     private List<RepositoryVersionsFolder> children;
 
-    public VersionsRootFolder(CollectionResource parent, BaseEntity baseEntity, Services services) {
+    public VersionsRootFolder(SpliffyCollectionResource parent, BaseEntity baseEntity, Services services) {
         super(services);
         this.parent = parent;
         this.baseEntity = baseEntity;
@@ -97,7 +98,15 @@ public class VersionsRootFolder extends  AbstractCollectionResource implements G
         return null;
     }
 
-    public CollectionResource getParent() {
+    @Override
+    public SpliffyCollectionResource getParent() {
         return parent;
-    }       
+    }
+
+    @Override
+    public BaseEntity getOwner() {
+        return baseEntity;
+    }
+    
+    
 }

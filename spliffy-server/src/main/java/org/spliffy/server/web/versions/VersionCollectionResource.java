@@ -1,7 +1,7 @@
 package org.spliffy.server.web.versions;
 
-import com.bradmcevoy.http.CollectionResource;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyCollectionResource;
 
 /**
  * Represents both the RepoVersionFolder and DirectoryVersionResource
@@ -9,6 +9,6 @@ import org.spliffy.server.web.Services;
  *
  * @author brad
  */
-public interface VersionCollectionResource extends CollectionResource {
-    Services getServices();
+public interface VersionCollectionResource extends SpliffyCollectionResource {
+    
 }

@@ -192,10 +192,6 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         return dirty;
     }
 
-    @Override
-    public MutableCollection getParent() {
-        return parent;
-    }
 
     @Override
     public boolean isDir() {

@@ -5,17 +5,16 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.*;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
+import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.UserDao;
 import org.spliffy.server.db.VersionNumberGenerator;
@@ -35,7 +34,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
         this.userDao = userDao;
         this.versionNumberGenerator = versionNumberGenerator;
         this.securityManager = securityManager;
-        this.services = new Services(hashStore, blobStore, templater);
+        this.services = new Services(hashStore, blobStore, templater, securityManager);
     }
 
     @Override
@@ -68,9 +67,11 @@ public class SpliffyResourceFactory implements ResourceFactory {
         }
     }
 
-    public class RootFolder implements CollectionResource, GetableResource {
+    public class RootFolder implements SpliffyCollectionResource, GetableResource {
 
         private Map<String,Resource> children = new HashMap<>();
+        
+        protected User currentUser;
         
         @Override
         public String getUniqueId() {
@@ -84,12 +85,19 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         @Override
         public Object authenticate(String user, String password) {
-            return securityManager.authenticate(user, password);
+            currentUser = (User) securityManager.authenticate(user, password);
+            return currentUser;
         }
+        
+        @Override
+        public Object authenticate(DigestResponse digestRequest) {
+            currentUser = (User) securityManager.authenticate(digestRequest);
+            return currentUser;
+        }        
 
         @Override
         public boolean authorise(Request request, Request.Method method, Auth auth) {
-            return securityManager.authorise(request, method, auth, null);
+            return true;
         }
 
         @Override
@@ -109,6 +117,9 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         @Override
         public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
+            if( childName.equals("login")) {
+                return new LoginPage(securityManager, this);
+            }
             Resource r = children.get(childName);
             if( r != null ) {
                 return r;
@@ -117,7 +128,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
             if (u == null) {
                 return null;
             } else {
-                UserResource ur = new UserResource(u, services, versionNumberGenerator);
+                UserResource ur = new UserResource(this, u, versionNumberGenerator);
                 children.put(childName, ur);
                 return ur;
             }
@@ -130,19 +141,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         @Override
         public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-            System.out.println("sendContent");
-            HttpServletRequest req = ServletRequest.getRequest();
-            //HttpServletResponse resp = ServletResponse.getResponse();
-            RequestDispatcher d = req.getRequestDispatcher("/jsps/home.jsp");
-            JspResponse jspResponse = new JspResponse(out);
-//            jspResponse.getOutputStream().write("hello word".getBytes());
-            try {
-                d.include(req, jspResponse);
-
-            } catch (ServletException ex) {
-                throw new RuntimeException(ex);
-            }
-            System.out.println("done");
+            services.getTemplater().writePage("home.ftl", this, params, out);
         }
 
         @Override
@@ -159,6 +158,33 @@ public class SpliffyResourceFactory implements ResourceFactory {
         public Long getContentLength() {
             return null;
         }
+
+        @Override
+        public SpliffyCollectionResource getParent() {
+            return null;
+        }
+
+        @Override
+        public Services getServices() {
+            return services;
+        }
+
+        @Override
+        public boolean isDigestAllowed() {
+            return true;
+        }
+
+        @Override
+        public BaseEntity getOwner() {
+            return null;
+        }
+
+        @Override
+        public User getCurrentUser() {
+            return currentUser;
+        }
+        
+        
     }
 
     public class JspResponse implements HttpServletResponse {

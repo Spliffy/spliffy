@@ -1,6 +1,5 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.Resource;
 import org.spliffy.server.db.ItemVersion;
 
 /**
@@ -10,7 +9,7 @@ import org.spliffy.server.db.ItemVersion;
  *
  * @author brad
  */
-public interface MutableResource extends Resource {
+public interface MutableResource extends SpliffyResource {
 
     /**
      * Flag which indicates that this resource or its members (if a directory) have changed
@@ -18,9 +17,7 @@ public interface MutableResource extends Resource {
      * @return 
      */
     boolean isDirty();    
-       
-    Services getServices();
-    
+           
     Long getEntryHash();
     
     ItemVersion getItemVersion();

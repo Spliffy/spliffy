@@ -18,12 +18,14 @@ import org.spliffy.server.web.versions.VersionsRootFolder;
  */
 public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource {
 
-    private final User user;
+    private final User user; 
+    private final SpliffyCollectionResource parent;
     private final VersionNumberGenerator versionNumberGenerator;
     private List<Resource> children;
 
-    public UserResource(User u, Services services, VersionNumberGenerator versionNumberGenerator) {
-        super(services);
+    public UserResource(SpliffyCollectionResource parent, User u, VersionNumberGenerator versionNumberGenerator) {
+        super(parent.getServices());
+        this.parent = parent;
         this.user = u;
         this.versionNumberGenerator = versionNumberGenerator;
 
@@ -44,7 +46,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
                     if (rv != null) {
                         System.out.println("Using latest version: " + rv.getVersionNum());
                     }
-                    RepositoryFolder rr = new RepositoryFolder(r, rv, services, versionNumberGenerator);
+                    RepositoryFolder rr = new RepositoryFolder(this, r, rv, versionNumberGenerator);
                     children.add(rr);
                 }
             }
@@ -76,7 +78,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         SessionManager.session().save(r);
         tx.commit();
         RepoVersion rv = r.latestVersion();
-        return new RepositoryFolder(r, rv, services, versionNumberGenerator);
+        return new RepositoryFolder(this, r, rv,  versionNumberGenerator);
     }
 
 
@@ -114,4 +116,16 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     public Long getContentLength() {
         return null;
     }
+
+    @Override
+    public SpliffyCollectionResource getParent() {
+        return parent;
+    }
+
+    @Override
+    public BaseEntity getOwner() {
+        return user;
+    }
+    
+    
 }

@@ -5,7 +5,6 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
-import java.util.UUID;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
@@ -123,11 +122,34 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     }
 
     public RepoVersion currentRepoVersion() {
-        MutableCollection col = parent;
+        SpliffyResource col = parent;
         while (!(col instanceof RepositoryFolder)) {
             col = col.getParent();
         }
         RepositoryFolder rr = (RepositoryFolder) col;
         return rr.getRepoVersion();
     }
+
+    @Override
+    public MutableCollection getParent() {
+        return parent;
+    }
+
+    @Override
+    public Object authenticate(String user, String password) {
+        return services.getSecurityManager().authenticate(user, password);
+    }
+
+    @Override
+    public boolean authorise(Request request, Request.Method method, Auth auth) {
+        return services.getSecurityManager().authorise(request, method, auth, this);
+    }
+
+    @Override
+    public BaseEntity getOwner() {
+        return parent.getOwner(); // go up until we get an entity
+    }
+    
+    
+
 }

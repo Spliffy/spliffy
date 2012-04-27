@@ -1,6 +1,7 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.CollectionResource;
+import com.bradmcevoy.http.HttpManager;
+import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ServletRequest;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -25,7 +26,7 @@ public class FreemarkerTemplater implements Templater {
     private Configuration freemarkerConfig;
 
     @Override
-    public void writePage(String template, CollectionResource aThis, Map<String, String> params, OutputStream out) throws IOException {
+    public void writePage(String template, Resource aThis, Map<String, String> params, OutputStream out) throws IOException {
         Map datamodel = new HashMap();
         datamodel.put("page", aThis);
         Configuration cfg = freemarkerConfig();
