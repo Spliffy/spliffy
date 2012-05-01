@@ -75,12 +75,17 @@
         <constructor-arg ref="password.manager" />
     </bean>
     
+    <bean id="resource.manager" class="org.spliffy.server.manager.ResourceManager">
+        <constructor-arg ref="version.number.generator" />
+    </bean>
+    
     <bean id="services" class="org.spliffy.server.web.Services">
         <constructor-arg ref="hash.store"/>
         <constructor-arg ref="blob.store"/>
         <constructor-arg ref="templater"/>
         <constructor-arg ref="security.manager"/>
         <constructor-arg ref="mail.sender"/>
+        <constructor-arg ref="resource.manager"/>
     </bean>    
     
     <bean id="test.data.creator" class="org.spliffy.server.db.TestDataCreator" init-method="initTestData" >

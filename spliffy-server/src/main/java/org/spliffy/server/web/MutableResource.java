@@ -23,7 +23,7 @@ public interface MutableResource extends SpliffyResource {
     ItemVersion getItemVersion();
 
     /**
-     * Called during the save process
+     * Called during the save process. Must reset dirty flag!!!
      * 
      * @param newVersion 
      */

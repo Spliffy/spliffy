@@ -37,8 +37,13 @@ public class ShareResource extends AbstractResource implements GetableResource, 
     }
 
     /**
-     * Process the share invitation. Intended to be used with AJAX, so returns
-     * JSON
+     * Process the share acceptance form. If successful this will result in a
+     * new folder being created in the selected location (sharedTo parameter)
+     * with the same content as the sharedFrom property of the Link object, and
+     * the link object will ensure that both folders are kept in sync
+     * 
+     * 
+     * Intended to be used with AJAX, so returns JSON
      *
      * @param parameters
      * @param files

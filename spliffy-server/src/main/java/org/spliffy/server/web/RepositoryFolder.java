@@ -29,8 +29,10 @@ import org.spliffy.server.db.*;
  */
 public class RepositoryFolder extends AbstractCollectionResource implements MutableCollection, CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource, PutableResource {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RepositoryFolder.class);
+    
     private final Repository repository;
-    private final VersionNumberGenerator versionNumberGenerator;
+    
     private final SpliffyCollectionResource parent;
     private List<MutableResource> children;
     private long hash;
@@ -38,11 +40,10 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     private RepoVersion repoVersion; // may be null
     private ItemVersion rootItemVersion;
 
-    public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, RepoVersion repoVersion, VersionNumberGenerator versionNumberGenerator) {
+    public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, RepoVersion repoVersion) {
         super(parent.getServices());
         this.parent = parent;
         this.repository = repository;
-        this.versionNumberGenerator = versionNumberGenerator;
         this.repoVersion = repoVersion;
         if (repoVersion != null) {
             rootItemVersion = repoVersion.getRootItemVersion();
@@ -79,7 +80,8 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        System.out.println("createCollection: " + newName);
+        log.trace("createCollection: " + newName);
+        System.out.println("createCollection");
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
@@ -153,108 +155,8 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
      */
     @Override
     public void save(Session session) {
-        System.out.println("RepoResource: save: dirty=" + isDirty());
-        if (!isDirty()) {
-            return;
-        }
-
-        try {
-            System.out.println("calc child hashes..");
-            for (MutableResource r : children) { // if is dirty then children must be loaded
-                if (r instanceof MutableCollection) {
-                    MutableCollection col = (MutableCollection) r;
-                    calcHashes(session, col); // each collection checks its own dirty flag, won't do anything if clean
-                }
-            }
-
-            ItemVersion newVersion = Utils.newItemVersion(getItemVersion(), getType());
-            setItemVersion(newVersion);
-            System.out.println("Inserted new root item version id: " + newVersion.getId() + " for: " + getName());
-
-            saveCollection(session, this);
-
-            RepoVersion newRepoVersion = new RepoVersion();
-            newRepoVersion.setCreatedDate(new Date());
-            newRepoVersion.setRepository(repository);
-            newRepoVersion.setRootItemVersion(rootItemVersion);
-            long newVersionNum = versionNumberGenerator.nextVersionNumber(repository);
-            newRepoVersion.setVersionNum(newVersionNum);
-            session.save(newRepoVersion);
-            System.out.println("Saved new repo version: " + newVersionNum + " with hash: " + rootItemVersion.getItemHash());
-
-        } catch (NotAuthorizedException | BadRequestException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    private void saveCollection(Session session, MutableCollection parent) throws NotAuthorizedException, BadRequestException {
-        if (!parent.isDirty()) {
-            return;
-        }
-
-        List<MutableResource> nextChildren = (List<MutableResource>) parent.getChildren();
-        for (MutableResource r : nextChildren) { // if is dirty then children must be loaded
-            insertMember(session, parent.getItemVersion(), r);
-        }
-    }
-
-    /**
-     * If the resource has itself changed, then create a new ItemVersion for
-     * itself
-     *
-     * Create a new DirectoryMember to connect the ItemVersion of the member to
-     * the new parent version.
-     *
-     *
-     * @param session
-     * @param parentItemVersion
-     * @param r
-     */
-    private void insertMember(Session session, ItemVersion parentItemVersion, MutableResource r) throws NotAuthorizedException, BadRequestException {
-        ItemVersion memberItemVersion;
-        if (r.isDirty()) {
-            memberItemVersion = Utils.newItemVersion(r.getItemVersion(), r.getType()); // create a new ItemVersion for the member
-        } else {
-            memberItemVersion = r.getItemVersion(); // use existing ItemVersion
-        }
-        memberItemVersion.setItemHash(r.getEntryHash());
-        r.setItemVersion(memberItemVersion);
-        DirectoryMember member = new DirectoryMember();
-        member.setParentItem(parentItemVersion);
-        member.setName(r.getName());
-        member.setMemberItem(memberItemVersion);
-        session.save(member);
-        System.out.println("created member: " + member.getName() + "  on parent: " + parentItemVersion.getId() + " hash=" + memberItemVersion.getItemHash());
-
-        if (r instanceof MutableCollection) {
-            MutableCollection col = (MutableCollection) r;
-            saveCollection(session, col); // will do dirty check
-        }
-    }
-
-    /**
-     * Check if this is dirty, and if so recalculate the hash for the directory
-     *
-     * A recursive call, recalculating children as necessary
-     *
-     * @param session
-     */
-    private void calcHashes(Session session, MutableCollection parent) throws NotAuthorizedException, BadRequestException {
-        System.out.println("calcHashes: " + parent.getName() + " dirty=" + parent.isDirty());
-        if (!parent.isDirty()) {
-            return;
-        }
-        List<MutableResource> nextChildren = (List<MutableResource>) parent.getChildren();
-        for (MutableResource r : nextChildren) { // if is dirty then children must be loaded
-            if (r instanceof MutableCollection) {
-                MutableCollection col = (MutableCollection) r;
-                calcHashes(session, col);
-            }
-        }
-        // calc new dirHash and save dir entries for children
-        long newHash = HashCalc.calcResourceesHash(children);
-        parent.setEntryHash(newHash);
-        return;
+        log.trace("save");
+        services.getResourceManager().save(session, this);
     }
 
     @Override
@@ -274,6 +176,8 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     @Override
     public void setItemVersion(ItemVersion newVersion) {
+        log.trace("setItemVersion");
+        //this.dirty = false;
         this.rootItemVersion = newVersion;
     }
         
@@ -361,6 +265,13 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         return dirty;
     }
 
+    @Override
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
+    }
+    
+    
+
     /**
      * may be null
      *
@@ -407,5 +318,15 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
             Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
             return map;
         }
-    }    
+    }
+
+    public Repository getRepository() {
+        return repository;
+    }
+
+    public ItemVersion getRootItemVersion() {
+        return rootItemVersion;
+    }
+    
+    
 }

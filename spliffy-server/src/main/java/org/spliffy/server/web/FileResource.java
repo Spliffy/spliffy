@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -28,9 +29,11 @@ import org.spliffy.server.db.SessionManager;
 public class FileResource extends AbstractMutableResource implements ReplaceableResource {
 
     private Fanout fanout;
+    
+    private boolean dirty;
         
     public FileResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
-        super(name, meta, parent, services);
+        super(name, meta, parent,services);
     }
 
     @Override
@@ -58,7 +61,7 @@ public class FileResource extends AbstractMutableResource implements Replaceable
 
         // a note on file dirtiness: a file is only dirty if its content has changed. If it is moved
         // or deleted then that is a change to the directories affected, not the file
-        dirty = true;        
+        dirty = true;
         
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {

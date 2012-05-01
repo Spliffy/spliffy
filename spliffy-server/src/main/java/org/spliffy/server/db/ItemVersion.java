@@ -30,6 +30,8 @@ public class ItemVersion implements Serializable {
     private Date modifiedDate;    
     private long itemHash;
     private List<DirectoryMember> members;
+    private List<DirectoryMember> linked;
+    private List<RepoVersion> rootRepoVersions;
 
     public ItemVersion() {
     }
@@ -88,6 +90,33 @@ public class ItemVersion implements Serializable {
     public void setMembers(List<DirectoryMember> members) {
         this.members = members;
     }
+
+    /**
+     * This is a list of all DirectoryMember objects which point to 
+     * this is as their member ItemVersion. This means that all of these
+     * DirectoryMember objects have the same hash and the same identify, so 
+     * are effectively shared folders
+     * 
+     * @return 
+     */
+    @OneToMany(mappedBy="memberItem")
+    public List<DirectoryMember> getLinked() {
+        return linked;
+    }
+
+    public void setLinked(List<DirectoryMember> linked) {
+        this.linked = linked;
+    }
+
+    @OneToMany(mappedBy = "rootItemVersion")
+    public List<RepoVersion> getRootRepoVersions() {
+        return rootRepoVersions;
+    }
+
+    public void setRootRepoVersions(List<RepoVersion> rootRepoVersions) {
+        this.rootRepoVersions = rootRepoVersions;
+    }
+    
     
     
 }

@@ -59,7 +59,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
                     if (rv != null) {
                         System.out.println("Using latest version: " + rv.getVersionNum());
                     }
-                    RepositoryFolder rr = new RepositoryFolder(this, r, rv, versionNumberGenerator);
+                    RepositoryFolder rr = new RepositoryFolder(this, r, rv);
                     children.add(rr);
                 }
             }
@@ -91,7 +91,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         SessionManager.session().save(r);
         tx.commit();
         RepoVersion rv = r.latestVersion();
-        return new RepositoryFolder(this, r, rv,  versionNumberGenerator);
+        return new RepositoryFolder(this, r, rv);
     }
 
 

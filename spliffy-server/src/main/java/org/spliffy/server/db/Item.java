@@ -3,24 +3,24 @@ package org.spliffy.server.db;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.*;
 
 /**
  * For holding permissions, etc
- * 
+ *
  * Note included in hash of directory entries
- * 
- * 
+ *
+ *
  *
  * @author brad
  */
 @javax.persistence.Entity
 public class Item implements Serializable {
-    
-            
-    
+
     private long id;
     private String type; // "f" = file, "d" = directory
     private Date createDate;
@@ -33,24 +33,23 @@ public class Item implements Serializable {
 
     public Item() {
     }
-        
+
     /**
      * Find the permissions on this item which are granted to the given user
-     * 
+     *
      * @param user
-     * @return 
+     * @return
      */
     public List<Permission> grantedPermissions(User user) {
         List<Permission> list = new ArrayList<>();
-        for( Permission p : getGrantedPermissions()) {
-            if( p.getGrantee() == user ) {
+        for (Permission p : getGrantedPermissions()) {
+            if (p.getGrantee() == user) {
                 list.add(p);
             }
         }
         return list;
     }
-    
-    
+
     @Id
     @GeneratedValue
     public long getId() {
@@ -61,7 +60,7 @@ public class Item implements Serializable {
         this.id = id;
     }
 
-    @Column(nullable=false, length=1)
+    @Column(nullable = false, length = 1)
     public String getType() {
         return type;
     }
@@ -69,11 +68,9 @@ public class Item implements Serializable {
     public void setType(String type) {
         this.type = type;
     }
-    
-    
 
     @Temporal(javax.persistence.TemporalType.DATE)
-    @Column(nullable=false)
+    @Column(nullable = false)
     public Date getCreateDate() {
         return createDate;
     }
@@ -82,7 +79,7 @@ public class Item implements Serializable {
         this.createDate = createDate;
     }
 
-    @OneToMany(cascade= CascadeType.ALL, mappedBy="grantedOn")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "grantedOn")
     public List<Permission> getGrantedPermissions() {
         return grantedPermissions;
     }
@@ -91,7 +88,7 @@ public class Item implements Serializable {
         this.grantedPermissions = grantedPermissions;
     }
 
-    @OneToMany(cascade= CascadeType.ALL, mappedBy="item")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
     public List<ItemVersion> getVersions() {
         return versions;
     }
@@ -101,6 +98,5 @@ public class Item implements Serializable {
     }
 
 
-        
-    
+
 }

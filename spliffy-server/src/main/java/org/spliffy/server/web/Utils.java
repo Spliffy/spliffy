@@ -1,9 +1,6 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.Resource;
-import com.ettrema.http.AccessControlledResource;
-import com.ettrema.http.AccessControlledResource.Priviledge;
-import com.ettrema.http.acl.Principal;
 import java.util.*;
 import org.spliffy.server.db.*;
 
@@ -32,21 +29,21 @@ public class Utils {
      * depending on the type associated with the member
      *
      * @param parent
-     * @param de
+     * @param dm
      * @return
      */
-    public static MutableResource toResource(MutableCollection parent, DirectoryMember de) {
-        ItemVersion itemVersion = de.getMemberItem();
+    public static MutableResource toResource(MutableCollection parent, DirectoryMember dm) {
+        ItemVersion itemVersion = dm.getMemberItem();
         String type = itemVersion.getItem().getType();
-        System.out.println("toResource: " + de.getName() + " type: " + type);
+                        
         switch (type) {
             case "d":
-                DirectoryResource rdr = new DirectoryResource(de.getName(), itemVersion, parent, parent.getServices());
-                rdr.setHash(de.getMemberItem().getItemHash());
+                DirectoryResource rdr = new DirectoryResource(dm.getName(), itemVersion, parent, parent.getServices());
+                rdr.setHash(dm.getMemberItem().getItemHash());
                 return rdr;
             case "f":
-                FileResource rfr = new FileResource(de.getName(), itemVersion, parent, parent.getServices());
-                rfr.setHash(de.getMemberItem().getItemHash());
+                FileResource rfr = new FileResource(dm.getName(), itemVersion, parent, parent.getServices());
+                rfr.setHash(dm.getMemberItem().getItemHash());
                 return rfr;
             default:
                 throw new RuntimeException("Unknown resource type: " + type);

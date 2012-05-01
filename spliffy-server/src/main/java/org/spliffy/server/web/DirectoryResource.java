@@ -12,11 +12,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -30,9 +26,10 @@ import org.spliffy.server.db.*;
  */
 public class DirectoryResource extends AbstractMutableResource implements PutableResource, GetableResource, MutableCollection, PostableResource {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DirectoryResource.class);
     private List<MutableResource> children;
-    
     private JsonResult jsonResult; // set after completing a POST
+    private boolean dirty;
 
     public DirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
@@ -58,26 +55,27 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
 
     @Override
     public void removeChild(MutableResource r) throws NotAuthorizedException, BadRequestException {
-        dirty = true;
+        setDirty(true);
         getChildren().remove(r);
         parent.onChildChanged(this);
     }
 
     @Override
     public void addChild(MutableResource r) throws NotAuthorizedException, BadRequestException {
+        log.trace("addChild: " + getName());
         Resource existing = child(r.getName());
         if (existing != null) {
             MutableResource mr = (MutableResource) existing;
             removeChild(mr);
         }
-        dirty = true;
+        setDirty(true);
         getChildren().add(r);
         parent.onChildChanged(this);
     }
 
     @Override
     public void onChildChanged(MutableResource r) {
-        dirty = true;
+        setDirty(true);
         parent.onChildChanged(this);
     }
 
@@ -89,7 +87,7 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
     @Override
     public List<MutableResource> getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
-            if( getItemVersion() != null ) {
+            if (getItemVersion() != null) {
                 List<DirectoryMember> members = getItemVersion().getMembers();
                 children = Utils.toResources(this, members);
             } else {
@@ -105,7 +103,7 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         Transaction tx = session.beginTransaction();
 
         ItemVersion newMeta = Utils.newDirItemVersion();
-        DirectoryResource rdr = new DirectoryResource(newName, newMeta, this, services);
+        DirectoryResource rdr = new DirectoryResource(newName, newMeta, this,  services);
         addChild(rdr);
         save(session);
 
@@ -160,9 +158,9 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        if( jsonResult != null ) {
+        if (jsonResult != null) {
             jsonResult.write(out);
-            return ;
+            return;
         }
         String type = HttpManager.request().getParams().get("type");
         if (type == null) {
@@ -199,6 +197,11 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         return dirty;
     }
 
+    @Override
+    public void setDirty(boolean dirty) {
+        log.trace("setDirty: " + dirty + "  on : " + getName());
+        this.dirty = dirty;
+    }
 
     @Override
     public boolean isDir() {
@@ -209,33 +212,33 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
     public String getType() {
         return "d";
     }
-        
+
     @Override
     public void setEntryHash(long hash) {
         this.hash = hash;
-    }    
-    
+    }
+
     /**
-     * Supports sending folder share invitations by email. Note that this
-     * is intended to be used with ajax, so returns a JSON result
-     * 
+     * Supports sending folder share invitations by email. Note that this is
+     * intended to be used with ajax, so returns a JSON result
+     *
      * It does this by settnig the generic JsonResult object on the resource
-     * 
+     *
      * @param parameters
      * @param files
      * @return
      * @throws BadRequestException
      * @throws NotAuthorizedException
-     * @throws ConflictException 
+     * @throws ConflictException
      */
     @Override
     public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
         String shareWith = parameters.get("shareWith");
         String priv = parameters.get("priviledge");
         String message = parameters.get("message");
-        if( shareWith != null ) {            
+        if (shareWith != null) {
             Session session = SessionManager.session();
-            Transaction tx = session.beginTransaction();                        
+            Transaction tx = session.beginTransaction();
             List<StandardMessage> toSend = createShares(shareWith, priv, message, session);
             tx.commit();
             sendMail(toSend);
@@ -248,43 +251,43 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         Priviledge p = Priviledge.valueOf(priv);
         String[] arr = shareWith.split(",");
         User curUser = getCurrentUser();
-        if( curUser == null ) {
+        if (curUser == null) {
             throw new RuntimeException("No current user");
         }
-        MailboxAddress from = MailboxAddress.parse( curUser.getEmail() );
+        MailboxAddress from = MailboxAddress.parse(curUser.getEmail());
         List<StandardMessage> list = new ArrayList<>();
         String inviteBaseHref = HttpManager.request().getAbsoluteUrl(); // http://asdada/asd/ad
-        inviteBaseHref = inviteBaseHref.substring(0, inviteBaseHref.indexOf("/", 7)+1);// http://asdada/
+        inviteBaseHref = inviteBaseHref.substring(0, inviteBaseHref.indexOf("/", 7) + 1);// http://asdada/
         inviteBaseHref += "shares/";
-        System.out.println("invite base href: " + inviteBaseHref) ;
-        for( String recip : arr ) {
+        System.out.println("invite base href: " + inviteBaseHref);
+        for (String recip : arr) {
             System.out.println("Send invite to: " + recip);
-            StandardMessageImpl sm = createEmailShare(from, recip, p,message, inviteBaseHref, session);
+            StandardMessageImpl sm = createEmailShare(from, recip, p, message, inviteBaseHref, session);
             list.add(sm);
         }
         return list;
     }
-    
+
     private void sendMail(List<StandardMessage> list) {
-        for( StandardMessage sm : list ) {
+        for (StandardMessage sm : list) {
             getServices().getMailSender().sendMail(sm);
         }
-        
+
     }
 
     private StandardMessageImpl createEmailShare(MailboxAddress from, String sRecip, Priviledge p, String message, String inviteBaseHref, Session session) {
-        
+
         Link link = new Link();
         link.setId(UUID.randomUUID());
         link.setSharedFrom(getItemVersion().getItem());
         link.setShareRecip(sRecip);
         link.setPriviledge(p);
         session.save(link);
-        
+
         String inviteHref = inviteBaseHref + link.getId();
-        
+
         MailboxAddress recip = MailboxAddress.parse(sRecip);
-        
+
         StandardMessageImpl sm = new StandardMessageImpl();
         sm.setFrom(from);
         sm.setTo(Arrays.asList(recip));
@@ -293,5 +296,5 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         sm.setText(message + "\n\nTo see the files please click here: " + inviteHref);
         getServices().getMailSender().sendMail(sm);
         return sm;
-    }    
+    }
 }

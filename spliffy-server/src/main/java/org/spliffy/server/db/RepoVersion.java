@@ -32,7 +32,7 @@ public class RepoVersion implements Serializable {
     public RepoVersion() {
     }
         
-    @ManyToOne
+    @ManyToOne(optional=false)
     public ItemVersion getRootItemVersion() {
         return rootItemVersion;
     }
@@ -41,7 +41,7 @@ public class RepoVersion implements Serializable {
         this.rootItemVersion = rootItemVersion;
     }    
     
-    @ManyToOne
+    @ManyToOne(optional=false)    
     public Repository getRepository() {
         return repo;
     }

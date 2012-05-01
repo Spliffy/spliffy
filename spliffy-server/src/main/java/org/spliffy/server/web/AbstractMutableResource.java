@@ -20,23 +20,22 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     protected String name;
     protected final MutableCollection parent;
     protected ItemVersion itemVersion;
-    protected long hash;
-    protected boolean dirty;
+    protected long hash;    
         
-    public AbstractMutableResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
+    /**
+     * 
+     * @param name - the name of this resource within its parent
+     * @param itemVersion - the current item version for this resource
+     * @param parent - Primary parent, ie that which located the resource in this request. May be null when looking for linked resources
+     * @param parents - All parents. May be null in cases where the resource is freshly created, in which case the given parent is the set
+     * @param services 
+     */
+    public AbstractMutableResource(String name, ItemVersion itemVersion, MutableCollection parent, Services services) {
         super(services);
-        this.itemVersion = meta;
+        this.itemVersion = itemVersion;
         this.name = name;
         this.parent = parent;
-    }
 
-    @Override
-    public void addPrivs(List<Priviledge> list, User user) {
-        if( itemVersion != null ) {
-            List<Permission> perms = itemVersion.getItem().grantedPermissions(user);
-            SecurityUtils.addPermissions(perms, list);
-        }
-        getParent().addPrivs(list, user);
     }
 
     
@@ -112,7 +111,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
 
     public void setHash(long hash) {
         if (this.hash != hash) {
-            dirty = true;
+            //dirty = true;
         }
         this.hash = hash;
     }
@@ -169,4 +168,16 @@ public abstract class AbstractMutableResource extends AbstractResource implement
             return map;
         }
     }    
+    
+
+    @Override
+    public void addPrivs(List<Priviledge> list, User user) {
+        if( itemVersion != null ) {
+            List<Permission> perms = itemVersion.getItem().grantedPermissions(user);
+            SecurityUtils.addPermissions(perms, list);
+        }
+        // TODO: if this is a linked folder this won't be right!!!
+        getParent().addPrivs(list, user);
+    }
+    
 }

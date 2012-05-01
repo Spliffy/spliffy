@@ -13,10 +13,7 @@ import java.io.PrintWriter;
 import java.util.*;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.User;
-import org.spliffy.server.db.UserDao;
-import org.spliffy.server.db.VersionNumberGenerator;
+import org.spliffy.server.db.*;
 import org.spliffy.server.web.sharing.SharesFolder;
 
 /**
@@ -199,7 +196,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
         @Override
         public void addPrivs(List<Priviledge> list, User user) {
 
-        }                               
+        }
     }
 
     public class JspResponse implements HttpServletResponse {

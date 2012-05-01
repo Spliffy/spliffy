@@ -10,6 +10,6 @@ import com.ettrema.http.carddav.CardDavPrincipal;
  *
  * @author brad
  */
-public interface PrincipalResource  extends DiscretePrincipal, CalDavPrincipal, CardDavPrincipal {
+public interface PrincipalResource  extends DiscretePrincipal, CalDavPrincipal, CardDavPrincipal, SpliffyCollectionResource {
     
 }

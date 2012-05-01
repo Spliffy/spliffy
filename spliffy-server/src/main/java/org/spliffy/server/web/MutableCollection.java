@@ -34,6 +34,8 @@ public interface MutableCollection extends MutableResource, SpliffyCollectionRes
      */
     void setEntryHash(long newHash);
 
+    public void setDirty(boolean b);
+
 
     
 }
