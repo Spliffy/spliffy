@@ -4,8 +4,9 @@ spliffy
 Spliffy is a versioning file server for the internet, with a file sync tool. It uses hashsplit4j for efficient calculation of file deltas, and these same deltas are persisted in an object database.
 Spliffy never stores the same blob twice, regardless of user, repository etc.
 
-
 You access it by webdav or web browser, and soon we'll add FTP, CardDAV, CalDAV and maybe even DLNA (ohhh!)
+
+NOTE: Spliffy requires JDK17!
 
 Running the Server
 ------------------
@@ -81,6 +82,7 @@ We're using the following things:
     - milton for webdav and http
     - freemarker for templating (JSP doesnt work well when milton is mapped to /*)
     - spring for configuration and wiring up singletons (see src/main/resources/applicationContext.xml)
+    - default database is H2, but of course will run on anything hibernate works on
 
     
 

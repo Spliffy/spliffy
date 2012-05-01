@@ -20,7 +20,9 @@
         <jdbc.version>1.8.0.7</jdbc.version>        
     </properties>
     <modules>
+        <module>spliffy-lib</module>
         <module>spliffy-server</module>
+        <module>spliffy-sync</module>
     </modules>
     <build>
         <plugins>
