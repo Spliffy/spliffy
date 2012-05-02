@@ -11,11 +11,13 @@ import javax.persistence.*;
  */
 @javax.persistence.Entity
 public class Repository implements Serializable {
+    private List<Repository> linkedRepos;
     private long id;
     private String name;
     private List<RepoVersion> versions;
     private BaseEntity baseEntity;
     private Date createdDate;
+    private Repository linkedTo;
 
     @Id
     @GeneratedValue
@@ -26,6 +28,22 @@ public class Repository implements Serializable {
     public void setId(long id) {
         this.id = id;
     }
+
+    /**
+     * If set, then this repository is just a pointer to it
+     * 
+     * @return 
+     */
+    @ManyToOne
+    public Repository getLinkedTo() {
+        return linkedTo;
+    }
+
+    public void setLinkedTo(Repository linkedTo) {
+        this.linkedTo = linkedTo;
+    }
+    
+    
 
     /**
      * Each repository to linked to some kind of entity, either a user,
@@ -88,6 +106,15 @@ public class Repository implements Serializable {
 //            System.out.println("latest is:  " + cur.getDirHash());
 //        }
         return cur;
+    }
+
+    @OneToMany(mappedBy = "linkedTo")
+    public List<Repository> getLinkedRepos() {
+        return linkedRepos;
+    }
+
+    public void setLinkedRepos(List<Repository> linkedRepos) {
+        this.linkedRepos = linkedRepos;
     }
     
     

@@ -1,6 +1,5 @@
 package org.spliffy.server.web;
 
-import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ServletRequest;
 import freemarker.template.Configuration;
@@ -11,6 +10,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
+import org.spliffy.server.db.User;
 
 /**
  *
@@ -26,9 +26,12 @@ public class FreemarkerTemplater implements Templater {
     private Configuration freemarkerConfig;
 
     @Override
-    public void writePage(String template, Resource aThis, Map<String, String> params, OutputStream out) throws IOException {
+    public void writePage(String template, Resource aThis, Map<String, String> params, OutputStream out, User user) throws IOException {
         Map datamodel = new HashMap();
         datamodel.put("page", aThis);
+        if( user != null) {
+            datamodel.put("user", user);
+        }
         Configuration cfg = freemarkerConfig();
         Object servletContext = ServletRequest.getTLServletContext();
         cfg.setServletContextForTemplateLoading(servletContext, basePath);

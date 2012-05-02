@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
+import org.hibernate.Session;
 
 /**
  * Represents a real world entity such as a user or an organisation
@@ -19,6 +20,10 @@ import javax.persistence.*;
 @DiscriminatorColumn(name="TYPE", discriminatorType=DiscriminatorType.STRING,length=20)
 @DiscriminatorValue("E")
 public class BaseEntity implements Serializable {
+
+    public static BaseEntity get(String entityName, Session session) {
+        return (BaseEntity) session.get(BaseEntity.class, entityName);
+    }
     private String name;
     private Date createdDate;
     private Date modifiedDate;

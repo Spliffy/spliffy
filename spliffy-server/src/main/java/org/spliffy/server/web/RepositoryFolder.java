@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -27,7 +28,7 @@ import org.spliffy.server.db.*;
  *
  * @author brad
  */
-public class RepositoryFolder extends AbstractCollectionResource implements MutableCollection, CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource, PutableResource {
+public class RepositoryFolder extends AbstractCollectionResource implements MutableCollection, CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource, PutableResource, PostableResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RepositoryFolder.class);
     
@@ -39,6 +40,8 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     private boolean dirty;
     private RepoVersion repoVersion; // may be null
     private ItemVersion rootItemVersion;
+    
+    private JsonResult jsonResult; // set after completing a POST
 
     public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, RepoVersion repoVersion) {
         super(parent.getServices());
@@ -197,10 +200,15 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
+        if (jsonResult != null) {
+            jsonResult.write(out);
+            return;
+        }
+        
         String type = HttpManager.request().getParams().get("type");
         if (type == null) {
             // output directory listing
-            getTemplater().writePage("repoHome.ftl", this, params, out);
+            getTemplater().writePage("repoHome.ftl", this, params, out, getCurrentUser());
         } else {
             switch (type) {
                 case "hashes":
@@ -226,6 +234,9 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     @Override
     public String getContentType(String accepts) {
+        if( jsonResult != null ) {
+            return "application/x-javascript; charset=utf-8";
+        }        
         String type = HttpManager.request().getParams().get("type");
         if (type == null || type.length() == 0) {
             return "text/html";
@@ -320,7 +331,15 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         }
     }
 
-    public Repository getRepository() {
+    /**
+     * Return the direct (not linked) repository. That is, the direct parent
+     * of the RepositoryVersion object this resource is listing children for
+     * @return 
+     */
+    public Repository getDirectRepository() {
+        if( this.repoVersion != null ) {
+            return repoVersion.getRepository();
+        }
         return repository;
     }
 
@@ -331,6 +350,25 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     @Override
     public DirectoryMember getDirectoryMember() {
         return null;
+    }
+
+    @Override
+    public Path getPath() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
+        String shareWith = parameters.get("shareWith");
+        String priv = parameters.get("priviledge");
+        AccessControlledResource.Priviledge p = AccessControlledResource.Priviledge.valueOf(priv);
+        String message = parameters.get("message");
+        if (shareWith != null) {
+            getServices().getShareManager().sendShareInvites(currentUser, repository, shareWith, p, message);
+            this.jsonResult = new JsonResult(true);
+        }
+        return null;
+    
     }
     
     

@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -35,6 +36,8 @@ public interface MutableCollection extends MutableResource, SpliffyCollectionRes
     void setEntryHash(long newHash);
 
     public void setDirty(boolean b);
+
+    Path getPath();
 
 
     

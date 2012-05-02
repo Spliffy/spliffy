@@ -1,17 +1,14 @@
 package org.spliffy.server.manager;
 
-import com.bradmcevoy.http.HttpManager;
+import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.CollectionResource;
+import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
 import java.util.List;
 import org.hibernate.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spliffy.server.db.DirectoryMember;
-import org.spliffy.server.db.ItemVersion;
-import org.spliffy.server.db.RepoVersion;
-import org.spliffy.server.db.VersionNumberGenerator;
+import org.spliffy.server.db.*;
 import org.spliffy.server.web.*;
 
 /**
@@ -27,6 +24,32 @@ public class ResourceManager {
         this.versionNumberGenerator = versionNumberGenerator;
     }
 
+    public CollectionResource findCol(CollectionResource root, Path path) throws NotAuthorizedException, BadRequestException {
+        if (path.isRoot()) {
+            return root;
+        } else {
+            CollectionResource parent = findCol(root, path.getParent());
+            if( parent == null ) {
+                System.out.println("Couldnt find parent: " + path.getParent().getName());
+                return null;
+            } else {
+                Resource r = parent.child(path.getName());
+                if( r == null ) {
+                    System.out.println("Couldnt find child: " + path.getName() + " of " + parent.getName());
+                    return null;
+                } else {
+                    if( r instanceof CollectionResource ) {
+                        return (CollectionResource) r;
+                    } else {
+                        System.out.println("Found a resource which is not a mutablecollection: " + r.getClass() + " - " + r.getName());
+                        return null;
+                    }
+                }
+            }
+        }
+    }
+
+    
     public void save(Session session, RepositoryFolder repositoryFolder) {
         log.trace("save repo folder: " + repositoryFolder.getName() + "dirty=" + repositoryFolder.isDirty());
         if (!repositoryFolder.isDirty()) {
@@ -49,9 +72,9 @@ public class ResourceManager {
 
             RepoVersion newRepoVersion = new RepoVersion();
             newRepoVersion.setCreatedDate(new Date());
-            newRepoVersion.setRepository(repositoryFolder.getRepository());
+            newRepoVersion.setRepository(repositoryFolder.getDirectRepository());
             newRepoVersion.setRootItemVersion(repositoryFolder.getRootItemVersion());
-            long newVersionNum = versionNumberGenerator.nextVersionNumber(repositoryFolder.getRepository());
+            long newVersionNum = versionNumberGenerator.nextVersionNumber(repositoryFolder.getDirectRepository());
             newRepoVersion.setVersionNum(newVersionNum);
             session.save(newRepoVersion);
 
@@ -166,6 +189,21 @@ public class ResourceManager {
                     siblingDM.updateTo(newMemberIV, session);
                 }
             }
+        }
+    }
+
+    /**
+     * Find the latest version of the given repository, following links if needed
+     * 
+     * @param r
+     * @return 
+     */
+    public RepoVersion getHead(Repository r) {
+        Repository linked = r.getLinkedTo();
+        if( linked != null ) {
+            return getHead(linked);
+        } else {
+            return r.latestVersion();
         }
     }
 }

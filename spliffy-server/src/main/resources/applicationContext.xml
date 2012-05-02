@@ -79,12 +79,16 @@
         <constructor-arg ref="version.number.generator" />
     </bean>
     
+    <bean id="share.manager" class="org.spliffy.server.manager.ShareManager">
+        <constructor-arg ref="resource.manager" />
+        <constructor-arg ref="mail.sender" />
+    </bean>    
     <bean id="services" class="org.spliffy.server.web.Services">
         <constructor-arg ref="hash.store"/>
         <constructor-arg ref="blob.store"/>
         <constructor-arg ref="templater"/>
         <constructor-arg ref="security.manager"/>
-        <constructor-arg ref="mail.sender"/>
+        <constructor-arg ref="share.manager"/>
         <constructor-arg ref="resource.manager"/>
     </bean>    
     

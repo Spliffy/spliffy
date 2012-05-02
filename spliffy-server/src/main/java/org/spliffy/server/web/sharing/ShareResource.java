@@ -1,6 +1,5 @@
 package org.spliffy.server.web.sharing;
 
-import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -10,12 +9,9 @@ import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
 import org.spliffy.server.web.*;
 
@@ -26,13 +22,13 @@ import org.spliffy.server.web.*;
  */
 public class ShareResource extends AbstractResource implements GetableResource, PostableResource {
 
-    private final Share link;
+    private final Share share;
     private final SpliffyCollectionResource parent;
     private JsonResult jsonResult;
 
     public ShareResource(Share link, SpliffyCollectionResource parent) {
         super(parent.getServices());
-        this.link = link;
+        this.share = link;
         this.parent = parent;
     }
 
@@ -54,40 +50,17 @@ public class ShareResource extends AbstractResource implements GetableResource, 
      */
     @Override
     public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
-        Session session = SessionManager.session();
-        Transaction tx = session.beginTransaction();
-
-        // This assumes there is a current user
-        User curUser = getCurrentUser();
-        if (curUser == null) {
-            jsonResult = new JsonResult(false, "Please login");
-            return null;
-        }
-        List<Repository> repos = curUser.getRepositories();
-        if (repos == null) {
-            repos = new ArrayList<>();
-            curUser.setRepositories(repos);
-        }
-        String sPath = parameters.get("sharedTo"); // relative to the user
-        Path path = Path.path(sPath);
-        System.out.println("Accept on path: " + path);
-        UserResource userResource = (UserResource) SpliffyResourceFactory.getRootFolder().findEntity(curUser.getName());
-        CollectionResource col = findCol(userResource, path);
-        if( col instanceof MutableCollection ) {
-            MutableCollection mCol = (MutableCollection) col;
-            link.setAcceptedDate(new Date());
-            link.setCreatedDate(new Date()); // todo: remove
-            link.setAcceptedBy(curUser);
-            session.save(link);
-            
-            Path newPath = Path.path(curUser.getName());
-            newPath = newPath.add(path);
-            jsonResult = new JsonResult(true, "Accepted ok", newPath.toString());
-        } else {
-            jsonResult = new JsonResult(false, "The specified path does not point to a valid folder: " + path);
-        }
         
-        tx.commit();
+        String recipEntity = parameters.get("recipEntity");
+        String sharedAsName = parameters.get("sharedAsName");
+        try {
+            getServices().getShareManager().acceptShare(getCurrentUser(), share, recipEntity, sharedAsName);
+            String newPath = "/" + recipEntity + "/" + sharedAsName; // TODO: encoding
+            jsonResult = new JsonResult(true, "Accepted ok", newPath);
+        } catch (Exception ex) {
+            jsonResult = new JsonResult(false, ex.getMessage());
+        }
+                
         return null;
     }
 
@@ -97,7 +70,7 @@ public class ShareResource extends AbstractResource implements GetableResource, 
         if( jsonResult != null ) {
             jsonResult.write(out);
         } else {
-            services.getTemplater().writePage("share.ftl", this, params, out);
+            services.getTemplater().writePage("share.ftl", this, params, out, getCurrentUser());
         }
     }
 
@@ -113,7 +86,7 @@ public class ShareResource extends AbstractResource implements GetableResource, 
     }
 
     public Share getLink() {
-        return link;
+        return share;
     }
 
     @Override
@@ -138,17 +111,17 @@ public class ShareResource extends AbstractResource implements GetableResource, 
 
     @Override
     public String getName() {
-        return link.getId().toString();
+        return share.getId().toString();
     }
 
     @Override
     public Date getModifiedDate() {
-        return link.getAcceptedDate();
+        return share.getAcceptedDate();
     }
 
     @Override
     public Date getCreateDate() {
-        return link.getCreatedDate();
+        return share.getCreatedDate();
     }
 
     @Override
@@ -174,28 +147,9 @@ public class ShareResource extends AbstractResource implements GetableResource, 
         return null;
     }
 
-    private CollectionResource findCol(UserResource userResource, Path path) throws NotAuthorizedException, BadRequestException {
-        if (path.isRoot()) {
-            return userResource;
-        } else {
-            CollectionResource parent = findCol(userResource, path.getParent());
-            if( parent == null ) {
-                System.out.println("Couldnt find parent: " + path.getParent().getName());
-                return null;
-            } else {
-                Resource r = parent.child(path.getName());
-                if( r == null ) {
-                    System.out.println("Couldnt find child: " + path.getName() + " of " + parent.getName());
-                    return null;
-                } else {
-                    if( r instanceof CollectionResource ) {
-                        return (CollectionResource) r;
-                    } else {
-                        System.out.println("Found a resource which is not a mutablecollection: " + r.getClass() + " - " + r.getName());
-                        return null;
-                    }
-                }
-            }
-        }
+    public Share getShare() {
+        return share;
     }
+    
+    
 }

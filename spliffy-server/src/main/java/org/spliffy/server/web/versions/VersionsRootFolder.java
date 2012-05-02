@@ -75,7 +75,7 @@ public class VersionsRootFolder extends  AbstractCollectionResource implements G
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        getTemplater().writePage("versionsHome.ftl", this, params, out);
+        getTemplater().writePage("versionsHome.ftl", this, params, out, getCurrentUser());
     }
 
     @Override

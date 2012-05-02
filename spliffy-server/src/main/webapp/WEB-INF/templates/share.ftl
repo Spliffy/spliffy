@@ -8,8 +8,10 @@
 <form id="acceptForm" action="." method="POST" onsubmit="return doAccept()">
     <fieldset>
         <legend>Accept folder share invitation</legend>
-        <label for="sharedTo">Path to folder</label>
-        <input type="text" name="sharedTo" id="sharedTo" />
+        <label for="recipEntity">Recipient</label>
+        <input type="text" name="recipEntity" id="recipEntity" value="${user.name}" />
+        <label for="sharedAsName">Name of folder</label>
+        <input type="text" name="sharedAsName" id="sharedAsName" value="${page.share.sharedFrom.name}" />
         <button>Accept</button>
     </fieldset>
 </form>

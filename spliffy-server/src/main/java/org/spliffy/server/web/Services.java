@@ -4,6 +4,7 @@ import com.ettrema.mail.send.MailSender;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.manager.ResourceManager;
+import org.spliffy.server.manager.ShareManager;
 
 /**
  *
@@ -15,18 +16,19 @@ public class Services {
     private final BlobStore blobStore;
     private final Templater templater;
     private final SpliffySecurityManager securityManager;
-    private final MailSender mailSender;
     private final ResourceManager resourceManager;
+    private final ShareManager shareManager;
 
-    public Services(HashStore hashStore, BlobStore blobStore, Templater templater, SpliffySecurityManager securityManager, MailSender mailSender, ResourceManager resourceManager) {
+    public Services(HashStore hashStore, BlobStore blobStore, Templater templater, SpliffySecurityManager securityManager, ResourceManager resourceManager, ShareManager shareManager) {
         this.hashStore = hashStore;
         this.blobStore = blobStore;
         this.templater = templater;
         this.securityManager = securityManager;
         this.resourceManager = resourceManager;
-        this.mailSender = mailSender;
+        this.shareManager = shareManager;
     }
 
+    
     public BlobStore getBlobStore() {
         return blobStore;
     }
@@ -43,12 +45,13 @@ public class Services {
         return securityManager;
     }
 
-    public MailSender getMailSender() {
-        return mailSender;
-    }
 
     public ResourceManager getResourceManager() {
         return resourceManager;
+    }
+
+    public ShareManager getShareManager() {
+        return shareManager;
     }
     
     

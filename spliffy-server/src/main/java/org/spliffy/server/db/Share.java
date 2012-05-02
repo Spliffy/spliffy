@@ -9,22 +9,7 @@ import javax.persistence.*;
 import org.hibernate.Session;
 
 /**
- * Represents a symbolic link, or shared folder
- *
- * A Link is a pointer to the Item of the shared folder. When the Share
- * invitation is accepted it is connected to a new resource in the recipients
- * repository, and the sharedTo value is set
- *
- * The folder may be un-shared by deleting the Share record, but the recipient
- * still has the folder. But once it is unshared, the original users changes are
- * not visible, and the recipient cannot modify it
- *
- * Note that the existence of a share does not by itself convey any priviledges,
- * it merely places the folder in the recipients workspace. A Permission must
- * also be created
- *
- * TODO: extend this to support cross-server links. This will require specifying
- * the address of the remote system.
+ * Represents a share of a Repository to another user or organisation
  *
  * @author brad
  */
@@ -36,10 +21,11 @@ public class Share implements Serializable {
     }
 
     private UUID id;
-    private Item sharedFrom;
-    private User acceptedBy;
+    
+    private Repository sharedFrom;
+    
     private AccessControlledResource.Priviledge priv;
-    private String shareRecip;
+    private String shareRecip; // who it was sent to
     private Date createdDate;
     private Date acceptedDate;
 
@@ -58,25 +44,18 @@ public class Share implements Serializable {
         this.id = id;
     }
 
-    @ManyToOne(optional = false)
-    public Item getSharedFrom() {
+
+    @ManyToOne(optional=false)
+    public Repository getSharedFrom() {
         return sharedFrom;
     }
 
-    public void setSharedFrom(Item sharedFrom) {
+    public void setSharedFrom(Repository sharedFrom) {
         this.sharedFrom = sharedFrom;
     }
 
-    @ManyToOne
-    public User getAcceptedBy() {
-        return acceptedBy;
-    }
-
-    public void setAcceptedBy(User acceptedBy) {
-        this.acceptedBy = acceptedBy;
-    }
-        
-
+    
+    
     /**
      * For situations where the sharedTo item is set some time after
      * the folder is shared (such as when sending a share over email)

@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -188,5 +189,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
         return dm;
     }
     
-    
+    public Path getPath() {
+        return parent.getPath().child(getName());
+    }    
 }

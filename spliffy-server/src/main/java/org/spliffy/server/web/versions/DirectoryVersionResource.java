@@ -54,7 +54,7 @@ public class DirectoryVersionResource extends AbstractVersionResource implements
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        getTemplater().writePage("directoryVersion.ftl", this, params, out);
+        getTemplater().writePage("directoryVersion.ftl", this, params, out, getCurrentUser());
     }
 
     @Override

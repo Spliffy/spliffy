@@ -150,7 +150,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
 
         @Override
         public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-            services.getTemplater().writePage("home.ftl", this, params, out);
+            services.getTemplater().writePage("home.ftl", this, params, out, getCurrentUser());
         }
 
         @Override

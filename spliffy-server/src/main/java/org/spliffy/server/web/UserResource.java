@@ -55,10 +55,8 @@ public class UserResource extends AbstractCollectionResource implements Collecti
             children = new ArrayList();
             if (user.getRepositories() != null) {
                 for (Repository r : user.getRepositories()) {
-                    RepoVersion rv = r.latestVersion();
-                    if (rv != null) {
-                        System.out.println("Using latest version: " + rv.getVersionNum());
-                    }
+                    RepoVersion rv = getServices().getResourceManager().getHead(r);
+                    // Note that r is not necessarily the direct repo for rv, might be linked
                     RepositoryFolder rr = new RepositoryFolder(this, r, rv);
                     children.add(rr);
                 }
@@ -107,7 +105,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        getTemplater().writePage("userHome.ftl", this, params, out);
+        getTemplater().writePage("userHome.ftl", this, params, out, getCurrentUser());
     }
 
     @Override

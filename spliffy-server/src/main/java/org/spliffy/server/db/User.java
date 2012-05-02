@@ -14,8 +14,7 @@ import javax.persistence.Table;
 @Table(name="USER_ENTITY")
 @DiscriminatorValue("U")
 public class User extends BaseEntity {
-    private List<Share> shares;
-
+    
     private String passwordDigest;
     
     private String email;
@@ -36,18 +35,5 @@ public class User extends BaseEntity {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    @OneToMany(mappedBy = "acceptedBy")
-    public List<Share> getShares() {
-        return shares;
-    }
-
-    public void setShares(List<Share> shares) {
-        this.shares = shares;
-    }
-
-    
-    
-    
+    }    
 }
