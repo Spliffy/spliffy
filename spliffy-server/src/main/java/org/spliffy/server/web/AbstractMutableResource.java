@@ -39,7 +39,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
 
     }
 
-    void setDirectoryMember(DirectoryMember dm) {
+    public void setDirectoryMember(DirectoryMember dm) {
         this.dm = dm;
     }    
     
@@ -182,5 +182,11 @@ public abstract class AbstractMutableResource extends AbstractResource implement
         // TODO: if this is a linked folder this won't be right!!!
         getParent().addPrivs(list, user);
     }
+
+    @Override
+    public DirectoryMember getDirectoryMember() {
+        return dm;
+    }
+    
     
 }

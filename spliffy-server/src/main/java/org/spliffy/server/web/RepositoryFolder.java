@@ -327,6 +327,11 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     public ItemVersion getRootItemVersion() {
         return rootItemVersion;
     }
+
+    @Override
+    public DirectoryMember getDirectoryMember() {
+        return null;
+    }
     
     
 }

@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import org.spliffy.server.db.DirectoryMember;
 import org.spliffy.server.db.ItemVersion;
 
 /**
@@ -30,5 +31,18 @@ public interface MutableResource extends SpliffyResource {
     void setItemVersion(ItemVersion newVersion);
     
     
-    public String getType();
+    /**
+     * The type string, "d" or "f"
+     * 
+     * @return 
+     */
+    String getType();
+
+    /**
+     * If this resource is currently linked to a DM, return it. Otherwise returns
+     * null.
+     * 
+     * @return 
+     */
+    DirectoryMember getDirectoryMember();
 }

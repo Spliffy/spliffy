@@ -119,6 +119,12 @@
             <groupId>com.ettrema</groupId>
             <artifactId>geroa-api</artifactId>
             <version>1.5</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>aspirin-core</artifactId>
+                    <groupId>org.masukomi</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.ettrema</groupId>

@@ -45,7 +45,7 @@ public class Utils {
             case "f":
                 FileResource rfr = new FileResource(dm.getName(), itemVersion, parent, parent.getServices());
                 rfr.setHash(dm.getMemberItem().getItemHash());
-                rdr.setDirectoryMember(dm);
+                rfr.setDirectoryMember(dm);
                 return rfr;
             default:
                 throw new RuntimeException("Unknown resource type: " + type);
