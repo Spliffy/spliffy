@@ -21,6 +21,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     protected final MutableCollection parent;
     protected ItemVersion itemVersion;
     protected long hash;    
+    protected DirectoryMember dm;
         
     /**
      * 
@@ -38,7 +39,9 @@ public abstract class AbstractMutableResource extends AbstractResource implement
 
     }
 
-    
+    void setDirectoryMember(DirectoryMember dm) {
+        this.dm = dm;
+    }    
     
     @Override
     public void moveTo(CollectionResource rDest, String newName) throws ConflictException, NotAuthorizedException, BadRequestException {

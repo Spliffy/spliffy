@@ -1,7 +1,10 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 import javax.persistence.*;
+import org.hibernate.Session;
 
 /**
  * A DirectoryMember represents the existence of an item within a particular
@@ -69,5 +72,38 @@ public class DirectoryMember implements Serializable {
 
     public void setMemberItem(ItemVersion memberItem) {
         this.memberItem = memberItem;
+    }
+
+    /**
+     * Create a new version of this directory members parent directory,
+     * including new instances of its members. Other recreated dir members will
+     * still have the same version, but this one will be linked to the given IV
+     *
+     * @param newMemberIV
+     */
+    public void updateTo(ItemVersion newMemberIV, Session session) {
+        ItemVersion newParentIV = new ItemVersion();
+        newParentIV.setItem(getParentItem().getItem());
+        newParentIV.setModifiedDate(new Date());
+        newParentIV.setLinked(new ArrayList<DirectoryMember>());
+        newParentIV.setMembers(new ArrayList<DirectoryMember>());
+        for (DirectoryMember siblingDm : this.getParentItem().getMembers()) {
+            DirectoryMember newDm = new DirectoryMember();
+            newDm.setName(siblingDm.getName());
+            newDm.setParentItem(newParentIV);
+            newParentIV.getMembers().add(newDm);
+            if (siblingDm != this) {
+                newDm.setMemberItem(siblingDm.getMemberItem());
+            } else {
+                newDm.setMemberItem(newMemberIV);
+            }
+        }
+        newParentIV.calcHash();
+        session.save(newParentIV);
+        
+        // now recurse up the inverted tree
+        for( DirectoryMember parentDm : this.getParentItem().getLinked() ) {
+            parentDm.updateTo(newParentIV, session);
+        }
     }
 }

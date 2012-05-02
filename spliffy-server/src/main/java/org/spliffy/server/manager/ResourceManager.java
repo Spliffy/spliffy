@@ -117,6 +117,7 @@ public class ResourceManager {
     private void insertMember(Session session, ItemVersion parentItemVersion, MutableResource r) throws NotAuthorizedException, BadRequestException {
         // The item version of this directory member before it was updated
         ItemVersion origMemberIV = r.getItemVersion();
+        DirectoryMember origMemberDM;
         
         ItemVersion newMemberIV;
         if (r.isDirty()) {
@@ -140,7 +141,7 @@ public class ResourceManager {
             saveCollection(session, col); // will do dirty check
         }
         
-        updateLinked(origMemberIV, newMemberIV, newMemberDM);
+        updateLinked(origMemberIV, newMemberIV,origMemberDM, newMemberDM);
     }
 
     /**
@@ -154,9 +155,15 @@ public class ResourceManager {
      * @param newMemberIV - the new version which contains updated members
      * @param newMemberDM - this is the DM of the resource which has already been updated
      */
-    private void updateLinked(ItemVersion origMemberIV, ItemVersion newMemberIV, DirectoryMember newMemberDM) {
+    private void updateLinked(ItemVersion origMemberIV, ItemVersion newMemberIV,DirectoryMember origMemberDM, DirectoryMember newMemberDM) {
         // we already created newMemberIV and this has been connected to one parent. But
         // we need to check for other parents on origMemberIV and ensure they have new
         // versions created which link to the newMemberIV
+        for( DirectoryMember siblingDM : origMemberIV.getLinked()) {
+            if( origMemberDM == null || origMemberDM != siblingDM ) {
+                // is a DM other then the one updated
+                siblingDM.updateTo(newMemberIV);
+            }
+        }
     }
 }

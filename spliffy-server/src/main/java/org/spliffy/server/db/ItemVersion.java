@@ -5,16 +5,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.*;
+import org.spliffy.server.web.HashCalc;
 
 /**
  * Represents a version of an item in a filesystem. The version is represented
  * by the itemHash.
- * 
- * The parent item object defines whether this is a file or directory, the meaning
- * of the hash varies depending on that. If a file the hash is the hash of the file
- * content. If a directory the hash is that of that formatted DirectoryMember list
- * 
- * 
+ *
+ * The parent item object defines whether this is a file or directory, the
+ * meaning of the hash varies depending on that. If a file the hash is the hash
+ * of the file content. If a directory the hash is that of that formatted
+ * DirectoryMember list
+ *
+ *
  * @author brad
  */
 @javax.persistence.Entity
@@ -23,11 +25,9 @@ public class ItemVersion implements Serializable {
     public static ItemVersion find(UUID metaId) {
         return (ItemVersion) SessionManager.session().get(ItemVersion.class, metaId);
     }
-    
-      
     private long id;
     private Item item;
-    private Date modifiedDate;    
+    private Date modifiedDate;
     private long itemHash;
     private List<DirectoryMember> members;
     private List<DirectoryMember> linked;
@@ -36,7 +36,7 @@ public class ItemVersion implements Serializable {
     public ItemVersion() {
     }
 
-    @ManyToOne(optional=false)
+    @ManyToOne(optional = false)
     public Item getItem() {
         return item;
     }
@@ -44,9 +44,7 @@ public class ItemVersion implements Serializable {
     public void setItem(Item item) {
         this.item = item;
     }
-        
-    
-    
+
     @Id
     @GeneratedValue
     public long getId() {
@@ -57,9 +55,8 @@ public class ItemVersion implements Serializable {
         this.id = id;
     }
 
-   
     @Temporal(javax.persistence.TemporalType.DATE)
-    @Column(nullable=false)
+    @Column(nullable = false)
     public Date getModifiedDate() {
         return modifiedDate;
     }
@@ -70,10 +67,10 @@ public class ItemVersion implements Serializable {
 
     /**
      * Identifies the repository version number in which this change was made
-     * 
-     * @return 
+     *
+     * @return
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     public long getItemHash() {
         return itemHash;
     }
@@ -82,7 +79,7 @@ public class ItemVersion implements Serializable {
         this.itemHash = itemHash;
     }
 
-    @OneToMany(mappedBy="parentItem")
+    @OneToMany(mappedBy = "parentItem")
     public List<DirectoryMember> getMembers() {
         return members;
     }
@@ -92,14 +89,14 @@ public class ItemVersion implements Serializable {
     }
 
     /**
-     * This is a list of all DirectoryMember objects which point to 
-     * this is as their member ItemVersion. This means that all of these
-     * DirectoryMember objects have the same hash and the same identify, so 
-     * are effectively shared folders
-     * 
-     * @return 
+     * This is a list of all DirectoryMember objects which point to this is as
+     * their member ItemVersion. This means that all of these DirectoryMember
+     * objects have the same hash and the same identify, so are effectively
+     * shared folders
+     *
+     * @return
      */
-    @OneToMany(mappedBy="memberItem")
+    @OneToMany(mappedBy = "memberItem")
     public List<DirectoryMember> getLinked() {
         return linked;
     }
@@ -116,7 +113,14 @@ public class ItemVersion implements Serializable {
     public void setRootRepoVersions(List<RepoVersion> rootRepoVersions) {
         this.rootRepoVersions = rootRepoVersions;
     }
-    
-    
-    
+
+    /**
+     * Calculate the hash for this item, if it is a directory, and set it
+     */
+    public void calcHash() {
+        if (getItem().getType().equals("d")) {
+            long newHash = HashCalc.calcHash(getMembers());
+            this.setItemHash(newHash);
+        }
+    }
 }

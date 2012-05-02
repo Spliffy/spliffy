@@ -297,4 +297,5 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         getServices().getMailSender().sendMail(sm);
         return sm;
     }
+
 }
