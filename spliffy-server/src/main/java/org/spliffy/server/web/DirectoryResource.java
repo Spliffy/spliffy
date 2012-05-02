@@ -277,14 +277,15 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
 
     private StandardMessageImpl createEmailShare(MailboxAddress from, String sRecip, Priviledge p, String message, String inviteBaseHref, Session session) {
 
-        Link link = new Link();
-        link.setId(UUID.randomUUID());
-        link.setSharedFrom(getItemVersion().getItem());
-        link.setShareRecip(sRecip);
-        link.setPriviledge(p);
-        session.save(link);
+        Share share = new Share();
+        share.setId(UUID.randomUUID());
+        share.setSharedFrom(getItemVersion().getItem());
+        share.setShareRecip(sRecip);
+        share.setPriviledge(p);
+        share.setCreatedDate(new Date());
+        session.save(share);
 
-        String inviteHref = inviteBaseHref + link.getId();
+        String inviteHref = inviteBaseHref + share.getId();
 
         MailboxAddress recip = MailboxAddress.parse(sRecip);
 

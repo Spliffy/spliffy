@@ -26,11 +26,11 @@ import org.spliffy.server.web.*;
  */
 public class ShareResource extends AbstractResource implements GetableResource, PostableResource {
 
-    private final Link link;
+    private final Share link;
     private final SpliffyCollectionResource parent;
     private JsonResult jsonResult;
 
-    public ShareResource(Link link, SpliffyCollectionResource parent) {
+    public ShareResource(Share link, SpliffyCollectionResource parent) {
         super(parent.getServices());
         this.link = link;
         this.parent = parent;
@@ -75,10 +75,9 @@ public class ShareResource extends AbstractResource implements GetableResource, 
         CollectionResource col = findCol(userResource, path);
         if( col instanceof MutableCollection ) {
             MutableCollection mCol = (MutableCollection) col;
-            Item sharedTo = mCol.getItemVersion().getItem();
             link.setAcceptedDate(new Date());
             link.setCreatedDate(new Date()); // todo: remove
-            link.setSharedTo(sharedTo);
+            link.setAcceptedBy(curUser);
             session.save(link);
             
             Path newPath = Path.path(curUser.getName());
@@ -113,7 +112,7 @@ public class ShareResource extends AbstractResource implements GetableResource, 
         }
     }
 
-    public Link getLink() {
+    public Share getLink() {
         return link;
     }
 

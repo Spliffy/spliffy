@@ -19,18 +19,16 @@ import org.spliffy.server.web.*;
  * @author brad
  */
 public class ResourceManager {
-    
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ResourceManager.class);
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ResourceManager.class);
     private final VersionNumberGenerator versionNumberGenerator;
-    
+
     public ResourceManager(VersionNumberGenerator versionNumberGenerator) {
         this.versionNumberGenerator = versionNumberGenerator;
     }
 
-
     public void save(Session session, RepositoryFolder repositoryFolder) {
-        log.trace("save repo folder: " + repositoryFolder.getName()  + "dirty=" + repositoryFolder.isDirty());
+        log.trace("save repo folder: " + repositoryFolder.getName() + "dirty=" + repositoryFolder.isDirty());
         if (!repositoryFolder.isDirty()) {
             return;
         }
@@ -70,7 +68,7 @@ public class ResourceManager {
      * @param session
      */
     public void calcHashes(Session session, MutableCollection parent) throws NotAuthorizedException, BadRequestException {
-        log.trace("calcHashes: " + parent.getName() + " dirty=" + parent.isDirty() + " hashcode: "+ parent.hashCode());
+        log.trace("calcHashes: " + parent.getName() + " dirty=" + parent.isDirty() + " hashcode: " + parent.hashCode());
         if (!parent.isDirty()) {
             return;
         }
@@ -118,7 +116,7 @@ public class ResourceManager {
         // The item version of this directory member before it was updated
         ItemVersion origMemberIV = r.getItemVersion();
         DirectoryMember origMemberDM = r.getDirectoryMember();
-        
+
         ItemVersion newMemberIV;
         if (r.isDirty()) {
             newMemberIV = Utils.newItemVersion(r.getItemVersion(), r.getType()); // create a new ItemVersion for the member
@@ -134,35 +132,39 @@ public class ResourceManager {
 
         newMemberDM.setMemberItem(newMemberIV);
         session.save(newMemberDM);
-                
-        
+
+
         if (r instanceof MutableCollection) {
             MutableCollection col = (MutableCollection) r;
             saveCollection(session, col); // will do dirty check
         }
-        
+
         updateLinked(origMemberIV, newMemberIV, origMemberDM, newMemberDM, session);
     }
 
     /**
-     * Called when a new version of an item has been created. Should find
-     * all other instances of that IV (ie DirectoryMembers other then the one given) which
-     * are linked to the old version of the IV by its member link (ie not as children with
-     * it as parent)
-     * 
-     * 
+     * Called when a new version of an item has been created. Should find all
+     * other instances of that IV (ie DirectoryMembers other then the one given)
+     * which are linked to the old version of the IV by its member link (ie not
+     * as children with it as parent)
+     *
+     *
      * @param origMemberIV - this is the IV which might be shared
      * @param newMemberIV - the new version which contains updated members
-     * @param newMemberDM - this is the DM of the resource which has already been updated
+     * @param newMemberDM - this is the DM of the resource which has already
+     * been updated
      */
-    private void updateLinked(ItemVersion origMemberIV, ItemVersion newMemberIV,DirectoryMember origMemberDM, DirectoryMember newMemberDM, Session session) {
+    private void updateLinked(ItemVersion origMemberIV, ItemVersion newMemberIV, DirectoryMember origMemberDM, DirectoryMember newMemberDM, Session session) {
         // we already created newMemberIV and this has been connected to one parent. But
         // we need to check for other parents on origMemberIV and ensure they have new
         // versions created which link to the newMemberIV
-        for( DirectoryMember siblingDM : origMemberIV.getLinked()) {
-            if( origMemberDM == null || origMemberDM != siblingDM ) {
-                // is a DM other then the one updated
-                siblingDM.updateTo(newMemberIV, session);
+        List<DirectoryMember> linked = origMemberIV.getLinked();
+        if (linked != null) {
+            for (DirectoryMember siblingDM : linked) {
+                if (origMemberDM == null || origMemberDM != siblingDM) {
+                    // is a DM other then the one updated
+                    siblingDM.updateTo(newMemberIV, session);
+                }
             }
         }
     }

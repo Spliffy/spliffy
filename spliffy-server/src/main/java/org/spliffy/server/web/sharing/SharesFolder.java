@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.Link;
+import org.spliffy.server.db.Share;
 import org.spliffy.server.db.SessionManager;
 import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractResource;
@@ -77,7 +77,7 @@ public class SharesFolder extends AbstractResource implements CollectionResource
         } catch (Exception e) {
             return null; // not a UUID
         }
-        Link link = Link.get(id, SessionManager.session());
+        Share link = Share.get(id, SessionManager.session());
         if( link == null) {
             return null;
         }

@@ -87,23 +87,27 @@ public class DirectoryMember implements Serializable {
         newParentIV.setModifiedDate(new Date());
         newParentIV.setLinked(new ArrayList<DirectoryMember>());
         newParentIV.setMembers(new ArrayList<DirectoryMember>());
-        for (DirectoryMember siblingDm : this.getParentItem().getMembers()) {
-            DirectoryMember newDm = new DirectoryMember();
-            newDm.setName(siblingDm.getName());
-            newDm.setParentItem(newParentIV);
-            newParentIV.getMembers().add(newDm);
-            if (siblingDm != this) {
-                newDm.setMemberItem(siblingDm.getMemberItem());
-            } else {
-                newDm.setMemberItem(newMemberIV);
+        if (this.getParentItem().getMembers() != null) {
+            for (DirectoryMember siblingDm : this.getParentItem().getMembers()) {
+                DirectoryMember newDm = new DirectoryMember();
+                newDm.setName(siblingDm.getName());
+                newDm.setParentItem(newParentIV);
+                newParentIV.getMembers().add(newDm);
+                if (siblingDm != this) {
+                    newDm.setMemberItem(siblingDm.getMemberItem());
+                } else {
+                    newDm.setMemberItem(newMemberIV);
+                }
             }
         }
         newParentIV.calcHash();
         session.save(newParentIV);
-        
+
         // now recurse up the inverted tree
-        for( DirectoryMember parentDm : this.getParentItem().getLinked() ) {
-            parentDm.updateTo(newParentIV, session);
+        if (this.getParentItem().getLinked() != null) {
+            for (DirectoryMember parentDm : this.getParentItem().getLinked()) {
+                parentDm.updateTo(newParentIV, session);
+            }
         }
     }
 }

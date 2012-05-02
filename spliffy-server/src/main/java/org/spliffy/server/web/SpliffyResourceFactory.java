@@ -69,7 +69,7 @@ public class SpliffyResourceFactory implements ResourceFactory {
     }
 
 
-    public class RootFolder implements SpliffyCollectionResource, GetableResource {
+    public class RootFolder implements SpliffyCollectionResource, GetableResource, PropFindableResource {
 
         private Map<String,PrincipalResource> children = new HashMap<>();
         
@@ -196,6 +196,11 @@ public class SpliffyResourceFactory implements ResourceFactory {
         @Override
         public void addPrivs(List<Priviledge> list, User user) {
 
+        }
+
+        @Override
+        public Date getCreateDate() {
+            return null;
         }
     }
 

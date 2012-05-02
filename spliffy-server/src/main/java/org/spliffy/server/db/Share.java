@@ -29,15 +29,15 @@ import org.hibernate.Session;
  * @author brad
  */
 @Entity
-public class Link implements Serializable {
+public class Share implements Serializable {
 
-    public static Link get(UUID id, Session session) {
-        return (Link) session.get(Link.class, id);
+    public static Share get(UUID id, Session session) {
+        return (Share) session.get(Share.class, id);
     }
 
     private UUID id;
     private Item sharedFrom;
-    private Item sharedTo;
+    private User acceptedBy;
     private AccessControlledResource.Priviledge priv;
     private String shareRecip;
     private Date createdDate;
@@ -67,14 +67,15 @@ public class Link implements Serializable {
         this.sharedFrom = sharedFrom;
     }
 
-    @ManyToOne(optional = true)
-    public Item getSharedTo() {
-        return sharedTo;
+    @ManyToOne
+    public User getAcceptedBy() {
+        return acceptedBy;
     }
 
-    public void setSharedTo(Item sharedTo) {
-        this.sharedTo = sharedTo;
+    public void setAcceptedBy(User acceptedBy) {
+        this.acceptedBy = acceptedBy;
     }
+        
 
     /**
      * For situations where the sharedTo item is set some time after
