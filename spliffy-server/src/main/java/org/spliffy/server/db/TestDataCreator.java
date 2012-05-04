@@ -58,24 +58,24 @@ public class TestDataCreator {
             Calendar cal = new Calendar();
             cal.setOwner(t);
             cal.setCreatedDate(new Date());
-            cal.setCtag(1l);
+            cal.setCtag(System.currentTimeMillis());
             cal.setModifiedDate(new Date());
             cal.setName("cal1");
             session.save(cal);
             
-            CalEvent e =new CalEvent();
-            e.setCalendar(cal);
-            e.setCreatedDate(new Date());
-            e.setCtag(1l);
-            e.setDescription("Auto generated event");
-            e.setModifiedDate(new Date());
-            e.setName("Auto1");
-            e.setStartDate(new Date());
-            e.setEndDate(new Date( e.getStartDate().getTime() + 1000*60*60*3 )); // 3 hours later            
-            e.setSummary("Some summary goes here");
-            e.setTimezone(TimeZone.getDefault().getID()); // this ruight??
-            session.save(e);
-            
+//            CalEvent e =new CalEvent();
+//            e.setCalendar(cal);
+//            e.setCreatedDate(new Date());
+//            e.setCtag(System.currentTimeMillis());
+//            e.setDescription("Auto generated event");
+//            e.setModifiedDate(new Date());
+//            e.setName("Auto1");
+//            e.setStartDate(new Date());
+//            e.setEndDate(new Date( e.getStartDate().getTime() + 1000*60*60*3 )); // 3 hours later            
+//            e.setSummary("Some summary goes here");
+//            e.setTimezone(TimeZone.getDefault().getID()); // this ruight??
+//            session.save(e);
+//            
             AddressBook addressBook = new AddressBook();
             addressBook.setName("contacts");
             addressBook.setOwner(t);

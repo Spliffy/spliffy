@@ -110,17 +110,17 @@ public class CalendarFolder extends AbstractCollectionResource implements Calend
 
     @Override
     public String getColor() {
-        return "#2952A3";
+        return calendar.getColor();
     }
 
     @Override
     public void setColor(String s) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.calendar.setColor(s);
     }
 
     @Override
     public String getCTag() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return calendar.getCtag() + "";
     }
     
     @Override

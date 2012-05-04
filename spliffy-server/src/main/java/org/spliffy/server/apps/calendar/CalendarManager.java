@@ -16,23 +16,21 @@
  */
 package org.spliffy.server.apps.calendar;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
+import java.util.logging.Level;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
 import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.TimeZoneRegistry;
-import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
+import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.component.VTimeZone;
-import net.fortuna.ical4j.model.property.CalScale;
+import net.fortuna.ical4j.model.parameter.TzId;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
@@ -43,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spliffy.common.HashUtils;
 import org.spliffy.server.db.*;
+import org.spliffy.server.db.Calendar;
 
 /**
  *
@@ -51,13 +50,12 @@ import org.spliffy.server.db.*;
 public class CalendarManager {
 
     private static final Logger log = LoggerFactory.getLogger(CalendarManager.class);
-
     private String defaultColor = "blue";
-    
+
     public Calendar createCalendar(BaseEntity owner, String newName) {
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
-        
+
         Calendar c = new Calendar();
         c.setColor(defaultColor);
         c.setCreatedDate(new Date());
@@ -68,11 +66,10 @@ public class CalendarManager {
         session.save(c);
 
         tx.commit();
-        
+
         return c;
     }
-    
-    
+
     public void delete(CalEvent event) {
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
@@ -141,9 +138,15 @@ public class CalendarManager {
     }
 
     public CalEvent createEvent(Calendar calendar, String newName, String icalData, String contentType) throws UnsupportedEncodingException {
+        System.out.println("--- Create Event ---");
+        System.out.println(icalData);
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
         CalEvent e = new CalEvent();
+        e.setName(newName);
+        e.setCalendar(calendar);
+        e.setCreatedDate(new Date());
+        e.setModifiedDate(new Date());
 
         ByteArrayInputStream fin = new ByteArrayInputStream(icalData.getBytes("UTF-8"));
         CalendarBuilder builder = new CalendarBuilder();
@@ -154,16 +157,20 @@ public class CalendarManager {
             throw new RuntimeException(ex);
         }
         setCalendar(cal4jCalendar, e);
+        updateCtag(e);
+        session.save(e);
         tx.commit();
+        System.out.println("new event: " + e.getName() + " - in " + calendar.getName());
+
         return e;
     }
 
-    public net.fortuna.ical4j.model.Calendar getCalendar(CalEvent calEvent) {
+    public String getCalendar(CalEvent calEvent) {
 
         net.fortuna.ical4j.model.Calendar calendar = new net.fortuna.ical4j.model.Calendar();
-        calendar.getProperties().add(new ProdId("-//ettrema.com//iCal4j 1.0//EN"));
+        calendar.getProperties().add(new ProdId("-//spliffy.org//iCal4j 1.0//EN"));
         calendar.getProperties().add(Version.VERSION_2_0);
-        calendar.getProperties().add(CalScale.GREGORIAN);
+        //calendar.getProperties().add(CalScale.GREGORIAN);
         TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
         String sTimezone = calEvent.getTimezone();
         TimeZone timezone = null;
@@ -180,12 +187,27 @@ public class CalendarManager {
         net.fortuna.ical4j.model.DateTime finish = CalUtils.toCalDateTime(calEvent.getEndDate(), timezone);
         String summary = calEvent.getSummary();
         VEvent vevent = new VEvent(start, finish, summary);
-        vevent.getProperties().add(new Uid(vevent.getUid().toString()));
+        //vevent.getProperties().add(new Uid(UUID.randomUUID().toString()));
+        if (vevent.getUid() != null) {
+            vevent.getProperties().add(new Uid(vevent.getUid().toString()));
+        } else {
+            vevent.getProperties().add(new Uid(calEvent.getId().toString()));
+        }
         vevent.getProperties().add(tz.getTimeZoneId());
-        // initialise as an all-day event..
-        //        christmas.getProperties().getProperty( Property.DTSTART ).getParameters().add( Value.DATE );
+        TzId tzParam = new TzId(tz.getProperties().getProperty(Property.TZID).getValue());
+        vevent.getProperties().getProperty(Property.DTSTART).getParameters().add(tzParam);
+
         calendar.getComponents().add(vevent);
-        return calendar;
+
+
+        CalendarOutputter outputter = new CalendarOutputter();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        try {
+            outputter.output(calendar, bout);
+        } catch (IOException | ValidationException ex) {
+            throw new RuntimeException(ex);
+        }
+        return bout.toString();
 
     }
 
@@ -246,6 +268,4 @@ public class CalendarManager {
     public void setDefaultColor(String defaultColor) {
         this.defaultColor = defaultColor;
     }
-
-    
 }

@@ -38,7 +38,7 @@ import org.spliffy.server.db.SessionManager;
  * @author brad
  */
 @BeanPropertyResource(value="spliffy")
-public class CalEventResource extends AbstractResource implements ICalResource, DeletableResource, MoveableResource, CopyableResource, ReplaceableResource, PropertySourcePatchSetter.CommitableResource {
+public class CalEventResource extends AbstractResource implements ICalResource, DeletableResource, MoveableResource, CopyableResource, ReplaceableResource, PropertySourcePatchSetter.CommitableResource, GetableResource {
 
     private static final Logger log = LoggerFactory.getLogger(CalEventResource.class);
     private final CalEvent event;
@@ -54,6 +54,14 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
         this.calendarManager = calendarManager;
     }
 
+    @Override
+    public String getUniqueId() {
+        return event.getCtag() + "";
+    }
+
+    
+    
+    @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
         writeData(out);
         out.flush();
@@ -73,6 +81,7 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
 
     }
     
+    @Override
     public String getContentType(String accepts) {
         return "text/calendar";
     }
@@ -104,10 +113,12 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
 
     public void writeData(OutputStream out) {
         try {
-            Calendar cal = calendarManager.getCalendar(event);
-            CalendarOutputter outputter = new CalendarOutputter();
-            outputter.output(cal, out);
-        } catch (IOException | ValidationException ex) {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            String s = calendarManager.getCalendar(event);
+            System.out.println("--- Event ---");
+            System.out.println(s);
+            out.write(s.getBytes());
+        } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -254,5 +265,15 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
         if( tx == null ) {
             tx = SessionManager.session().beginTransaction();
         }
+    }
+
+    @Override
+    public Long getMaxAgeSeconds(Auth auth) {
+        return null;
+    }
+
+    @Override
+    public Long getContentLength() {
+        return null;
     }
 }

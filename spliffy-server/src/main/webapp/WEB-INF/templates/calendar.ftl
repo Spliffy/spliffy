@@ -5,5 +5,25 @@
 <script type="text/javascript" src="/_static/js/calendar.js">//</script>
 <div id="calendar" style="width: 800px; margin: 0 auto;"></div>
 
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Modified</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        <#list page.children as x>
+        <tr>
+            <td>
+                <a href="${x.name}/">${x.name}</a>
+            </td>
+            <td>${x.modifiedDate!}</td>
+            <td>${x.createdDate!}</td>
+        </tr>
+        </#list>  
+    </tbody>
+</table>
 
 </@layout.myLayout>

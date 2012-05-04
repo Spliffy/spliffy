@@ -3,6 +3,7 @@ package org.spliffy.server.web;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.ReportableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
@@ -22,7 +23,7 @@ import org.spliffy.server.db.User;
  *
  * @author brad
  */
-public abstract class AbstractResource implements SpliffyResource, PropFindableResource, AccessControlledResource {
+public abstract class AbstractResource implements SpliffyResource, PropFindableResource, AccessControlledResource, ReportableResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
 
     /**
