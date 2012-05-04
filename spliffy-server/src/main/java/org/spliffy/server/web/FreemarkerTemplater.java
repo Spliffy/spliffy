@@ -61,7 +61,7 @@ public class FreemarkerTemplater implements Templater {
             freemarkerConfig.setServletContextForTemplateLoading(servletContext, basePath);
         }
         return freemarkerConfig;
-    }
+    } 
 
     public String getBasePath() {
         return basePath;
@@ -71,3 +71,4 @@ public class FreemarkerTemplater implements Templater {
         this.basePath = basePath;
     }
 }
+

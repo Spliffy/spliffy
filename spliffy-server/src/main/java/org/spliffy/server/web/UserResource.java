@@ -13,8 +13,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import org.hibernate.Transaction;
+import org.spliffy.server.apps.ApplicationManager;
 import org.spliffy.server.db.*;
-import org.spliffy.server.web.versions.VersionsRootFolder;
+import org.spliffy.server.apps.versions.VersionsRootFolder;
 
 /**
  *
@@ -22,29 +23,25 @@ import org.spliffy.server.web.versions.VersionsRootFolder;
  */
 public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource, PrincipalResource {
 
-    public static final String ADDRESS_BOOK_HOME_NAME = "abs";
-    public static final String CALENDAR_HOME_NAME = "cal";
-    
-    private final User user; 
+    private final User user;
     private final SpliffyCollectionResource parent;
     private final VersionNumberGenerator versionNumberGenerator;
+    private final ApplicationManager applicationManager;
     private List<Resource> children;
 
-    public UserResource(SpliffyCollectionResource parent, User u, VersionNumberGenerator versionNumberGenerator) {
+    public UserResource(SpliffyCollectionResource parent, User u, VersionNumberGenerator versionNumberGenerator, ApplicationManager applicationManager) {
         super(parent.getServices());
         this.parent = parent;
         this.user = u;
         this.versionNumberGenerator = versionNumberGenerator;
-
+        this.applicationManager = applicationManager;
     }
 
     @Override
     public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
-        switch (childName) {
-            case CALENDAR_HOME_NAME:
-                break;
-            case ADDRESS_BOOK_HOME_NAME:
-                break;
+        Resource r = applicationManager.getNonBrowseablePage(this, childName);
+        if (r != null) {
+            return r;
         }
         return Utils.childOf(getChildren(), childName);
     }
@@ -61,9 +58,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
                     children.add(rr);
                 }
             }
-            // add the versions root, to allow browsing of old versions
-            VersionsRootFolder versionsRoot = new VersionsRootFolder(this, user, services);
-            children.add(versionsRoot);
+            applicationManager.addBrowseablePages(this, children);
         }
         return children;
     }
@@ -91,7 +86,6 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         RepoVersion rv = r.latestVersion();
         return new RepositoryFolder(this, r, rv);
     }
-
 
     @Override
     public Date getCreateDate() {
@@ -136,7 +130,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     public String getHref() {
         return "/" + getName() + "/";
     }
-    
+
     @Override
     public PrincipleId getIdenitifer() {
         return new HrefPrincipleId(getHref());
@@ -180,7 +174,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     @Override
     public void addPrivs(List<Priviledge> list, User u) {
         // Give this user special permissions
-        if( user.getName().equals(u.getName())) {
+        if (user.getName().equals(u.getName())) {
             list.add(Priviledge.READ);
             list.add(Priviledge.WRITE);
             list.add(Priviledge.READ_ACL);
@@ -204,6 +198,5 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         addPrivs(list, user);
         map.put(this, list);
         return map;
-    }        
-    
+    }
 }

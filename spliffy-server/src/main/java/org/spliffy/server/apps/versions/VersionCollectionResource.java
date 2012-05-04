@@ -1,4 +1,4 @@
-package org.spliffy.server.web.versions;
+package org.spliffy.server.apps.versions;
 
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyCollectionResource;

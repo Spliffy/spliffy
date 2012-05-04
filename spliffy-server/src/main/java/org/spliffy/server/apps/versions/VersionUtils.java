@@ -1,4 +1,4 @@
-package org.spliffy.server.web.versions;
+package org.spliffy.server.apps.versions;
 
 import java.util.ArrayList;
 import java.util.List;

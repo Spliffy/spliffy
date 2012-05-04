@@ -1,4 +1,4 @@
-package org.spliffy.server.web.versions;
+package org.spliffy.server.apps.versions;
 
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.acl.Principal;

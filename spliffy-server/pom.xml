@@ -8,6 +8,9 @@
     </parent>
     <artifactId>spliffy-server</artifactId>
     <packaging>war</packaging>
+    <properties>
+        <netbeans.hint.license>gpl30</netbeans.hint.license>
+    </properties>    
     <repositories>
         <repository>
             <url>http://download.java.net/maven/2/</url>
@@ -24,7 +27,7 @@
         </dependency> 
         <dependency>
             <groupId>com.ettrema</groupId>
-            <artifactId>milton-api</artifactId>
+            <artifactId>milton-json</artifactId>
             <version>${milton.version}</version>
         </dependency>        
         <dependency>
@@ -32,12 +35,12 @@
             <artifactId>milton-filesystem</artifactId>
             <version>${milton.version}</version>
         </dependency>        
-       <dependency>
+        <dependency>
             <groupId>com.ettrema</groupId>
             <artifactId>milton-servlet</artifactId>
             <version>${milton.version}</version>
         </dependency>
-       <dependency>
+        <dependency>
             <groupId>com.ettrema</groupId>
             <artifactId>milton-caldav</artifactId>
             <version>${milton.version}</version>
@@ -145,7 +148,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.5.8</version>
-        </dependency>        
+        </dependency>
+        <dependency>
+            <groupId>org.mnode.ical4j</groupId>
+            <artifactId>ical4j</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
     </dependencies>
     <profiles>
         <profile>

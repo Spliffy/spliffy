@@ -9,14 +9,13 @@ import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.values.HrefList;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.acl.Principal;
+import com.ettrema.logging.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.ItemVersion;
-import org.spliffy.server.db.Permission;
 import org.spliffy.server.db.User;
 
 /**
@@ -24,7 +23,7 @@ import org.spliffy.server.db.User;
  * @author brad
  */
 public abstract class AbstractResource implements SpliffyResource, PropFindableResource, AccessControlledResource {
-    
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
 
     /**
      * For templating, return true if this is a directory, false for a file
@@ -56,7 +55,11 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
 
     @Override
     public boolean authorise(Request request, Method method, Auth auth) {
-        return services.getSecurityManager().authorise(request, method, auth, this);
+        boolean b = services.getSecurityManager().authorise(request, method, auth, this);
+        if( !b ) {
+            LogUtils.info(log, "authorisation failed", auth,"resource:", getName(), "method:", method);
+        }
+        return b;
     }
 
     @Override

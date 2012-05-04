@@ -11,6 +11,8 @@
         <link rel="stylesheet" type="text/css" href="/_static/base.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/validation.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/jquery-ui-1.8.11.custom.css" media="screen" />        
+        <link rel="stylesheet" type="text/css" href="/_static/fullcalendar.css" media="screen" />        
+        <link rel="stylesheet" type="text/css" href="/_static/fullcalendar.print.css" media="print" />        
 
         <script type="text/javascript" src="/_static/js/10_jquery.js" >//</script>
         <script type="text/javascript" src="/_static/js/11_jquery.cookie.js" >//</script>
@@ -123,7 +125,7 @@
                             <a href="/music" shape="rect">Videos</a>
                         </li>           
                         <li class="nav-myDashboard">
-                            <a href="/music" shape="rect">Calendar</a>
+                            <a href="/${user.name}/cal/" shape="rect">Calendar</a>
                         </li>                              
                         <li class="nav-myDashboard">
                             <a href="/music" shape="rect">Contacts</a>

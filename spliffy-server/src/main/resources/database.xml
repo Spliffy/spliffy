@@ -42,6 +42,8 @@
                 <value>org.spliffy.server.db.DeletedItem</value>
                 <value>org.spliffy.server.db.Volume</value>
                 <value>org.spliffy.server.db.VolumeInstance</value>
+                <value>org.spliffy.server.db.Calendar</value>
+                <value>org.spliffy.server.db.CalEvent</value>
             </list>
         </property>
         <property name="hibernateProperties">

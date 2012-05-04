@@ -1,4 +1,4 @@
-package org.spliffy.server.web.versions;
+package org.spliffy.server.apps.versions;
 
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.GetableResource;
@@ -21,51 +21,31 @@ import org.spliffy.server.web.SpliffyCollectionResource;
 import org.spliffy.server.web.Utils;
 
 /**
- * Represents the complete state of a repository at some point in time
+ * Lists all of the versions within a repository
+ * 
+ * TODO: refactor this to group versions to make it more manageable. Perhaps
+ * groups by month, user, etc
  *
  * @author brad
  */
-public class RepoVersionFolder extends AbstractCollectionResource implements VersionCollectionResource, GetableResource{
-    private final RepoVersion repoVersion;
-    
+public class RepositoryVersionsFolder extends AbstractCollectionResource implements VersionCollectionResource, GetableResource{
+    private final Repository repo;
     private final SpliffyCollectionResource parent;
-    
-    private List<AbstractVersionResource> children;
+    private List<RepoVersionFolder> children;
 
-    public RepoVersionFolder(SpliffyCollectionResource parent, RepoVersion repoVersion, Services services) {
+    public RepositoryVersionsFolder(SpliffyCollectionResource parent, Repository repo, Services services) {
         super(services);
         this.parent = parent;
-        this.repoVersion = repoVersion;
-    }
-
-    @Override
-    public Date getCreateDate() {
-        return repoVersion.getCreatedDate();
-    }
-
-    @Override
-    public String getName() {
-        return repoVersion.getVersionNum() + "";
-    }
-
-    @Override
-    public Date getModifiedDate() {
-        return repoVersion.getCreatedDate();
-    }
-
-    @Override
-    public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
-        return Utils.childOf(getChildren(), childName);
+        this.repo = repo;
     }
 
     @Override
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
-            if (repoVersion != null) {
-                List<DirectoryMember> members = repoVersion.getRootItemVersion().getMembers();
-                children = VersionUtils.toResources(this, members);
-            } else {
-                children = new ArrayList<>();
+            children = new ArrayList<>();
+            for( RepoVersion rv : repo.getVersions()) {
+                RepoVersionFolder f = new RepoVersionFolder(this, rv, services);
+                children.add(f);
             }
         }
         return children;
@@ -89,6 +69,26 @@ public class RepoVersionFolder extends AbstractCollectionResource implements Ver
     @Override
     public Long getContentLength() {
         return null;
+    }    
+
+    @Override
+    public Date getCreateDate() {
+        return repo.getCreatedDate();
+    }
+
+    @Override
+    public String getName() {
+        return repo.getName();
+    }
+
+    @Override
+    public Date getModifiedDate() {
+        return repo.getCreatedDate();
+    }
+
+    @Override
+    public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
+        return Utils.childOf(getChildren(), childName);
     }
 
     @Override
@@ -98,20 +98,19 @@ public class RepoVersionFolder extends AbstractCollectionResource implements Ver
 
     @Override
     public BaseEntity getOwner() {
-        return parent.getOwner();
+        return repo.getBaseEntity();
     }
 
     @Override
     public void addPrivs(List<Priviledge> list, User user) {
-
+        parent.addPrivs(list, user);
     }
 
     @Override
     public Map<Principal, List<Priviledge>> getAccessControlList() {
         return null;
     }
-
     
     
-
+    
 }

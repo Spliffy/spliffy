@@ -20,6 +20,7 @@ import org.hibernate.Session;
 @DiscriminatorColumn(name="TYPE", discriminatorType=DiscriminatorType.STRING,length=20)
 @DiscriminatorValue("E")
 public class BaseEntity implements Serializable {
+    private List<Calendar> calendars;
 
     public static BaseEntity get(String entityName, Session session) {
         return (BaseEntity) session.get(BaseEntity.class, entityName);
@@ -85,6 +86,15 @@ public class BaseEntity implements Serializable {
      */
     public boolean containsUser(User user) {
         return user.getName().equals(this.getName()); // very simple because currenly only have users
+    }
+
+    @OneToMany(mappedBy = "owner")
+    public List<Calendar> getCalendars() {
+        return calendars;
+    }
+
+    public void setCalendars(List<Calendar> calendars) {
+        this.calendars = calendars;
     }
     
     

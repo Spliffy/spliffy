@@ -1,6 +1,7 @@
 package org.spliffy.server.db;
 
 import java.util.Date;
+import java.util.TimeZone;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -54,6 +55,26 @@ public class TestDataCreator {
             r1.setName("repo1");            
             session.save(r1);
                         
+            Calendar cal = new Calendar();
+            cal.setOwner(t);
+            cal.setCreatedDate(new Date());
+            cal.setCtag(1l);
+            cal.setModifiedDate(new Date());
+            cal.setName("cal1");
+            session.save(cal);
+            
+            CalEvent e =new CalEvent();
+            e.setCalendar(cal);
+            e.setCreatedDate(new Date());
+            e.setCtag(1l);
+            e.setDescription("Auto generated event");
+            e.setEndDate(new Date());
+            e.setModifiedDate(new Date());
+            e.setName("Auto1");
+            e.setStartDate(new Date());
+            e.setSummary("Some summary goes here");
+            e.setTimezone(TimeZone.getDefault().getID()); // this ruight??
+            session.save(e);
         }
     }
 

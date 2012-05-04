@@ -98,4 +98,12 @@ public class HashUtils {
             }
         }
     }
+
+    public static void appendLine(Date startDate, CheckedOutputStream cout) {
+        if( startDate == null ) {
+            return ;
+        }
+        String s= startDate.toString();
+        appendLine(s, cout);
+    }
 }

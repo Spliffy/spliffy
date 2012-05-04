@@ -11,6 +11,7 @@ import java.util.List;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.UserDao;
+import org.spliffy.server.manager.ResourceManager;
 
 /**
  *
@@ -18,6 +19,8 @@ import org.spliffy.server.db.UserDao;
  */
 public class SpliffySecurityManager {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SpliffySecurityManager.class);
+    
     private String realm = "spliffy";
     private final UserDao userDao;
     private final PasswordManager passwordManager;
@@ -72,10 +75,10 @@ public class SpliffySecurityManager {
                 result = SecurityUtils.hasRead(privs);
             }
             if( !result ) {
-                System.out.println("Denied access of: " + auth + " to resource: " + aThis.getName() + " (" + aThis.getClass() + ")");
-                System.out.println("Allowed privs are:");
+                log.info("Denied access of: " + auth + " to resource: " + aThis.getName() + " (" + aThis.getClass() + ")");
+                log.info("Allowed privs are:");
                 for( Priviledge p : privs ) {
-                    System.out.println("   - " + p);
+                    log.info("   - " + p);
                 }
             }
             return result;
