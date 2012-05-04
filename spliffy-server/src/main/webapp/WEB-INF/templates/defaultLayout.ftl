@@ -106,38 +106,41 @@
 
                 <div class="clr"></div>
                 <!--nav-->
-                <#if showNav>
+                <#if page.currentUser??>
+                <#if showNav>                
                 <div class="nav">                    
                     <ul>
                         <li class="nav-myDashboard">
                             <a href="/dashboard" shape="rect">Dashboard</a>
                         </li>                    
+                        <!--
                         <li class="nav-myDashboard">
-                            <a href="/files" shape="rect">Files</a>
+                            <a href="/${user.name}/photos/" shape="rect">Photos</a>
                         </li>                    
                         <li class="nav-myDashboard">
-                            <a href="/photos" shape="rect">Photos</a>
+                            <a href="/${user.name}/music/" shape="rect">Music</a>
                         </li>                    
                         <li class="nav-myDashboard">
-                            <a href="/music" shape="rect">Music</a>
-                        </li>                    
-                        <li class="nav-myDashboard">
-                            <a href="/music" shape="rect">Videos</a>
-                        </li>           
+                            <a href="/${user.name}/videos/" shape="rect">Videos</a>
+                        </li>                                   
+                        -->
                         <li class="nav-myDashboard">
                             <a href="/${user.name}/cal/" shape="rect">Calendar</a>
-                        </li>                              
+                        </li>                   
                         <li class="nav-myDashboard">
-                            <a href="/music" shape="rect">Contacts</a>
-                        </li>                              
+                            <a href="/${user.name}/abs/" shape="rect">Contacts</a>
+                        </li>                
+                        <!--
                         <li class="nav-myDashboard">
-                            <a href="/music" shape="rect">Sharing</a>
+                            <a href="/${user.name}/sharing/" shape="rect">Sharing</a>
                         </li>                              
+                        -->
                         
                     </ul>  
                     <div class="clr">.</div>
                 </div>
                 </#if>
+                </#if>                        
                 <!--navEnd-->
             </div>
             <!--headerEnd-->

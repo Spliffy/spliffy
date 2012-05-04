@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.spliffy.server.apps.calendar;
+package org.spliffy.server.apps.signup;
 
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
@@ -22,44 +22,40 @@ import com.ettrema.event.EventManager;
 import java.util.List;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.Services;
-import org.spliffy.server.web.UserResource;
+import org.spliffy.server.web.SpliffyResourceFactory;
 
 /**
  *
  * @author brad
  */
-public class CalendarApp implements Application{
+public class SignupApp implements Application {
 
-    public static final String CALENDAR_HOME_NAME = "cal";
-    
-    private CalendarManager calendarManager;
-           
     private Services services;
-    
-    @Override
-    public Resource getNonBrowseablePage(Resource parent, String childName) {
-        return null;
-    }
+    private EventManager eventManager;
+    private String signupPageName = "signup";
 
     @Override
     public void init(Services services, EventManager eventManager) {
         this.services = services;
-        calendarManager = new CalendarManager();
+        this.eventManager = eventManager;
     }
 
     @Override
-    public void shutDown() {
-        
+    public Resource getNonBrowseablePage(Resource parent, String requestedName) {
+        if (parent instanceof SpliffyResourceFactory.RootFolder) {
+            SpliffyResourceFactory.RootFolder rf = (SpliffyResourceFactory.RootFolder) parent;
+            if (requestedName.equals(signupPageName)) {
+                return new SignupPage(requestedName, rf, services);
+            }
+        }
+        return null;
     }
 
     @Override
     public void addBrowseablePages(CollectionResource parent, List<Resource> children) {
-        if( parent instanceof UserResource) {            
-            UserResource rf = (UserResource) parent;
-            CalendarHomeFolder calHome = new CalendarHomeFolder(rf, services, CALENDAR_HOME_NAME, calendarManager);
-            children.add(calHome);
-        }        
-        
     }
-    
+
+    @Override
+    public void shutDown() {
+    }
 }

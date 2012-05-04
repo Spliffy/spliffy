@@ -86,4 +86,10 @@ public class SpliffySecurityManager {
             return true; // not access controlled so must be ok!
         }
     }
+
+    public PasswordManager getPasswordManager() {
+        return passwordManager;
+    }
+    
+    
 }

@@ -75,6 +75,26 @@ public class TestDataCreator {
             e.setSummary("Some summary goes here");
             e.setTimezone(TimeZone.getDefault().getID()); // this ruight??
             session.save(e);
+            
+            AddressBook addressBook = new AddressBook();
+            addressBook.setName("contacts");
+            addressBook.setOwner(t);
+            addressBook.setCreatedDate(new Date());
+            addressBook.setModifiedDate(new Date());
+            addressBook.setDescription("Auto generated");
+            session.save(addressBook);
+            
+            Contact c = new Contact();
+            c.setName("contact1");
+            c.setAddressBook(addressBook);
+            c.setCreatedDate(new Date());
+            c.setModifiedDate(new Date());
+            c.setGivenName("Joe");
+            c.setSurName("Bloggs");
+            c.setTelephonenumber("555 1234");
+            c.setMail("joe@blogs.com");
+            c.setOrganizationName("Bloggs.com");
+            session.save(c);
         }
     }
 

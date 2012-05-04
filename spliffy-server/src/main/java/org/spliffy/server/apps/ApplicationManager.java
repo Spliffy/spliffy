@@ -21,8 +21,10 @@ import com.ettrema.event.EventManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.spliffy.server.apps.calendar.CalendarApp;
+import org.spliffy.server.apps.contacts.ContactsApp;
 import org.spliffy.server.apps.login.LoginApp;
 import org.spliffy.server.apps.sharing.ShareApp;
+import org.spliffy.server.apps.signup.SignupApp;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.UserResource;
 
@@ -37,7 +39,9 @@ public class ApplicationManager {
         List<Application> list = new ArrayList<>(apps);
         list.add(new LoginApp());
         list.add(new CalendarApp());
+        list.add(new ContactsApp());
         list.add(new ShareApp());
+        list.add(new SignupApp());
         this.apps = list;
     }
     

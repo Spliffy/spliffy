@@ -44,6 +44,9 @@
                 <value>org.spliffy.server.db.VolumeInstance</value>
                 <value>org.spliffy.server.db.Calendar</value>
                 <value>org.spliffy.server.db.CalEvent</value>
+                <value>org.spliffy.server.db.AddressBook</value>
+                <value>org.spliffy.server.db.Contact</value>
+                
             </list>
         </property>
         <property name="hibernateProperties">

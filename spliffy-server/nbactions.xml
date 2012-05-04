@@ -32,5 +32,21 @@
             <goals>
                 <goal>compile</goal>
             </goals>
+        </action>
+    <action>
+            <actionName>CUSTOM-deploy cardme</actionName>
+            <displayName>deploy cardme</displayName>
+            <goals>
+                <goal>deploy:deploy-file</goal>
+            </goals>
+            <properties>
+                <groupId>cardme</groupId>
+                <artifactId>cardme-vcard</artifactId>
+                <version>0.3.2.03</version>
+                <packaging>jar</packaging>
+                <file>E:/proj/external/cardme-0.3.2.03.jar</file>
+                <repositoryId>ettrema-repo</repositoryId>
+                <url>http://www.ettrema.com/maven2</url>
+            </properties>
         </action>        
 </actions>

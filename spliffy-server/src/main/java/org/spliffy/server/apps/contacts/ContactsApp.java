@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.spliffy.server.apps.calendar;
+package org.spliffy.server.apps.contacts;
 
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
@@ -28,11 +28,11 @@ import org.spliffy.server.web.UserResource;
  *
  * @author brad
  */
-public class CalendarApp implements Application{
+public class ContactsApp implements Application{
 
-    public static final String CALENDAR_HOME_NAME = "cal";
+    public static final String ADDRESS_BOOK_HOME_NAME = "abs";
     
-    private CalendarManager calendarManager;
+    private ContactManager contactManager;
            
     private Services services;
     
@@ -44,7 +44,7 @@ public class CalendarApp implements Application{
     @Override
     public void init(Services services, EventManager eventManager) {
         this.services = services;
-        calendarManager = new CalendarManager();
+        contactManager = new ContactManager();
     }
 
     @Override
@@ -56,10 +56,12 @@ public class CalendarApp implements Application{
     public void addBrowseablePages(CollectionResource parent, List<Resource> children) {
         if( parent instanceof UserResource) {            
             UserResource rf = (UserResource) parent;
-            CalendarHomeFolder calHome = new CalendarHomeFolder(rf, services, CALENDAR_HOME_NAME, calendarManager);
+            ContactsHomeFolder calHome = new ContactsHomeFolder(rf, services, ADDRESS_BOOK_HOME_NAME, contactManager);
             children.add(calHome);
         }        
         
     }
     
 }
+
+    

@@ -44,7 +44,12 @@
             <groupId>com.ettrema</groupId>
             <artifactId>milton-caldav</artifactId>
             <version>${milton.version}</version>
-        </dependency>        
+        </dependency>     
+        <dependency>
+            <groupId>com.ettrema</groupId>
+            <artifactId>milton-ldap</artifactId>
+            <version>${milton.version}</version>
+        </dependency>          
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -153,6 +158,11 @@
             <groupId>org.mnode.ical4j</groupId>
             <artifactId>ical4j</artifactId>
             <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>cardme</groupId>
+            <artifactId>cardme-vcard</artifactId>
+            <version>0.3.2.03</version>
         </dependency>
 
     </dependencies>

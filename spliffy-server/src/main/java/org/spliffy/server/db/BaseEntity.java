@@ -20,6 +20,7 @@ import org.hibernate.Session;
 @DiscriminatorColumn(name="TYPE", discriminatorType=DiscriminatorType.STRING,length=20)
 @DiscriminatorValue("E")
 public class BaseEntity implements Serializable {
+    private List<AddressBook> addressBooks;
     private List<Calendar> calendars;
 
     public static BaseEntity get(String entityName, Session session) {
@@ -95,6 +96,15 @@ public class BaseEntity implements Serializable {
 
     public void setCalendars(List<Calendar> calendars) {
         this.calendars = calendars;
+    }
+
+    @OneToMany(mappedBy = "owner")
+    public List<AddressBook> getAddressBooks() {
+        return addressBooks;
+    }
+
+    public void setAddressBooks(List<AddressBook> addressBooks) {
+        this.addressBooks = addressBooks;
     }
     
     
