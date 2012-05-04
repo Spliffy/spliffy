@@ -251,7 +251,7 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
      * Called from setters used by proppatch
      */
     private void checkTx() {
-        if( tx != null ) {
+        if( tx == null ) {
             tx = SessionManager.session().beginTransaction();
         }
     }

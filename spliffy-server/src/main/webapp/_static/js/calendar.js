@@ -16,14 +16,14 @@ $(document).ready(function() {
 			
         eventDrop: function(event, deltaDays, minuteDelta) {
             log("eventDrop", event, deltaDays, minuteDelta);
-            addStartDate(event, deltaDays, minuteDelta);
-            addEndDate(event, deltaDays, minuteDelta);
+            //addStartDate(event, deltaDays, minuteDelta);
+            //addEndDate(event, deltaDays, minuteDelta);
             updateEvent(event);
         },
 			
         eventResize: function(event, deltaDays, minuteDelta) {
-            addStartDate(event, 0, 0);
-            addEndDate(event, deltaDays, minuteDelta);
+            //addStartDate(event, 0, 0);
+            //addEndDate(event, deltaDays, minuteDelta);
             updateEvent(event);
         }
     		
@@ -34,15 +34,15 @@ $(document).ready(function() {
 	
 function addStartDate(event, deltaDays, minuteDelta) {
     var startDate = $.fullCalendar.parseDate( event.start );
-    log("addStartDate", event.start, startDate);
-    var yr = startDate.year;
-    if( yr < 1900 ) yr = yr + 1900;
-    var d = new Date(yr,startDate.month,startDate.date, startDate.hours, startDate.minutes);
-    d.setDate(d.getDate() + deltaDays);
-    d.setMinutes(d.getMinutes() + minuteDelta);
+    log("addStartDate", event.start,deltaDays, startDate);    
+    //startDate.setDate( startDate.getDate() + deltaDays );
+    log(" = ", startDate);
+    //d.setDate(d.getDate() + deltaDays);
+    //d.setMinutes(d.getMinutes() + minuteDelta);
+    log("got new date", startDate);
         
-    event.start = d;
-    setEventDate(startDate, d);
+    //event.start = startDate;
+    //setEventDate(startDate, d);
 }
 
 function addEndDate(event, deltaDays,minuteDelta) {
@@ -93,11 +93,10 @@ function updateEvent(event) {
 
 }
 	
-function toFormattedGMTDate(eventDate) {
-    if( eventDate ) {        
-        var d = $.fullCalendar.parseDate( eventDate );
-        log("toFormattedGMTDate", eventDate, d);
-        d.setMinutes(d.getMinutes() + eventDate.timezoneOffset);
+function toFormattedGMTDate(d) {
+    if( d ) {        
+        log("toFormattedGMTDate", d);
+        //d.setMinutes(d.getMinutes() + eventDate.timezoneOffset);
         var sdt = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); // + "GMT";
         return sdt;
     } else {

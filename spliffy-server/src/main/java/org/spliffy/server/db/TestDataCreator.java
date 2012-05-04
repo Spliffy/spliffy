@@ -68,10 +68,10 @@ public class TestDataCreator {
             e.setCreatedDate(new Date());
             e.setCtag(1l);
             e.setDescription("Auto generated event");
-            e.setEndDate(new Date());
             e.setModifiedDate(new Date());
             e.setName("Auto1");
             e.setStartDate(new Date());
+            e.setEndDate(new Date( e.getStartDate().getTime() + 1000*60*60*3 )); // 3 hours later            
             e.setSummary("Some summary goes here");
             e.setTimezone(TimeZone.getDefault().getID()); // this ruight??
             session.save(e);
