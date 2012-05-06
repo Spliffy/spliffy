@@ -22,6 +22,7 @@ import com.ettrema.common.Service;
 import com.ettrema.event.EventManager;
 import java.util.List;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyResourceFactory;
 
 /**
  * Defines an extensibility mechanism for Spliffy.
@@ -39,7 +40,7 @@ public interface Application {
      * @param services
      * @param eventManager 
      */
-    void init(Services services, EventManager eventManager);
+    void init(SpliffyResourceFactory resourceFactory);
     
     /**
      * Return a resource for the given parent of the given name if this

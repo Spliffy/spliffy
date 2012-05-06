@@ -19,16 +19,20 @@ package org.spliffy.server.apps.contacts;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.event.EventManager;
+import com.ettrema.ldap.*;
+import java.util.Collections;
 import java.util.List;
 import org.spliffy.server.apps.Application;
+import org.spliffy.server.db.User;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.UserResource;
 
 /**
  *
  * @author brad
  */
-public class ContactsApp implements Application{
+public class ContactsApp implements Application, UserFactory{
 
     public static final String ADDRESS_BOOK_HOME_NAME = "abs";
     
@@ -36,20 +40,28 @@ public class ContactsApp implements Application{
            
     private Services services;
     
+    private SpliffyResourceFactory resourceFactory;
+    
+    private com.ettrema.ldap.LdapServer ldapServer;
+    
     @Override
     public Resource getNonBrowseablePage(Resource parent, String childName) {
         return null;
     }
 
     @Override
-    public void init(Services services, EventManager eventManager) {
-        this.services = services;
+    public void init(SpliffyResourceFactory resourceFactory) {
+        this.services = resourceFactory.getServices();
         contactManager = new ContactManager();
+        this.resourceFactory = resourceFactory;
+        ldapServer = new LdapServer(this, resourceFactory.getPropertySources());
+        ldapServer.start();
     }
 
     @Override
     public void shutDown() {
-        
+        ldapServer.interrupt();
+        ldapServer.close();
     }
 
     @Override
@@ -61,7 +73,35 @@ public class ContactsApp implements Application{
         }        
         
     }
-    
+
+    @Override
+    public String getUserPassword(String userName) {
+        User user = services.getSecurityManager().getUserDao().getUser(userName);
+        if( user == null ) {
+            return null;
+        } else {
+            return user.getPassword();
+        }
+    }
+
+    @Override
+    public LdapPrincipal getUser(String userName, String password) {
+        LdapPrincipal p = (LdapPrincipal) resourceFactory.createRootFolder().findEntity(userName);
+        if( p == null ) {
+            return null;
+        } else {
+            if( p.authenticate(userName, password) != null ) {
+                return p;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    @Override
+    public List<LdapContact> galFind(Condition equalTo, int sizeLimit) {
+        return Collections.EMPTY_LIST;
+    }    
 }
 
     

@@ -24,8 +24,9 @@ public class PasswordManager {
                 
     
     public void setPassword(User user, String newPassword) {
-        String a1md5 = calcPasswordHash(user.getName(), newPassword);
-        user.setPasswordDigest(a1md5);
+        user.setPassword(newPassword);
+//        String a1md5 = calcPasswordHash(user.getName(), newPassword);
+  //      user.setPasswordDigest(a1md5);
     }
     
     public String calcPasswordHash(String userName, String password) {
@@ -43,7 +44,8 @@ public class PasswordManager {
     }
     
     public boolean verifyDigest(DigestResponse digest, User user) {        
-        String a1Md5 = user.getPasswordDigest();
+        //String a1Md5 = user.getPasswordDigest();
+        String a1Md5 = digestGenerator.encodePasswordInA1Format(realm, realm, user.getPassword());
         String expectedResp = digestGenerator.generateDigestWithEncryptedPassword(digest, a1Md5);
         String actualResp = digest.getResponseDigest();
         System.out.println("VerifyDigest: " + expectedResp + " - " + actualResp);
@@ -55,6 +57,14 @@ public class PasswordManager {
             return false;
         }
         
+    }
+
+    public boolean verifyPassword(User user, String requestPassword) {
+        if( requestPassword != null ) {
+            return requestPassword.equals(user.getPassword());
+        } else {
+            return false;
+        }                
     }
     
 }

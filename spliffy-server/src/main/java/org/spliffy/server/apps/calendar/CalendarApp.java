@@ -22,6 +22,7 @@ import com.ettrema.event.EventManager;
 import java.util.List;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.UserResource;
 
 /**
@@ -42,8 +43,8 @@ public class CalendarApp implements Application{
     }
 
     @Override
-    public void init(Services services, EventManager eventManager) {
-        this.services = services;
+    public void init(SpliffyResourceFactory resourceFactory) {
+        this.services = resourceFactory.getServices();
         calendarManager = new CalendarManager();
     }
 

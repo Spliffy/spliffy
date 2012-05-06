@@ -18,11 +18,11 @@ package org.spliffy.server.apps.versions;
 
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
-import com.ettrema.event.EventManager;
 import java.util.List;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.UserResource;
 
 /**
@@ -34,8 +34,8 @@ public class VersionsApp implements Application {
     private Services services;
     
     @Override
-    public void init(Services services, EventManager eventManager) {
-        this.services = services;
+    public void init(SpliffyResourceFactory resourceFactory) {
+        this.services = resourceFactory.getServices();
     }
 
     @Override

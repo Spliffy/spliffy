@@ -46,8 +46,8 @@ public class ShareApp implements Application{
     }
 
     @Override
-    public void init(Services services, EventManager eventManager) {
-        this.services = services;
+    public void init(SpliffyResourceFactory resourceFactory) {
+        this.services = resourceFactory.getServices();
     }
 
     @Override

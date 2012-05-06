@@ -15,17 +15,17 @@ import javax.persistence.Table;
 @DiscriminatorValue("U")
 public class User extends BaseEntity {
     
-    private String passwordDigest;
+    private String password;
     
     private String email;
 
     @Column
-    public String getPasswordDigest() {
-        return passwordDigest;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPasswordDigest(String password) {
-        this.passwordDigest = password;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Column(nullable=false)

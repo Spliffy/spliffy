@@ -6,6 +6,7 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
+import com.bradmcevoy.http.webdav.PropertySourcesList;
 import com.ettrema.common.Service;
 import com.ettrema.event.EventManager;
 import com.ettrema.http.AccessControlledResource.Priviledge;
@@ -31,20 +32,22 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
     private final Services services;
     private final ApplicationManager applicationManager;
     private final EventManager eventManager;
+    private final PropertySourcesList propertySources;
 
-    public SpliffyResourceFactory(UserDao userDao, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Services services, ApplicationManager applicationManager, EventManager eventManager) {
+    public SpliffyResourceFactory(UserDao userDao, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Services services, ApplicationManager applicationManager, EventManager eventManager, PropertySourcesList propertySources) {
         this.userDao = userDao;
         this.versionNumberGenerator = versionNumberGenerator;
         this.securityManager = securityManager;
         this.services = services;
         this.applicationManager = applicationManager;
         this.eventManager = eventManager;
+        this.propertySources = propertySources;
     }
     
 
     @Override
     public void start() {
-        applicationManager.init(services, eventManager);
+        applicationManager.init(this);
     }
 
     @Override
@@ -52,6 +55,10 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         applicationManager.shutDown();
     }
    
+    public RootFolder createRootFolder() {
+        return new RootFolder();
+    }
+    
     @Override
     public Resource getResource(String host, String sPath) throws NotAuthorizedException, BadRequestException {
         Path path = Path.path(sPath);
@@ -216,4 +223,33 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         }
     }
 
+    public ApplicationManager getApplicationManager() {
+        return applicationManager;
+    }
+
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    public PropertySourcesList getPropertySources() {
+        return propertySources;
+    }
+
+    public SpliffySecurityManager getSecurityManager() {
+        return securityManager;
+    }
+
+    public Services getServices() {
+        return services;
+    }
+
+    public UserDao getUserDao() {
+        return userDao;
+    }
+
+    public VersionNumberGenerator getVersionNumberGenerator() {
+        return versionNumberGenerator;
+    }
+
+    
 }

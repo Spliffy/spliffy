@@ -32,6 +32,11 @@
         </dependency>        
         <dependency>
             <groupId>com.ettrema</groupId>
+            <artifactId>milton-ldap</artifactId>
+            <version>${milton.version}</version>
+        </dependency>          
+        <dependency>
+            <groupId>com.ettrema</groupId>
             <artifactId>milton-filesystem</artifactId>
             <version>${milton.version}</version>
         </dependency>        
@@ -44,12 +49,7 @@
             <groupId>com.ettrema</groupId>
             <artifactId>milton-caldav</artifactId>
             <version>${milton.version}</version>
-        </dependency>     
-        <dependency>
-            <groupId>com.ettrema</groupId>
-            <artifactId>milton-ldap</artifactId>
-            <version>${milton.version}</version>
-        </dependency>          
+        </dependency>             
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

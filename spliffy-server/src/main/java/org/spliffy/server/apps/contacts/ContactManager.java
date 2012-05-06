@@ -196,9 +196,7 @@ public class ContactManager {
         Iterator<TelephoneFeature> itPhone = vcard.getTelephoneNumbers();
         while( itPhone.hasNext() ) {
             contact.setTelephonenumber(itPhone.next().getTelephone());
-        }
-        
-                
-                
+        }                                       
     }
+
 }

@@ -208,6 +208,7 @@
         <constructor-arg ref="services"/>
         <constructor-arg ref="application.manager"/>        
         <constructor-arg ref="event.manager"/> 
+        <constructor-arg ref="milton.property.sources" />
     </bean>
     
     <!-- This RF acts as a pass-through wrapper. If it doesnt handler the url it will use the wrapped RF -->
@@ -224,12 +225,23 @@
         <constructor-arg ref="blob.store" />
         <constructor-arg ref="security.manager" />
     </bean>
+
+    <bean id="wellknown.resource.factory" class="com.bradmcevoy.http.WellKnownResourceFactory">
+        <constructor-arg ref="main.spliffy.resource.factory"/>
+        <constructor-arg>
+            <list>
+                <ref local="protocol.caldav"/>
+                <ref local="protocol.carddav"/>
+            </list>
+        </constructor-arg>
+    </bean>
     
     <bean id="resource.factory" class="com.bradmcevoy.http.MultipleResourceFactory">
         <constructor-arg>
             <list>
                 <ref local="wrapper.resource.factory" />
                 <ref local="sync.spliffy.resource.factory" />
+                <ref local="wellknown.resource.factory" />                
             </list>
         </constructor-arg>
     </bean>
@@ -275,4 +287,5 @@
         <constructor-arg ref="ftp.user.manager"/>
     </bean>
     -->
+      
 </beans>

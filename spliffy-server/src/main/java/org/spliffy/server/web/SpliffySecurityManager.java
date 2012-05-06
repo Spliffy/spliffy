@@ -8,10 +8,8 @@ import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.util.List;
-import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.UserDao;
-import org.spliffy.server.manager.ResourceManager;
 
 /**
  *
@@ -37,12 +35,10 @@ public class SpliffySecurityManager {
             return null;
         } else {
             // only the password hash is stored on the user, so need to generate an expected hash
-            String requestedDigest = passwordManager.calcPasswordHash(userName, requestPassword);
-            if (requestedDigest.equals(user.getPasswordDigest())) {
+            if( passwordManager.verifyPassword(user, requestPassword) ) {
                 return user;
             } else {
                 System.out.println("password digests do not match");
-                System.out.println(requestedDigest + " != " + user.getPasswordDigest());
                 return null;
             }
         }
@@ -89,6 +85,10 @@ public class SpliffySecurityManager {
 
     public PasswordManager getPasswordManager() {
         return passwordManager;
+    }
+
+    public UserDao getUserDao() {
+        return userDao;
     }
     
     

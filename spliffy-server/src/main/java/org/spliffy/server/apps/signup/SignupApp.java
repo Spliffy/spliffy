@@ -35,9 +35,9 @@ public class SignupApp implements Application {
     private String signupPageName = "signup";
 
     @Override
-    public void init(Services services, EventManager eventManager) {
-        this.services = services;
-        this.eventManager = eventManager;
+    public void init(SpliffyResourceFactory resourceFactory) {
+        this.services = resourceFactory.getServices();
+        this.eventManager = resourceFactory.getEventManager();
     }
 
     @Override

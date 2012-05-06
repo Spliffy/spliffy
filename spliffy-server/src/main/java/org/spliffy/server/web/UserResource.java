@@ -9,20 +9,27 @@ import com.bradmcevoy.http.values.HrefList;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.acl.Principal;
+import com.ettrema.ldap.Condition;
+import com.ettrema.ldap.LdapContact;
+import com.ettrema.ldap.LdapPrincipal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hibernate.Transaction;
 import org.spliffy.server.apps.ApplicationManager;
+import org.spliffy.server.apps.contacts.ContactResource;
+import org.spliffy.server.apps.contacts.ContactsFolder;
 import org.spliffy.server.db.*;
-import org.spliffy.server.apps.versions.VersionsRootFolder;
 
 /**
  *
  * @author brad
  */
-public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource, PrincipalResource {
+public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource, PrincipalResource, LdapPrincipal {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserResource.class);
     private final User user;
     private final SpliffyCollectionResource parent;
     private final VersionNumberGenerator versionNumberGenerator;
@@ -198,5 +205,32 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         addPrivs(list, user);
         map.put(this, list);
         return map;
+    }
+
+    @Override
+    public List<LdapContact> searchContacts(Condition condition, int maxCount) {
+        try {
+            List<LdapContact> results = new ArrayList<>();
+
+            for( Resource r : getChildren()) {
+                if( r instanceof ContactsFolder ) {
+                    ContactsFolder cf = (ContactsFolder) r;
+                    for( Resource r2 : cf.getChildren()) {
+                        if( r2 instanceof LdapContact) {
+                            LdapContact ldapContact = (LdapContact) r2;
+                            if (condition.isMatch(ldapContact)) {
+                                    log.trace("searchContacts: contact matches search criteria: " + ldapContact.getName());
+                                    results.add(ldapContact);
+                                }
+                        }
+                    }
+                }
+            }
+
+            log.trace("searchContacts: " + getName() + ", results ->" + results.size());
+            return results;
+        } catch (NotAuthorizedException | BadRequestException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

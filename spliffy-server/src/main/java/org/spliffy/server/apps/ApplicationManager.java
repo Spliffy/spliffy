@@ -26,6 +26,7 @@ import org.spliffy.server.apps.login.LoginApp;
 import org.spliffy.server.apps.sharing.ShareApp;
 import org.spliffy.server.apps.signup.SignupApp;
 import org.spliffy.server.web.Services;
+import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.UserResource;
 
 /**
@@ -45,9 +46,9 @@ public class ApplicationManager {
         this.apps = list;
     }
     
-    public void init(Services services, EventManager eventManager) {
+    public void init(SpliffyResourceFactory resourceFactory) {
         for( Application app : apps ) {
-            app.init(services, eventManager);
+            app.init(resourceFactory);
         }
     }
     
