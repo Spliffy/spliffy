@@ -49,7 +49,7 @@ import org.spliffy.server.web.SpliffyCollectionResource;
  *
  * @author brad
  */
-@BeanPropertyResource(value="spliffy")
+@BeanPropertyResource(value="ldap")
 public class ContactResource extends AbstractResource implements GetableResource, ReplaceableResource, AddressResource, LdapContact, DeletableResource, MoveableResource, CopyableResource, PropertySourcePatchSetter.CommitableResource {
 
     private static final Logger log = LoggerFactory.getLogger(CalEventResource.class);
@@ -205,6 +205,10 @@ public class ContactResource extends AbstractResource implements GetableResource
     
     public String getFormattedName() {
         return contact.getGivenName() + " " + contact.getSurName();
+    }
+    
+    public String getCommonName() {
+        return getFormattedName();
     }
     
     public String getTelephone() {

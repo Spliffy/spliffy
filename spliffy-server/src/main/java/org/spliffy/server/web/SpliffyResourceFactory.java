@@ -33,8 +33,9 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
     private final ApplicationManager applicationManager;
     private final EventManager eventManager;
     private final PropertySourcesList propertySources;
+    private final SessionManager sessionManager;
 
-    public SpliffyResourceFactory(UserDao userDao, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Services services, ApplicationManager applicationManager, EventManager eventManager, PropertySourcesList propertySources) {
+    public SpliffyResourceFactory(UserDao userDao, VersionNumberGenerator versionNumberGenerator, SpliffySecurityManager securityManager, Services services, ApplicationManager applicationManager, EventManager eventManager, PropertySourcesList propertySources, SessionManager sessionManager) {
         this.userDao = userDao;
         this.versionNumberGenerator = versionNumberGenerator;
         this.securityManager = securityManager;
@@ -42,6 +43,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         this.applicationManager = applicationManager;
         this.eventManager = eventManager;
         this.propertySources = propertySources;
+        this.sessionManager = sessionManager;
     }
     
 
@@ -249,6 +251,10 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
 
     public VersionNumberGenerator getVersionNumberGenerator() {
         return versionNumberGenerator;
+    }
+
+    public SessionManager getSessionManager() {
+        return sessionManager;
     }
 
     

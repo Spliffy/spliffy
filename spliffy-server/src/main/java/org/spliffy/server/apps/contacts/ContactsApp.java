@@ -18,7 +18,6 @@ package org.spliffy.server.apps.contacts;
 
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
-import com.ettrema.event.EventManager;
 import com.ettrema.ldap.*;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +53,8 @@ public class ContactsApp implements Application, UserFactory{
         this.services = resourceFactory.getServices();
         contactManager = new ContactManager();
         this.resourceFactory = resourceFactory;
-        ldapServer = new LdapServer(this, resourceFactory.getPropertySources());
+        SpliffyLdapTransactionManager txManager = new SpliffyLdapTransactionManager(resourceFactory.getSessionManager());
+        ldapServer = new LdapServer(txManager, this, resourceFactory.getPropertySources());
         ldapServer.start();
     }
 

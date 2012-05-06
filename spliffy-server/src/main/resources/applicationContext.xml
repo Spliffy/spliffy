@@ -197,11 +197,13 @@
     </bean>
 
     <bean id="permissions.authoriser" class="com.bradmcevoy.property.DefaultPropertyAuthoriser"/>
+    
 
     <bean id="main.spliffy.resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory" init-method="start" destroy-method="stop">
         <!--        
         <constructor-arg ref="lock.manager"/>
         -->
+        <constructor-arg ref="session.manager"/>
         <constructor-arg ref="dao.user"/>
         <constructor-arg ref="version.number.generator"/>
         <constructor-arg ref="security.manager"/>
