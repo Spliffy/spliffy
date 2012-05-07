@@ -19,8 +19,6 @@ package org.spliffy.server.apps.calendar;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.UUID;
-import java.util.logging.Level;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
@@ -188,11 +186,7 @@ public class CalendarManager {
         String summary = calEvent.getSummary();
         VEvent vevent = new VEvent(start, finish, summary);
         //vevent.getProperties().add(new Uid(UUID.randomUUID().toString()));
-        if (vevent.getUid() != null) {
-            vevent.getProperties().add(new Uid(vevent.getUid().toString()));
-        } else {
-            vevent.getProperties().add(new Uid(calEvent.getId().toString()));
-        }
+        vevent.getProperties().add(new Uid(calEvent.getId().toString()));
         vevent.getProperties().add(tz.getTimeZoneId());
         TzId tzParam = new TzId(tz.getProperties().getProperty(Property.TZID).getValue());
         vevent.getProperties().getProperty(Property.DTSTART).getParameters().add(tzParam);

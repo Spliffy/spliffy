@@ -227,12 +227,12 @@
                             <contextPath>/</contextPath>
                             <connectors>
                                 <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                                    <port>8080</port>  <!-- Run on non-priviledged port 8080 for linux -->
+                                    <port>8081</port>  <!-- Run on non-priviledged port 8080 for linux -->
                                     <maxIdleTime>60000</maxIdleTime>
                                 </connector>
                             </connectors>
                             <stopKey>stop</stopKey>
-                            <stopPort>8089</stopPort>
+                            <stopPort>8091</stopPort>
                             <useTestClasspath>true</useTestClasspath>
                             <scanIntervalSeconds>0</scanIntervalSeconds>
                         </configuration>

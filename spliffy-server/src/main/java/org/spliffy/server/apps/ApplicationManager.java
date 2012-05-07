@@ -17,7 +17,7 @@
 package org.spliffy.server.apps;
 
 import com.bradmcevoy.http.Resource;
-import com.ettrema.event.EventManager;
+import com.ettrema.ldap.LdapServer;
 import java.util.ArrayList;
 import java.util.List;
 import org.spliffy.server.apps.calendar.CalendarApp;
@@ -25,7 +25,6 @@ import org.spliffy.server.apps.contacts.ContactsApp;
 import org.spliffy.server.apps.login.LoginApp;
 import org.spliffy.server.apps.sharing.ShareApp;
 import org.spliffy.server.apps.signup.SignupApp;
-import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.UserResource;
 
@@ -72,5 +71,19 @@ public class ApplicationManager {
         for( Application app : apps ) {
             app.addBrowseablePages(parent, children);
         }
+    }
+
+    /**
+     * TODO: make this read from per-app properties
+     * 
+     * @param app
+     * @return 
+     */
+    public AppConfig getAppConfig(Application app) {
+        AppConfig config = new AppConfig();
+        if( app instanceof ContactsApp) {            
+            config.add("port", 8389);
+        }
+        return config;
     }
 }

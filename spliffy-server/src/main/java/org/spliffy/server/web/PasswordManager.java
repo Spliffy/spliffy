@@ -45,7 +45,7 @@ public class PasswordManager {
     
     public boolean verifyDigest(DigestResponse digest, User user) {        
         //String a1Md5 = user.getPasswordDigest();
-        String a1Md5 = digestGenerator.encodePasswordInA1Format(realm, realm, user.getPassword());
+        String a1Md5 = digestGenerator.encodePasswordInA1Format(user.getName(), realm, user.getPassword());
         String expectedResp = digestGenerator.generateDigestWithEncryptedPassword(digest, a1Md5);
         String actualResp = digest.getResponseDigest();
         System.out.println("VerifyDigest: " + expectedResp + " - " + actualResp);
@@ -53,7 +53,15 @@ public class PasswordManager {
             System.out.println("ok");
             return true;
         } else {
-            System.out.println("digests don't match");
+            System.out.println("digests don't match!!!!");            
+            System.out.println(digest.getCnonce());
+            System.out.println(digest.getMethod());
+            System.out.println(digest.getNc());
+            System.out.println("nonce:" + digest.getNonce());            
+            System.out.println(digest.getQop());
+            System.out.println(digest.getRealm());
+            System.out.println(digest.getUri());
+            System.out.println(digest.getUser());
             return false;
         }
         

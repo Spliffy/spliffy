@@ -124,7 +124,9 @@
         <constructor-arg ref="resource.type.helper.caldav"/>
     </bean>    
     
-    <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService"/>
+    <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
+        <property name="disableDigest" value="true" />
+    </bean>
 
     <bean id="milton.response.handler" class="com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler">
         <constructor-arg ref="auth.service"/>

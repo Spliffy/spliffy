@@ -66,6 +66,11 @@ public class ContactResource extends AbstractResource implements GetableResource
     }
 
     @Override
+    public String getUniqueId() {
+        return contact.getId().toString();
+    }
+        
+    @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
         writeData(out);
         out.flush();
@@ -217,5 +222,49 @@ public class ContactResource extends AbstractResource implements GetableResource
     
     public String getEmail() {
         return contact.getMail();
+    }
+    
+    public void setEmail(String s) {
+        contact.setMail(s);
+    }
+    
+    public String getOrganizationName() {
+        return contact.getOrganizationName();
+    }
+    
+    public void setOrganizationName(String s) {
+        contact.setOrganizationName(s);
+    }
+    
+    public String getTelephonenumber() {
+        return contact.getTelephonenumber();
+    }
+    
+    public void setTelephonenumber(String s) {
+        contact.setTelephonenumber(s);
+    }
+    
+    public String getMail() {
+        return contact.getMail();
+    }
+    
+    public void setMail(String mail) {
+        contact.setMail(mail);
+    }
+    
+    public String getGivenName() {
+        return contact.getGivenName();
+    }
+    
+    public void setGivenName(String s) {
+        contact.setGivenName(s);
+    }
+    
+    public String getSurName() {
+        return contact.getSurName();
+    }
+    
+    public void setSurName(String s) {
+        contact.setSurName(s);
     }
 }

@@ -115,8 +115,6 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             String s = calendarManager.getCalendar(event);
-            System.out.println("--- Event ---");
-            System.out.println(s);
             out.write(s.getBytes());
         } catch (IOException ex) {
             throw new RuntimeException(ex);

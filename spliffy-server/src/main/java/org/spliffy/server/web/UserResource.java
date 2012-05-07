@@ -7,7 +7,6 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.values.HrefList;
 import com.ettrema.http.AccessControlledResource;
-import com.ettrema.http.AddressBookResource;
 import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.acl.Principal;
 import com.ettrema.ldap.Condition;
@@ -16,12 +15,9 @@ import com.ettrema.ldap.LdapPrincipal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.hibernate.LockMode;
 import org.hibernate.Transaction;
 import org.spliffy.server.apps.ApplicationManager;
-import org.spliffy.server.apps.contacts.ContactResource;
 import org.spliffy.server.apps.contacts.ContactsFolder;
 import org.spliffy.server.apps.contacts.ContactsHomeFolder;
 import org.spliffy.server.db.*;
@@ -218,20 +214,15 @@ public class UserResource extends AbstractCollectionResource implements Collecti
             List<LdapContact> results = new ArrayList<>();
 
             for (Resource r : getChildren()) {
-                System.out.println("check r: " + r.getName() + " - " + r.getClass());
                 if (r instanceof ContactsHomeFolder) {
                     ContactsHomeFolder contactsHomeFolder = (ContactsHomeFolder) r;
-                    System.out.println("check " + contactsHomeFolder.getName());
                     for (Resource r2 : contactsHomeFolder.getChildren()) {
-                        System.out.println("r2: " + r2.getName());
                         if (r2 instanceof ContactsFolder) {
                             ContactsFolder cf = (ContactsFolder) r2;
                             for (Resource r3 : cf.getChildren()) {
-                                System.out.println("r3: " + r3.getName());
                                 if (r3 instanceof LdapContact) {
                                     LdapContact ldapContact = (LdapContact) r3;
-                                    System.out.println("check ldapContact: " + ldapContact.getName());
-                                    if (condition.isMatch(ldapContact)) {
+                                    if ( condition == null || condition.isMatch(ldapContact)) {
                                         log.trace("searchContacts: contact matches search criteria: " + ldapContact.getName());
                                         results.add(ldapContact);
                                     }
