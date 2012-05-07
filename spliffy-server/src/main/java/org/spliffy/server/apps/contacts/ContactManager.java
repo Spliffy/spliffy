@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
@@ -42,7 +43,6 @@ import org.spliffy.server.db.*;
 public class ContactManager {
 
     private static final Logger log = LoggerFactory.getLogger(ContactManager.class);
-    
 
     public AddressBook createAddressBook(BaseEntity owner, String newName) {
         Session session = SessionManager.session();
@@ -126,50 +126,56 @@ public class ContactManager {
         tx.commit();
     }
 
-
     public Contact createContact(AddressBook addressBook, String newName, String icalData, String contentType) throws UnsupportedEncodingException {
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
         Contact e = new Contact();
+        e.setName(newName);
         e.setAddressBook(addressBook);
-        e.setCreatedDate(new Date());        
-        
-        _update(e, icalData);
+        e.setCreatedDate(new Date());
 
+        _update(e, icalData);
+        session.save(e);
         tx.commit();
         return e;
     }
-
-
 
     public void update(Contact contact, String data) {
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
         _update(contact, data);
+        session.save(contact);
         tx.commit();
     }
-    
+
     public String getContactAsCarddav(Contact contact) {
         VCardImpl vc = new VCardImpl();
         vc.setBegin(new BeginType());
-        String formattedName = contact.getGivenName() + " " + contact.getSurName();
+        vc.setUID(new UIDType(contact.getUid()));
+        String formattedName = buildFormattedName(contact);
         vc.setFormattedName(new FormattedNameType(formattedName));
         NameFeature nf = new NameType(contact.getSurName(), contact.getGivenName());
         vc.setName(nf);
-        vc.addEmail(new EmailType(contact.getMail()));
-        OrganizationType orgType = new OrganizationType();
-        orgType.addOrganization(contact.getOrganizationName());
-        vc.setOrganizations(orgType);
-        vc.addTelephoneNumber(new TelephoneType(contact.getTelephonenumber()));
+        if (contact.getMail() != null && contact.getMail().length() > 0) {
+            vc.addEmail(new EmailType(contact.getMail()));
+        }
+        String o = contact.getOrganizationName();
+        if (o != null && o.length() > 0) {
+            OrganizationType orgType = new OrganizationType();
+            orgType.addOrganization(o);
+            vc.setOrganizations(orgType);
+        }
+        if (contact.getTelephonenumber() != null && contact.getTelephonenumber().length() > 0) {
+            vc.addTelephoneNumber(new TelephoneType(contact.getTelephonenumber()));
+        }
         vc.setEnd(new EndType());
         VCardWriter writer = new VCardWriter();
         writer.setVCard(vc);
-        return writer.buildVCardString();        
+        return writer.buildVCardString();
     }
-        
-    
+
     private void _update(Contact contact, String data) {
-        contact.setModifiedDate(new Date() );
+        contact.setModifiedDate(new Date());
         VCardEngine cardEngine = new VCardEngine();
         VCard vcard;
         try {
@@ -177,26 +183,42 @@ public class ContactManager {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-        if( vcard.getName() != null ) {
+        if( vcard.getUID().hasUID() ) {
+            contact.setUid(vcard.getUID().getUID());
+        } else {
+            contact.setUid(UUID.randomUUID().toString());
+        }
+        if (vcard.getName() != null) {
             contact.setGivenName(vcard.getName().getGivenName());
             contact.setSurName(vcard.getName().getFamilyName());
         }
         contact.setMail(""); // reset in case none given
         Iterator<EmailFeature> it = vcard.getEmails();
-        while( it.hasNext() ) {
+        while (it.hasNext()) {
             contact.setMail(it.next().getEmail());
         }
-        if( vcard.getOrganizations() != null ) {
+        if (vcard.getOrganizations() != null) {
             contact.setOrganizationName("");
             Iterator<String> itOrg = vcard.getOrganizations().getOrganizations();
-            while(itOrg.hasNext()) {
+            while (itOrg.hasNext()) {
                 contact.setOrganizationName(itOrg.next());
             }
         }
         Iterator<TelephoneFeature> itPhone = vcard.getTelephoneNumbers();
-        while( itPhone.hasNext() ) {
+        while (itPhone.hasNext()) {
             contact.setTelephonenumber(itPhone.next().getTelephone());
-        }                                       
+        }
     }
 
+    private String buildFormattedName(Contact contact) {
+        String s = "";
+        if( contact.getGivenName() != null && contact.getGivenName().length() > 0 ) {
+            s += contact.getGivenName();
+        }
+        if( contact.getSurName() != null && contact.getSurName().length() > 0 ) {
+            s += " ";
+            s += contact.getSurName();
+        }
+        return s;
+    }
 }

@@ -28,6 +28,7 @@ import javax.persistence.*;
 public class Contact implements Serializable {
 
     private Long id;
+    private String uid;
     private AddressBook addressBook;
     private String name;
     private String givenName;
@@ -167,6 +168,15 @@ public class Contact implements Serializable {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    @Column(nullable=false)
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
     
     
