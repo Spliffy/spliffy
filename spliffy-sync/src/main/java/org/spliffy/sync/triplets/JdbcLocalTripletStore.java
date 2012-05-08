@@ -42,7 +42,6 @@ import org.spliffy.sync.triplets.CrcDao.CrcRecord;
 public class JdbcLocalTripletStore implements TripletStore, BlobStore {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JdbcLocalTripletStore.class);
-    
     private static ThreadLocal<Connection> tlConnection = new ThreadLocal<>();
 
     private static Connection con() {
@@ -102,12 +101,12 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
 
         }
 
-        final File f = Utils.toFile(root, path);        
+        final File f = Utils.toFile(root, path);
         List<CrcRecord> records = useConnection.use(new With<Connection, List<CrcRecord>>() {
 
             @Override
             public List<CrcRecord> use(Connection con) throws Exception {
-                tlConnection.set(con);                                
+                tlConnection.set(con);
                 List<CrcRecord> list = crcDao.listCrcRecords(con, f.getAbsolutePath());
                 log.trace("crc records: " + list.size() + " - " + f.getAbsolutePath());
                 tlConnection.remove();
@@ -174,8 +173,8 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
 
                 long count = crcDao.getCrcRecordCount(con());
                 System.out.println("Contains crc records: " + count);
-                
-                
+
+
                 tlConnection.remove();
                 return null;
             }
@@ -244,19 +243,21 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         }
 
         for (File f : mapOfFiles.values()) {
-            CrcRecord r = mapOfRecords.get(f.getName());
-            if (r == null) {
-                log.trace("detected change, new file: " + f.getAbsolutePath() + " in map of size: " + mapOfRecords.size());
-                changed = Boolean.TRUE;
-                scanFile(con(), f);
-            } else {
-                if (r.date.getTime() != f.lastModified()) {
-                    log.trace("detected change, file modified dates differ: " + f.getAbsolutePath());
+            if (f.isFile()) {
+                CrcRecord r = mapOfRecords.get(f.getName());
+                if (r == null) {
+                    log.trace("detected change, new file: " + f.getAbsolutePath() + " in map of size: " + mapOfRecords.size());
                     changed = Boolean.TRUE;
-                    crcDao.deleteCrc(con(), parent.getAbsolutePath(), f.getName());
                     scanFile(con(), f);
                 } else {
-                    // cache is up to date
+                    if (r.date.getTime() != f.lastModified()) {
+                        log.trace("detected change, file modified dates differ: " + f.getAbsolutePath());
+                        changed = Boolean.TRUE;
+                        crcDao.deleteCrc(con(), parent.getAbsolutePath(), f.getName());
+                        scanFile(con(), f);
+                    } else {
+                        log.trace("scanChildren: file is up to date: " + f.getAbsolutePath());
+                    }
                 }
             }
         }

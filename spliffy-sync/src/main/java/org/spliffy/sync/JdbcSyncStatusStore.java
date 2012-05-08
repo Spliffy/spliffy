@@ -32,6 +32,8 @@ import java.util.List;
  */
 public class JdbcSyncStatusStore implements SyncStatusStore {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JdbcSyncStatusStore.class);
+    
     public static final LastBackedUpTable SYNC_TABLE = new LastBackedUpTable();
     private final UseConnection useConnection;
     private final String baseRemoteAddress;
@@ -101,7 +103,7 @@ public class JdbcSyncStatusStore implements SyncStatusStore {
     @Override
     public void setBackedupHash(Path path, final long hash) {        
         final File f = toFile(path);
-        System.out.println("JdbcSyncStatusStore::setBackedupHash - " + f.getAbsolutePath() + " hash:" + hash);
+        log.trace("setBackedupHash: " + path + " hash: " + hash);
         final String deleteSql = SYNC_TABLE.getDeleteBy(SYNC_TABLE.localPath);
 
         final String insertSql = SYNC_TABLE.getInsert();
@@ -122,6 +124,7 @@ public class JdbcSyncStatusStore implements SyncStatusStore {
                 SYNC_TABLE.date.set(stmt, 4, new Timestamp(System.currentTimeMillis()));
                 stmt.execute();
                 UseConnection.close(stmt);
+                con.commit();
 
                 return null;
             }
@@ -141,6 +144,7 @@ public class JdbcSyncStatusStore implements SyncStatusStore {
                     deleteStmt.setString(1, f.getAbsolutePath());
                     deleteStmt.execute();
                 }
+                con.commit();
 
                 return null;
             }

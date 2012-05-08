@@ -60,6 +60,7 @@ public class DirWalker {
                     if (localTriplet.getHash() == remoteTriplet.getHash()) {
                         // clean, nothing to do
                         log.info("in sync: " + childPath);
+                        syncStatusStore.setBackedupHash(childPath, localTriplet.getHash());
                     } else {
                         log.info("different hashes: " + childPath);
                         doDifferentHashes(remoteTriplet, localTriplet, childPath);
