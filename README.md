@@ -6,7 +6,12 @@ Spliffy never stores the same blob twice, regardless of user, repository etc.
 
 You access it by webdav or web browser, and soon we'll add FTP, CardDAV, CalDAV and maybe even DLNA (ohhh!)
 
-NOTE: Spliffy requires JDK17!
+!!!! NOTE: Spliffy requires JDK17!!!!
+
+Getting in touch
+----------------
+Check out the spliffy email list:
+https://groups.google.com/forum/#!forum/spliffy-users
 
 Running the Server
 ------------------
@@ -22,7 +27,7 @@ File structure
 
 The top level directory in spliffy is the user. In the current prototype version a user is auto-created called test, so this is accessed on a url like:
 
-http://localhost:8080/test/ (access either by web browser or webdav)
+http://localhost:8080/user1/ (access either by web browser or webdav)
 
 A user looks a bit like a folder, but it isnt. It can only contain repositories, but repositories can be created just like a normal folder from webdav. 
 
@@ -30,9 +35,9 @@ A user looks a bit like a folder, but it isnt. It can only contain repositories,
 
 But it doesnt implement Deletable at the moment, so you don't actually have to worry about it (yet)
 
-So, you've created your first repository, go ahead and open it in your webdav client. Eg:
+The test data includes a repository called repo1, although you can add more. Go ahead and open it in your webdav client. Eg:
 
-http://localhost:8080/test/repo1
+http://localhost:8080/user1/repo1
 
 Now we can start adding real files and folders. By "real" i mean things that can be versioned and syncronised. Any time you add, delete, or modify that information does not replace what
 was there before - its added to it. All that really happens is that we switch a pointer on the repository to the new bytes. At the time of writing the old versions arent actually accessible, but
@@ -44,11 +49,9 @@ This is the fun stuff. The file sync tool (spliffy-sync) is pretty crude at the 
 
 Use it like this:
 
-(java stuff) org.spliffy.sync.SpliffySync /proj/spliffy-test http://localhost:8080/test/a1/ me pwd
+(java stuff) org.spliffy.sync.SpliffySync /proj/spliffy-test http://localhost:8080/user1/repo1/ user1 password1
 
 Which will sync folder /proj/spliffy-test with a repository at http://localhost:8080/test/a1/
-
-The login and password (me/pwd) are actually ignored at the moment, but security will be implemented soon.
 
 Here's how the file sync tool works:
 1. Build a cache of file and directory hashes (using JdbcLocalTripletStore), caching in a H2 database for future use, so the second run is much faster
@@ -78,11 +81,12 @@ as the secondary blob store, and then does a Combiner.combine, with the server a
 Server Code Architecture
 ------------------------
 We're using the following things:
-    - hibernate with JPA annotations
+    - hibernate with JPA annotations (currently user managed transactions)
     - milton for webdav and http
-    - freemarker for templating (JSP doesnt work well when milton is mapped to /*)
+    - freemarker for templating (JSP is sooo 2000-and-late)
     - spring for configuration and wiring up singletons (see src/main/resources/applicationContext.xml)
     - default database is H2, but of course will run on anything hibernate works on
+    - jquery for front end stuff
 
     
 
