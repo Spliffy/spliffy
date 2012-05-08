@@ -243,8 +243,8 @@
     <bean id="resource.factory" class="com.bradmcevoy.http.MultipleResourceFactory">
         <constructor-arg>
             <list>
-                <ref local="wrapper.resource.factory" />
                 <ref local="sync.spliffy.resource.factory" />
+                <ref local="wrapper.resource.factory" />                
                 <ref local="wellknown.resource.factory" />                
             </list>
         </constructor-arg>
@@ -255,7 +255,7 @@
     </bean>
 
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">        
-        <constructor-arg ref="wrapper.resource.factory" />        
+        <constructor-arg ref="resource.factory" />        
         <constructor-arg ref="milton.response.handler.compressing" />
         <constructor-arg ref="protocol.handlers"/>
         <property name="propertyPermissionService" ref="permissions.authoriser"/>

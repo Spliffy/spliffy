@@ -56,6 +56,7 @@ public class ResourceManager {
             return;
         }
 
+        Repository repo = getRepoToUse(repositoryFolder.getDirectRepository());
         try {
             for (MutableResource r : repositoryFolder.getChildren()) { // if is dirty then children must be loaded
                 if (r instanceof MutableCollection) {
@@ -72,16 +73,19 @@ public class ResourceManager {
 
             RepoVersion newRepoVersion = new RepoVersion();
             newRepoVersion.setCreatedDate(new Date());
-            newRepoVersion.setRepository(repositoryFolder.getDirectRepository());
+            newRepoVersion.setRepository(repo); // not direct repo
             newRepoVersion.setRootItemVersion(repositoryFolder.getRootItemVersion());
             long newVersionNum = versionNumberGenerator.nextVersionNumber(repositoryFolder.getDirectRepository());
             newRepoVersion.setVersionNum(newVersionNum);
             session.save(newRepoVersion);
+            repo.setHead(newRepoVersion);
+            session.save(repo);
 
         } catch (NotAuthorizedException | BadRequestException ex) {
             throw new RuntimeException(ex);
         }
     }
+    
 
     /**
      * Check if this is dirty, and if so recalculate the hash for the directory
@@ -199,11 +203,16 @@ public class ResourceManager {
      * @return 
      */
     public RepoVersion getHead(Repository r) {
+        Repository toUse = getRepoToUse(r);
+        return toUse.latestVersion();
+    }
+    
+    public Repository getRepoToUse(Repository r) {
         Repository linked = r.getLinkedTo();
         if( linked != null ) {
-            return getHead(linked);
+            return getRepoToUse(linked);
         } else {
-            return r.latestVersion();
+            return r;
         }
-    }
+    }    
 }

@@ -2,6 +2,7 @@ package org.spliffy.server.db;
 
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.UUID;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -94,6 +95,7 @@ public class TestDataCreator {
             c.setTelephonenumber("555 1234");
             c.setMail("joe@blogs.com");
             c.setOrganizationName("Bloggs.com");
+            c.setUid(UUID.randomUUID().toString());
             session.save(c);
         }
     }

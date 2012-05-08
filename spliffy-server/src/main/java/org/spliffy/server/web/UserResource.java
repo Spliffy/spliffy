@@ -30,16 +30,14 @@ public class UserResource extends AbstractCollectionResource implements Collecti
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserResource.class);
     private final User user;
-    private final SpliffyCollectionResource parent;
-    private final VersionNumberGenerator versionNumberGenerator;
+    private final SpliffyCollectionResource parent;    
     private final ApplicationManager applicationManager;
     private List<Resource> children;
 
-    public UserResource(SpliffyCollectionResource parent, User u, VersionNumberGenerator versionNumberGenerator, ApplicationManager applicationManager) {
+    public UserResource(SpliffyCollectionResource parent, User u, ApplicationManager applicationManager) {
         super(parent.getServices());
         this.parent = parent;
         this.user = u;
-        this.versionNumberGenerator = versionNumberGenerator;
         this.applicationManager = applicationManager;
     }
 

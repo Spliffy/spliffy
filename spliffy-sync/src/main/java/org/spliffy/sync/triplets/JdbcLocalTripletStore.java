@@ -41,6 +41,8 @@ import org.spliffy.sync.triplets.CrcDao.CrcRecord;
  */
 public class JdbcLocalTripletStore implements TripletStore, BlobStore {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JdbcLocalTripletStore.class);
+    
     private static ThreadLocal<Connection> tlConnection = new ThreadLocal<>();
 
     private static Connection con() {
@@ -100,22 +102,19 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
 
         }
 
-        final File f = Utils.toFile(root, path);
+        final File f = Utils.toFile(root, path);        
         List<CrcRecord> records = useConnection.use(new With<Connection, List<CrcRecord>>() {
 
             @Override
             public List<CrcRecord> use(Connection con) throws Exception {
-                tlConnection.set(con);
-                long count = crcDao.getCrcRecordCount(con);
-                System.out.println("Contains crc records: " + count);
-                
-                
+                tlConnection.set(con);                                
                 List<CrcRecord> list = crcDao.listCrcRecords(con, f.getAbsolutePath());
+                log.trace("crc records: " + list.size() + " - " + f.getAbsolutePath());
                 tlConnection.remove();
                 return list;
             }
         });
-        System.out.println("JdbcLocalTripletStore: getTriplets: " + f.getAbsolutePath() + " - " + records.size());
+        log.trace("JdbcLocalTripletStore: getTriplets: " + f.getAbsolutePath() + " - " + records.size());
         return BlobUtils.toTriplets(f, records);
     }
 
@@ -192,10 +191,10 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         if (Utils.ignored(dir)) {
             return false;
         }
-        System.out.println("Scan Directory::: " + dir.getAbsolutePath());
 
         File[] children = dir.listFiles();
         if (children == null) {
+            log.trace("No children of: " + dir.getAbsolutePath());
             return false;
         }
         boolean changed = false;
@@ -211,7 +210,7 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         }
 
         if (changed) {
-            System.out.println("changed records found, refresh diretory record");
+            log.info("changed records found, refresh diretory record: " + dir.getAbsolutePath());
             generateDirectoryRecord(con(), dir); // insert/update the hash for this directory
         }
 
@@ -237,7 +236,9 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         // remove any that no longer exist
         for (CrcRecord r : oldRecords) {
             if (!mapOfFiles.containsKey(r.name)) {
-                System.out.println("delete no longer existing crc record: " + r.name);
+                changed = Boolean.TRUE;
+                File fRemoved = new File(parent, r.name);
+                log.trace("detected change, file removed: " + fRemoved.getAbsolutePath());
                 crcDao.deleteCrc(con(), parent.getAbsolutePath(), r.name);
             }
         }
@@ -245,11 +246,12 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         for (File f : mapOfFiles.values()) {
             CrcRecord r = mapOfRecords.get(f.getName());
             if (r == null) {
+                log.trace("detected change, new file: " + f.getAbsolutePath() + " in map of size: " + mapOfRecords.size());
                 changed = Boolean.TRUE;
                 scanFile(con(), f);
             } else {
                 if (r.date.getTime() != f.lastModified()) {
-                    System.out.println("recorded data differs from file: " + r.date.getTime() + " != " + f.lastModified());
+                    log.trace("detected change, file modified dates differ: " + f.getAbsolutePath());
                     changed = Boolean.TRUE;
                     crcDao.deleteCrc(con(), parent.getAbsolutePath(), f.getName());
                     scanFile(con(), f);
@@ -293,6 +295,7 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         List<CrcRecord> crcRecords = crcDao.listCrcRecords(con(), dir.getAbsolutePath());
         List<Triplet> triplets = BlobUtils.toTriplets(dir, crcRecords);
         long newHash = HashUtils.calcTreeHash(triplets);
+        log.info("Insert new directory hash: " + dir.getParent() + " :: " + dir.getName() + " = " + newHash);
         crcDao.insertCrc(c, dir.getParent(), dir.getName(), newHash, dir.lastModified());
     }
 }

@@ -16,6 +16,8 @@ import org.spliffy.common.Triplet;
  */
 public class DirWalker {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DirWalker.class);
+    
     private final TripletStore remoteTripletStore;
     private final TripletStore localTripletStore;
     private final SyncStatusStore syncStatusStore;
@@ -32,20 +34,23 @@ public class DirWalker {
 
 
     public void walk() throws IOException {
-        System.out.println("DirWalker::walk ----------------------------");
+        log.info("DirWalker::walk ----------------------------");
         walk(Path.root());
         processLocalDeletes(); // we want to leave deletes until last in case there's some bytes we can use
-        System.out.println("DirWalker::End walk ----------------------------");
+        log.info("DirWalker::End walk ----------------------------");
     }
 
     private void walk(Path path) throws IOException {
-        System.out.println("walk: " + path);
         List<Triplet> remoteTriplets = remoteTripletStore.getTriplets(path);
         Map<String, Triplet> remoteMap = Utils.toMap(remoteTriplets);
         List<Triplet> localTriplets = localTripletStore.getTriplets(path);
         Map<String, Triplet> localMap = Utils.toMap(localTriplets);
 
-        if (remoteTriplets != null) {
+        int numLocal = localTriplets == null ? 0 : localTriplets.size();
+        int numRemote = remoteTriplets == null ? 0 : remoteTriplets.size();
+        log.info("walk: " + path + " local items: " + numLocal + " - remote items: " + numRemote);        
+        
+        if (remoteTriplets != null) {            
             for (Triplet remoteTriplet : remoteTriplets) {
                 Path childPath = path.child(remoteTriplet.getName());                
                 Triplet localTriplet = localMap.get(remoteTriplet.getName());
@@ -54,8 +59,9 @@ public class DirWalker {
                 } else {
                     if (localTriplet.getHash() == remoteTriplet.getHash()) {
                         // clean, nothing to do
-                        System.out.println("in sync: " + childPath);
+                        log.info("in sync: " + childPath);
                     } else {
+                        log.info("different hashes: " + childPath);
                         doDifferentHashes(remoteTriplet, localTriplet, childPath);
                     }
                 }
@@ -84,13 +90,15 @@ public class DirWalker {
      * @param remoteTriplet
      * @param path
      */
-    private void doMissingLocal(Triplet remoteTriplet, Path path) throws IOException {
+    private void doMissingLocal(Triplet remoteTriplet, Path path) throws IOException {        
         Long localPreviousHash = syncStatusStore.findBackedUpHash(path);
         if (localPreviousHash == null) {
+            log.info("MISSING LOCAL: " + path + "  no local backup hash, so remotely new");
             // not previously synced, so is remotely new
             deltaListener.onRemoteChange(remoteTriplet, remoteTriplet, path);
         } else {
             // was previously synced, now locally gone, so must have been deleted (or moved, same thing)
+            log.info("MISSING LOCAL: " + path + "  was previously backed up, so locally deleted");
             deltaListener.onLocalDeletion(path, remoteTriplet);
         }
     }

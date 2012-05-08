@@ -19,7 +19,7 @@ import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
 
 /**
- * Represents a repository resource.
+ * Represents the root folder of a repository
  *
  * This behaves much the same as a DirectoryResource but is defined
  * differently
@@ -205,11 +205,18 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
             return;
         }
         
-        String type = HttpManager.request().getParams().get("type");
+        System.out.println("sendContent: " + params.size());
+        System.out.println(HttpManager.request().getAbsoluteUrl());        
+        System.out.println("qa: " + ServletRequest.getRequest().getQueryString());
+        System.out.println("url: " + ServletRequest.getRequest().getRequestURL());        
+        
+        String type = params.get("type");
         if (type == null) {
             // output directory listing
+            log.trace("sendContent: render template");
             getTemplater().writePage("repoHome.ftl", this, params, out, getCurrentUser());
         } else {
+            log.trace("sendContent: " + type);
             switch (type) {
                 case "hashes":
                     HashCalc.calcResourceesHash(getChildren(), out);

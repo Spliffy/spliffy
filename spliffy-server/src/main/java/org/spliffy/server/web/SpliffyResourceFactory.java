@@ -22,6 +22,8 @@ import org.spliffy.server.db.*;
  */
 public class SpliffyResourceFactory implements ResourceFactory, Service {
 
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SpliffyResourceFactory.class);
+    
     public static RootFolder getRootFolder() {
         return (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
     }
@@ -157,7 +159,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
             if (u == null) {
                 return null;
             } else {
-                UserResource ur = new UserResource(this, u, versionNumberGenerator, applicationManager);
+                UserResource ur = new UserResource(this, u, applicationManager);
                 children.put(name, ur);
                 return ur;
             }            

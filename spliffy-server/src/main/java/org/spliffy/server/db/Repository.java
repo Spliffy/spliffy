@@ -18,6 +18,7 @@ public class Repository implements Serializable {
     private BaseEntity baseEntity;
     private Date createdDate;
     private Repository linkedTo;
+    private RepoVersion head;
 
     @Id
     @GeneratedValue
@@ -28,6 +29,23 @@ public class Repository implements Serializable {
     public void setId(long id) {
         this.id = id;
     }
+
+    /**
+     * The current version, aka HEAD revision. Can be null if the repository is
+     * just created
+     * 
+     * @return 
+     */
+    @ManyToOne(optional=true)
+    public RepoVersion getHead() {
+        return head;
+    }
+
+    public void setHead(RepoVersion head) {
+        this.head = head;
+    }
+    
+    
 
     /**
      * If set, then this repository is just a pointer to it
@@ -89,23 +107,7 @@ public class Repository implements Serializable {
     }
        
     public RepoVersion latestVersion() {
-        List<RepoVersion> vs = getVersions();
-        if( vs == null ) {
-            return null;
-        }
-        RepoVersion cur = null;
-        for( RepoVersion v : vs ) {
-            if( cur == null || v.getCreatedDate().after(cur.getCreatedDate())) {
-                cur = v;
-            }
-        }
-        if( cur == null ) {
-            System.out.println("No RepoVersion for: " + getName());
-        }
-//        if( cur != null ) {
-//            System.out.println("latest is:  " + cur.getDirHash());
-//        }
-        return cur;
+        return getHead();
     }
 
     @OneToMany(mappedBy = "linkedTo")
