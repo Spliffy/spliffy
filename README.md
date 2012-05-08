@@ -132,3 +132,21 @@ the storage capacity add more Volume's (and more VolumeInstances)
 
 org.spliffy.server.db.VolumeInstance - a physical storage location, such as a hard disk or server.
 
+Distributed Storage
+-------------------
+Spliffy is designed to be small, but to be able to scale up and out to national ISP scale. A primary concern for large scale
+use is storage scaleability. For example, if a national ISP had 1 million customers, and each customer had 50GB of stored data
+then spliffy needs to have access to around 50 Petabytes of storage. Put another way, if it was using 2TB disks with a replication
+factor of 2, then it would beed 50,000 disks. If you can fit 25 disks into a server it would need 2000 servers.
+
+So what does spliffy need to be a viable solution?
+- database: the data volume in the database must be sufficient that it can run on a single HA node, or support sharding (sharding can be complex, so prefer single node)
+- distributed blob storage: ie be able to scale out across a large number of servers
+- arbitrary replication factors: eg, maintain just one backup, or 2 backups, or more. For different SLA's
+- self healing: when a drive fails spliffy should detect this and replicate to a new drive
+- runtime additions: new storage devices must be able to be added at runtime
+
+The database isnt a problem if it just stores the blob hashes. If the average user has 20,000 files the there are only 20 billion rows, any database can handle that. But the blob storage is the key issue.
+So, in our database we store the blob has and an identifier. The identifier points to a virtual "volume", where a volume is just a replicated set of disks on different servers. If a member of a volume dies, another is enlisted and replication occurs automatically
+
+The thing we want to leverage here is that blobs are keyed on their own CRC, so they are immutable. Because they're immutable they're very easy to replicate.
