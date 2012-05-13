@@ -1,7 +1,5 @@
 package org.spliffy.server.manager;
 
-import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.HttpManager;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.mail.MailboxAddress;
@@ -12,7 +10,6 @@ import java.util.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
-import org.spliffy.server.web.*;
 
 /**
  *
@@ -45,9 +42,7 @@ public class ShareManager {
         String inviteBaseHref = HttpManager.request().getAbsoluteUrl(); // http://asdada/asd/ad
         inviteBaseHref = inviteBaseHref.substring(0, inviteBaseHref.indexOf("/", 7) + 1);// http://asdada/
         inviteBaseHref += "shares/";
-        System.out.println("invite base href: " + inviteBaseHref);
         for (String recip : arr) {
-            System.out.println("Send invite to: " + recip);
             StandardMessageImpl sm = createEmailShare(repo, from, recip, p, message, inviteBaseHref, session);
             list.add(sm);
         }
@@ -65,7 +60,7 @@ public class ShareManager {
 
         Share share = new Share();
         share.setId(UUID.randomUUID());
-        share.setSharedFrom(repo); // path relative to sharing user
+        share.setSharedFrom(repo.trunk(session)); // path relative to sharing user
         share.setShareRecip(sRecip);
         share.setPriviledge(p);
         share.setCreatedDate(new Date());
@@ -107,9 +102,10 @@ public class ShareManager {
         Repository newRepo = new Repository();
         newRepo.setBaseEntity(sharedTo);
         newRepo.setCreatedDate(new Date());
-        newRepo.setLinkedTo(share.getSharedFrom());
         newRepo.setName(sharedAsName);
         session.save(newRepo);
+        Branch newTrunk = newRepo.trunk(session);
+        newTrunk.setLinkedTo(share.getSharedFrom());
         
         tx.commit();
         

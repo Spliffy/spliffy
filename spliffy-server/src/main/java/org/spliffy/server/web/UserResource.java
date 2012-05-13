@@ -56,7 +56,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
             children = new ArrayList();
             if (user.getRepositories() != null) {
                 for (Repository r : user.getRepositories()) {
-                    RepoVersion rv = getServices().getResourceManager().getHead(r);
+                    Commit rv = getServices().getResourceManager().getHead(r.trunk(SessionManager.session()));
                     // Note that r is not necessarily the direct repo for rv, might be linked
                     RepositoryFolder rr = new RepositoryFolder(this, r, rv);
                     children.add(rr);
@@ -78,16 +78,17 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         Repository r = new Repository();
         r.setBaseEntity(user);
         r.setName(newName);
-        r.setVersions(new ArrayList<RepoVersion>());
         r.setCreatedDate(new Date());
         List<Repository> list = user.getRepositories();
         if (list == null) {
             list = new ArrayList<>();
         }
         list.add(r);
+        Branch b = r.trunk(SessionManager.session());
+        
         SessionManager.session().save(r);
         tx.commit();
-        RepoVersion rv = r.latestVersion();
+        Commit rv = r.latestVersion();
         return new RepositoryFolder(this, r, rv);
     }
 

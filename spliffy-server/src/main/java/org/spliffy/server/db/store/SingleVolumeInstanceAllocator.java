@@ -91,7 +91,6 @@ public class SingleVolumeInstanceAllocator implements VolumeInstanceAllocator {
             // Find an unmounted instance and assign it to the volume
             List<VolumeInstance> unmounted = VolumeInstance.findByNullVolume(SessionManager.session());
             if( unmounted.isEmpty() ) {
-                System.out.println("No available unmounted VolumeInstance");
                 return null;
             } else {
                 VolumeInstance vi = unmounted.get(0);

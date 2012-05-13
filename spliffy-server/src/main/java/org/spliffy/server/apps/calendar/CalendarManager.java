@@ -136,8 +136,6 @@ public class CalendarManager {
     }
 
     public CalEvent createEvent(Calendar calendar, String newName, String icalData, String contentType) throws UnsupportedEncodingException {
-        System.out.println("--- Create Event ---");
-        System.out.println(icalData);
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
         CalEvent e = new CalEvent();
@@ -158,8 +156,7 @@ public class CalendarManager {
         updateCtag(e);
         session.save(e);
         tx.commit();
-        System.out.println("new event: " + e.getName() + " - in " + calendar.getName());
-
+        
         return e;
     }
 

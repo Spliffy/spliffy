@@ -26,13 +26,13 @@ import org.spliffy.server.web.Utils;
  * @author brad
  */
 public class RepoVersionFolder extends AbstractCollectionResource implements VersionCollectionResource, GetableResource{
-    private final RepoVersion repoVersion;
+    private final Commit repoVersion;
     
     private final SpliffyCollectionResource parent;
     
     private List<AbstractVersionResource> children;
 
-    public RepoVersionFolder(SpliffyCollectionResource parent, RepoVersion repoVersion, Services services) {
+    public RepoVersionFolder(SpliffyCollectionResource parent, Commit repoVersion, Services services) {
         super(services);
         this.parent = parent;
         this.repoVersion = repoVersion;
@@ -45,7 +45,7 @@ public class RepoVersionFolder extends AbstractCollectionResource implements Ver
 
     @Override
     public String getName() {
-        return repoVersion.getVersionNum() + "";
+        return repoVersion.getCreatedDate().toString(); // TODO: need a nicer date format
     }
 
     @Override

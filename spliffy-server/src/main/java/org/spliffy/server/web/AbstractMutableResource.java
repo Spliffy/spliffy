@@ -75,7 +75,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
         Transaction tx = session.beginTransaction();
 
         DeletedItem deletedItem = new DeletedItem();
-        if (parent.getItemVersion() != null) { // will be null for folders directly in a RepoVersion
+        if (parent.getItemVersion() != null) { // will be null for folders directly in a Commit
             deletedItem.setDeletedFrom(parent.getItemVersion());
 
         }
@@ -135,7 +135,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
         return null;
     }
 
-    public RepoVersion currentRepoVersion() {
+    public Commit currentRepoVersion() {
         SpliffyResource col = parent;
         while (!(col instanceof RepositoryFolder)) {
             col = col.getParent();

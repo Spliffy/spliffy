@@ -22,7 +22,7 @@ public class Share implements Serializable {
 
     private UUID id;
     
-    private Repository sharedFrom;
+    private Branch sharedFrom;
     
     private AccessControlledResource.Priviledge priv;
     private String shareRecip; // who it was sent to
@@ -46,11 +46,11 @@ public class Share implements Serializable {
 
 
     @ManyToOne(optional=false)
-    public Repository getSharedFrom() {
+    public Branch getSharedFrom() {
         return sharedFrom;
     }
 
-    public void setSharedFrom(Repository sharedFrom) {
+    public void setSharedFrom(Branch sharedFrom) {
         this.sharedFrom = sharedFrom;
     }
 

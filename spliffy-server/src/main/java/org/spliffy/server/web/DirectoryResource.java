@@ -122,7 +122,6 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
 
     @Override
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException {
-        System.out.println("CreateNew: " + newName);
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
@@ -136,14 +135,12 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
 
             long newHash = din.readLong();
             fileResource.setHash(newHash);
-            System.out.println("Set hash(a): " + newHash + " on resource: " + fileResource.getName());
         } else {
             // parse data and persist to stores
             Parser parser = new Parser();
             long fileHash = parser.parse(inputStream, getHashStore(), getBlobStore());
 
             fileResource.setHash(fileHash);
-            System.out.println("Set hash(b): " + fileHash + " on resource: " + fileResource.getName());
         }
         addChild(fileResource);
         save(session);

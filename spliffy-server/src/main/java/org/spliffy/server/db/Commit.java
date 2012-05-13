@@ -5,7 +5,7 @@ import java.util.Date;
 import javax.persistence.*;
 
 /**
- * A RepoVersion is a link between a Repository and an ItemVersion
+ * A Commit is a link between a Repository and an ItemVersion
  * 
  * The ItemVersion linked to is a directory, and its members are the 
  * members of the Repository for this version
@@ -16,12 +16,13 @@ import javax.persistence.*;
  * @author brad
  */
 @javax.persistence.Entity
-public class RepoVersion implements Serializable {
+@Table(name="COMMIT_ITEM")
+public class Commit implements Serializable {
     private long id;
     private ItemVersion rootItemVersion; // this is the root directory for the repository (in this version)
-    private long versionNum;
+    
     // parent
-    private Repository repo;
+    private Branch branch;
     private Date createdDate; 
            
     /**
@@ -29,7 +30,7 @@ public class RepoVersion implements Serializable {
      */
     private User editor;
 
-    public RepoVersion() {
+    public Commit() {
     }
         
     @ManyToOne(optional=false)
@@ -42,12 +43,12 @@ public class RepoVersion implements Serializable {
     }    
     
     @ManyToOne(optional=false)    
-    public Repository getRepository() {
-        return repo;
+    public Branch getBranch() {
+        return branch;
     }
 
-    public void setRepository(Repository repo) {
-        this.repo = repo;
+    public void setBranch(Branch repo) {
+        this.branch = repo;
     }
 
     @ManyToOne
@@ -78,20 +79,4 @@ public class RepoVersion implements Serializable {
         this.id = id;
     }
 
-    /**
-     * Monotonically increasing version number for the repository. Might
-     * not be sequential
-     * 
-     * @return 
-     */
-    @Column(nullable=false)
-    public long getVersionNum() {
-        return versionNum;
-    }
-
-    public void setVersionNum(long versionNum) {
-        this.versionNum = versionNum;
-    }
-    
-    
 }

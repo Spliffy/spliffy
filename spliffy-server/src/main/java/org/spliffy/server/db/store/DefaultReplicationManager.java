@@ -31,7 +31,6 @@ public class DefaultReplicationManager implements ReplicationManager {
     }
     
     public void start() {
-        System.out.println("starting replication manager:");
         th = Executors.defaultThreadFactory().newThread(new Consumer());
         th.start();
     }
@@ -56,7 +55,6 @@ public class DefaultReplicationManager implements ReplicationManager {
             
             // means that the source transaction has not yet been completed, so requeue and wait
             if( viSource.getVolume() == null || viSource.getVolume().getInstances() == null ) {
-                System.out.println("not ready yet, requeue");
                 Thread.sleep(100);                 
                 queue.add(item);
                 return ;
@@ -73,7 +71,6 @@ public class DefaultReplicationManager implements ReplicationManager {
                     destType.setBlob(viDest.getLocation(), item.hash, arr);
                 }
             }
-            System.out.println("finished replicate");
         } finally {
             sessionManager.close();            
         }

@@ -29,7 +29,6 @@ public class SpliffySecurityManager {
     }
 
     public Object authenticate(String userName, String requestPassword) {
-        System.out.println("Basic authentication: " + userName + "/" + requestPassword);
         User user = userDao.getUser(userName);
         if (user == null) {
             return null;
@@ -38,7 +37,6 @@ public class SpliffySecurityManager {
             if( passwordManager.verifyPassword(user, requestPassword) ) {
                 return user;
             } else {
-                System.out.println("password digests do not match");
                 return null;
             }
         }

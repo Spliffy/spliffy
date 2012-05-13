@@ -16,7 +16,7 @@ public class DeletedItem implements Serializable {
     private long id;
     private ItemVersion deletedResource;
     private ItemVersion deletedFrom;
-    private RepoVersion repoVersion;
+    private Commit repoVersion;
 
     @Id
     @GeneratedValue
@@ -47,11 +47,11 @@ public class DeletedItem implements Serializable {
     }
 
     @ManyToOne
-    public RepoVersion getRepoVersion() {
+    public Commit getRepoVersion() {
         return repoVersion;
     }
 
-    public void setRepoVersion(RepoVersion repoVersion) {
+    public void setRepoVersion(Commit repoVersion) {
         this.repoVersion = repoVersion;
     }
         

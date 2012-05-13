@@ -19,7 +19,7 @@ import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
 
 /**
- * Represents the root folder of a repository
+ * Represents the current version of the trunk of a repository
  *
  * This behaves much the same as a DirectoryResource but is defined
  * differently
@@ -38,12 +38,12 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     private List<MutableResource> children;
     private long hash;
     private boolean dirty;
-    private RepoVersion repoVersion; // may be null
+    private Commit repoVersion; // may be null
     private ItemVersion rootItemVersion;
     
     private JsonResult jsonResult; // set after completing a POST
 
-    public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, RepoVersion repoVersion) {
+    public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, Commit repoVersion) {
         super(parent.getServices());
         this.parent = parent;
         this.repository = repository;
@@ -84,7 +84,6 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
         log.trace("createCollection: " + newName);
-        System.out.println("createCollection");
         Session session = SessionManager.session();
         Transaction tx = session.beginTransaction();
 
@@ -203,13 +202,7 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         if (jsonResult != null) {
             jsonResult.write(out);
             return;
-        }
-        
-        System.out.println("sendContent: " + params.size());
-        System.out.println(HttpManager.request().getAbsoluteUrl());        
-        System.out.println("qa: " + ServletRequest.getRequest().getQueryString());
-        System.out.println("url: " + ServletRequest.getRequest().getRequestURL());        
-        
+        }               
         String type = params.get("type");
         if (type == null) {
             // output directory listing
@@ -223,10 +216,9 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
                     out.flush();
                     break;
                 case "revision":
-                    // write the version number (revision) followed by the directory hash
-                    RepoVersion rv = repository.latestVersion();
+                    // write the directory hash
+                    Commit rv = repository.latestVersion();
                     try (DataOutputStream dout = new DataOutputStream(out)) {
-                        dout.writeLong(rv.getVersionNum());
                         dout.writeLong(rv.getRootItemVersion().getItemHash());
                     }
                     break;
@@ -295,7 +287,7 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
      *
      * @return
      */
-    public RepoVersion getRepoVersion() {
+    public Commit getRepoVersion() {
         return repoVersion;
     }
 
@@ -343,11 +335,11 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
      * of the RepositoryVersion object this resource is listing children for
      * @return 
      */
-    public Repository getDirectRepository() {
+    public Branch getDirectRepository() {
         if( this.repoVersion != null ) {
-            return repoVersion.getRepository();
+            return repoVersion.getBranch();
         }
-        return repository;
+        return repository.trunk(SessionManager.session());
     }
 
     public ItemVersion getRootItemVersion() {

@@ -18,11 +18,7 @@ import org.spliffy.server.web.*;
 public class ResourceManager {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ResourceManager.class);
-    private final VersionNumberGenerator versionNumberGenerator;
 
-    public ResourceManager(VersionNumberGenerator versionNumberGenerator) {
-        this.versionNumberGenerator = versionNumberGenerator;
-    }
 
     public CollectionResource findCol(CollectionResource root, Path path) throws NotAuthorizedException, BadRequestException {
         if (path.isRoot()) {
@@ -30,18 +26,15 @@ public class ResourceManager {
         } else {
             CollectionResource parent = findCol(root, path.getParent());
             if( parent == null ) {
-                System.out.println("Couldnt find parent: " + path.getParent().getName());
                 return null;
             } else {
                 Resource r = parent.child(path.getName());
                 if( r == null ) {
-                    System.out.println("Couldnt find child: " + path.getName() + " of " + parent.getName());
                     return null;
                 } else {
                     if( r instanceof CollectionResource ) {
                         return (CollectionResource) r;
                     } else {
-                        System.out.println("Found a resource which is not a mutablecollection: " + r.getClass() + " - " + r.getName());
                         return null;
                     }
                 }
@@ -56,7 +49,7 @@ public class ResourceManager {
             return;
         }
 
-        Repository repo = getRepoToUse(repositoryFolder.getDirectRepository());
+        Branch repo = getRepoToUse(repositoryFolder.getDirectRepository());
         try {
             for (MutableResource r : repositoryFolder.getChildren()) { // if is dirty then children must be loaded
                 if (r instanceof MutableCollection) {
@@ -71,12 +64,11 @@ public class ResourceManager {
 
             saveCollection(session, repositoryFolder);
 
-            RepoVersion newRepoVersion = new RepoVersion();
+            Commit newRepoVersion = new Commit();
             newRepoVersion.setCreatedDate(new Date());
-            newRepoVersion.setRepository(repo); // not direct repo
+            newRepoVersion.setBranch(repo); // not direct repo
             newRepoVersion.setRootItemVersion(repositoryFolder.getRootItemVersion());
-            long newVersionNum = versionNumberGenerator.nextVersionNumber(repositoryFolder.getDirectRepository());
-            newRepoVersion.setVersionNum(newVersionNum);
+            
             session.save(newRepoVersion);
             repo.setHead(newRepoVersion);
             session.save(repo);
@@ -202,13 +194,13 @@ public class ResourceManager {
      * @param r
      * @return 
      */
-    public RepoVersion getHead(Repository r) {
-        Repository toUse = getRepoToUse(r);
-        return toUse.latestVersion();
+    public Commit getHead(Branch r) {
+        Branch toUse = getRepoToUse(r);
+        return toUse.getHead();
     }
     
-    public Repository getRepoToUse(Repository r) {
-        Repository linked = r.getLinkedTo();
+    public Branch getRepoToUse(Branch r) {
+        Branch linked = r.getLinkedTo();
         if( linked != null ) {
             return getRepoToUse(linked);
         } else {

@@ -43,10 +43,13 @@ public class RepositoryVersionsFolder extends AbstractCollectionResource impleme
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
             children = new ArrayList<>();
-            for( RepoVersion rv : repo.getVersions()) {
-                RepoVersionFolder f = new RepoVersionFolder(this, rv, services);
-                children.add(f);
-            }
+            
+            // TODO: integrate with branches
+            
+//            for( Commit rv : repo.getBranches()) {
+//                RepoVersionFolder f = new RepoVersionFolder(this, rv, services);
+//                children.add(f);
+//            }
         }
         return children;
     }

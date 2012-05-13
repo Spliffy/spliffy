@@ -31,7 +31,7 @@ public class ItemVersion implements Serializable {
     private long itemHash;
     private List<DirectoryMember> members;
     private List<DirectoryMember> linked;
-    private List<RepoVersion> rootRepoVersions;
+    private List<Commit> rootRepoVersions;
 
     public ItemVersion() {
     }
@@ -106,11 +106,11 @@ public class ItemVersion implements Serializable {
     }
 
     @OneToMany(mappedBy = "rootItemVersion")
-    public List<RepoVersion> getRootRepoVersions() {
+    public List<Commit> getRootRepoVersions() {
         return rootRepoVersions;
     }
 
-    public void setRootRepoVersions(List<RepoVersion> rootRepoVersions) {
+    public void setRootRepoVersions(List<Commit> rootRepoVersions) {
         this.rootRepoVersions = rootRepoVersions;
     }
 

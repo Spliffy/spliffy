@@ -31,7 +31,6 @@ public class LinkManager {
     public void updateLinkedFolders(String name, ItemVersion origMemberIV, ItemVersion newMemberIV, ItemVersion newParentIV, Session session) {
         for (DirectoryMember otherDM : origMemberIV.getLinked()) {
             if (otherDM.getParentItem().getItem() != newParentIV.getItem()) { // make sure is not the already saved one
-                System.out.println("updateLinkedFolders: " + otherDM.getName());
                 // create new DM's for sibling DM's of otherDM
                 createNewVersion(name, otherDM.getParentItem(), newMemberIV, session);
             }

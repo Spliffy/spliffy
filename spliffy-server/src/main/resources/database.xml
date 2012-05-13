@@ -30,7 +30,8 @@
                 <value>org.spliffy.server.db.BaseEntity</value>
                 <value>org.spliffy.server.db.BlobHash</value>
                 <value>org.spliffy.server.db.DirectoryMember</value>
-                <value>org.spliffy.server.db.RepoVersion</value>
+                <value>org.spliffy.server.db.Branch</value>                
+                <value>org.spliffy.server.db.Commit</value>
                 <value>org.spliffy.server.db.Repository</value>
                 <value>org.spliffy.server.db.Item</value>
                 <value>org.spliffy.server.db.User</value>

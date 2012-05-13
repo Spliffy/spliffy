@@ -1,9 +1,11 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
+import org.hibernate.Session;
 
 /**
  *
@@ -11,14 +13,12 @@ import javax.persistence.*;
  */
 @javax.persistence.Entity
 public class Repository implements Serializable {
-    private List<Repository> linkedRepos;
     private long id;
     private String name;
-    private List<RepoVersion> versions;
+    private List<Branch> branches;
     private BaseEntity baseEntity;
     private Date createdDate;
-    private Repository linkedTo;
-    private RepoVersion head;
+    private Commit head;
 
     @Id
     @GeneratedValue
@@ -37,32 +37,14 @@ public class Repository implements Serializable {
      * @return 
      */
     @ManyToOne(optional=true)
-    public RepoVersion getHead() {
+    public Commit getHead() {
         return head;
     }
 
-    public void setHead(RepoVersion head) {
+    public void setHead(Commit head) {
         this.head = head;
     }
-    
-    
-
-    /**
-     * If set, then this repository is just a pointer to it
-     * 
-     * @return 
-     */
-    @ManyToOne
-    public Repository getLinkedTo() {
-        return linkedTo;
-    }
-
-    public void setLinkedTo(Repository linkedTo) {
-        this.linkedTo = linkedTo;
-    }
-    
-    
-
+        
     /**
      * Each repository to linked to some kind of entity, either a user,
      * a group or an organisation
@@ -88,12 +70,12 @@ public class Repository implements Serializable {
     }
 
     @OneToMany(cascade= CascadeType.ALL, mappedBy="repository")
-    public List<RepoVersion> getVersions() {
-        return versions;
+    public List<Branch> getBranches() {
+        return branches;
     }
 
-    public void setVersions(List<RepoVersion> versions) {
-        this.versions = versions;
+    public void setBranches(List<Branch> versions) {
+        this.branches = versions;
     }
 
     @Temporal(javax.persistence.TemporalType.DATE)
@@ -106,18 +88,24 @@ public class Repository implements Serializable {
         this.createdDate = createdDate;
     }
        
-    public RepoVersion latestVersion() {
+    public Commit latestVersion() {
         return getHead();
     }
-
-    @OneToMany(mappedBy = "linkedTo")
-    public List<Repository> getLinkedRepos() {
-        return linkedRepos;
-    }
-
-    public void setLinkedRepos(List<Repository> linkedRepos) {
-        this.linkedRepos = linkedRepos;
-    }
     
-    
+    public Branch trunk(Session session) {
+        for( Branch b : getBranches()) {
+            if( Branch.TRUNK.equals(b.getName())) {
+                return b;
+            }
+        }
+        Branch b = new Branch();
+        b.setName(Branch.TRUNK);
+        b.setRepository(this);
+        session.save(b);
+        if( this.branches == null ) {
+            setBranches(new ArrayList<Branch>());
+        }
+        getBranches().add(b);
+        return b;
+    }
 }

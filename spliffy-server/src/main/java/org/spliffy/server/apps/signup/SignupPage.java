@@ -82,7 +82,6 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
             }
             User u = new User();
             u.setName(name);
-            System.out.println("name: " + name);
             u.setEmail(parameters.get("email"));
             u.setCreatedDate(new Date());
             u.setModifiedDate(new Date());
@@ -91,7 +90,6 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
             if( password == null || password.trim().length() == 0 ) {
                 throw new Exception("No password given");
             }
-            System.out.println("password: " + password);
             services.getSecurityManager().getPasswordManager().setPassword(u, password);
 
             session.save(u);

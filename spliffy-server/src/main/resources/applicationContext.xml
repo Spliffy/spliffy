@@ -8,6 +8,7 @@
     </bean>
 
     <import resource="classpath:database.xml"/>
+    <import resource="classpath:env.xml"/>
 
     <bean id="lock.manager" class="com.ettrema.http.fs.SimpleLockManager" />
     
@@ -62,8 +63,6 @@
     -->
     
     
-    <bean id="version.number.generator" class="org.spliffy.server.db.DefaultVersionNumberGenerator"/>
-
     <bean id="password.manager" class="org.spliffy.server.web.PasswordManager"/>
 
     <bean id="dao.user" class="org.spliffy.server.db.UserDao"  >
@@ -75,9 +74,7 @@
         <constructor-arg ref="password.manager" />
     </bean>
     
-    <bean id="resource.manager" class="org.spliffy.server.manager.ResourceManager">
-        <constructor-arg ref="version.number.generator" />
-    </bean>
+    <bean id="resource.manager" class="org.spliffy.server.manager.ResourceManager"></bean>
     
     <bean id="share.manager" class="org.spliffy.server.manager.ShareManager">
         <constructor-arg ref="resource.manager" />
@@ -91,14 +88,7 @@
         <constructor-arg ref="share.manager"/>
         <constructor-arg ref="resource.manager"/>
     </bean>    
-    
-    <bean id="test.data.creator" class="org.spliffy.server.db.TestDataCreator" init-method="initTestData" >
-        <constructor-arg ref="sessionFactory"/>
-        <constructor-arg ref="password.manager"/>
-        <property name="enabled" value="${create.test.data}" />
-    </bean>
-    
-    
+            
     <!-- default config is to load templates from WEB-INF/templates -->
     <bean id="templater" class="org.spliffy.server.web.FreemarkerTemplater"/>
     
@@ -207,7 +197,6 @@
         -->
         <constructor-arg ref="session.manager"/>
         <constructor-arg ref="dao.user"/>
-        <constructor-arg ref="version.number.generator"/>
         <constructor-arg ref="security.manager"/>
         <constructor-arg ref="services"/>
         <constructor-arg ref="application.manager"/>        
