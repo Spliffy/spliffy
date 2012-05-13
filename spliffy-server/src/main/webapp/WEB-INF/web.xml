@@ -5,17 +5,6 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
          version="2.4">
 
-         <!-- Only for developing in jetty, not for deployment -->
-    <servlet>
-        <servlet-name>default</servlet-name>
-        <servlet-class>org.mortbay.jetty.servlet.DefaultServlet</servlet-class>
-        <init-param>
-            <param-name>useFileMappedBuffer</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <load-on-startup>0</load-on-startup>
-    </servlet>	
-
     <filter>
         <filter-name>miltonFilter</filter-name>
         <filter-class>com.bradmcevoy.http.SpringMiltonFilter</filter-class>

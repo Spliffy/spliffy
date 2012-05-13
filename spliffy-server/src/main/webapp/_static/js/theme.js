@@ -21,9 +21,18 @@ function initTheme() {
     initHtmlEditors();
     
     initFontSwitching();
+    
+    initButtons();
          
     log("finished init ettrema-theme");
 } 
+
+function initButtons() {
+    log('initButtons');
+    $("button, a.button").not(".ui-button").wrapInner("<span class='ui-button-text'></span>");
+    $("button, a.button").not(".ui-button").addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only");
+    $("input").not(".ui-widget-content").addClass("ui-widget-content");
+}
 
 function initNav() {    
     var bodyClasses = jQuery("body").attr("class");

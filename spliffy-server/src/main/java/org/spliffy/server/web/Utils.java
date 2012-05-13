@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import org.spliffy.server.db.utils.SessionManager;
 import com.bradmcevoy.http.Resource;
 import java.util.*;
 import org.spliffy.server.db.*;

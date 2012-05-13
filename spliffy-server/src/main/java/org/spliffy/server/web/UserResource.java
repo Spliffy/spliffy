@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import org.spliffy.server.db.utils.SessionManager;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -18,6 +19,8 @@ import java.util.*;
 import org.hibernate.LockMode;
 import org.hibernate.Transaction;
 import org.spliffy.server.apps.ApplicationManager;
+import org.spliffy.server.apps.calendar.CalendarFolder;
+import org.spliffy.server.apps.calendar.CalendarHomeFolder;
 import org.spliffy.server.apps.contacts.ContactsFolder;
 import org.spliffy.server.apps.contacts.ContactsHomeFolder;
 import org.spliffy.server.db.*;
@@ -41,6 +44,46 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         this.applicationManager = applicationManager;
     }
 
+    public List<RepositoryFolder> getRepositories() throws NotAuthorizedException, BadRequestException {
+        List<RepositoryFolder> list = new ArrayList<>();
+        for( Resource r : getChildren() ) {
+            if( r instanceof RepositoryFolder) {
+                list.add((RepositoryFolder)r);
+            }
+        }
+        return list;
+    }
+    
+    public List<CalendarFolder> getCalendars() throws NotAuthorizedException, BadRequestException {
+        List<CalendarFolder> list = new ArrayList<>();
+        for( Resource r : getChildren() ) {
+            if( r instanceof CalendarHomeFolder) {
+                CalendarHomeFolder calHome = (CalendarHomeFolder) r;
+                for( Resource r2 : calHome.getChildren()) {
+                    if( r2 instanceof CalendarFolder ) {
+                        list.add((CalendarFolder)r2);
+                    }
+                }
+            }
+        }
+        return list;
+    }    
+    
+    public List<ContactsFolder> getAddressBooks() throws NotAuthorizedException, BadRequestException {
+        List<ContactsFolder> list = new ArrayList<>();
+        for( Resource r : getChildren() ) {
+            if( r instanceof ContactsHomeFolder) {
+                ContactsHomeFolder home = (ContactsHomeFolder) r;
+                for( Resource r2 : home.getChildren()) {
+                    if( r2 instanceof ContactsFolder ) {
+                        list.add((ContactsFolder)r2);
+                    }
+                }
+            }
+        }
+        return list;
+    }      
+    
     @Override
     public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
         Resource r = applicationManager.getNonBrowseablePage(this, childName);

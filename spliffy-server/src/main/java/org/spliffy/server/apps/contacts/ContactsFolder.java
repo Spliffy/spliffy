@@ -62,6 +62,10 @@ public class ContactsFolder extends AbstractCollectionResource implements Addres
         this.contactManager = contactManager;
     }
 
+    public String getHref() {
+        return parent.getHref() + this.getName() + "/";
+    }
+    
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
         services.getTemplater().writePage("contacts.ftl", this, params, out, currentUser);

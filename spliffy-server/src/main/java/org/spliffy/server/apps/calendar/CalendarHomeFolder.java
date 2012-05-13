@@ -39,6 +39,10 @@ public class CalendarHomeFolder extends AbstractCollectionResource implements Ma
         this.calendarManager = calendarManager;
     }
 
+    public String getHref() {
+        return parent.getHref() + name + "/";
+    }    
+    
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
         Calendar calendar = calendarManager.createCalendar(parent.getOwner(), newName);
@@ -119,4 +123,6 @@ public class CalendarHomeFolder extends AbstractCollectionResource implements Ma
     public Long getContentLength() {
         return null;
     }
+
+
 }

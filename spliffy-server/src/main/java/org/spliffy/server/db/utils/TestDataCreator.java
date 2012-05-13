@@ -1,4 +1,4 @@
-package org.spliffy.server.db;
+package org.spliffy.server.db.utils;
 
 import java.util.Date;
 import java.util.TimeZone;
@@ -7,6 +7,11 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.spliffy.server.db.AddressBook;
+import org.spliffy.server.db.Calendar;
+import org.spliffy.server.db.Contact;
+import org.spliffy.server.db.Repository;
+import org.spliffy.server.db.User;
 import org.spliffy.server.web.PasswordManager;
 
 /**

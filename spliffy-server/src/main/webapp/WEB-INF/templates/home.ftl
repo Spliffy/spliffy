@@ -1,13 +1,29 @@
 <!-- Home page for the spliffy instance -->
 <#import "defaultLayout.ftl" as layout>
-<@layout.myLayout "Home" false>
+<@layout.myLayout "Home" "home">
 
-<h1>Welcome to spliffy!</h1>
+<header id="branding" role="banner">
+    <hgroup>
+        <h1 id="site-title"><span><a href="http://spliffy.org" title="Yellow!" rel="home">Spliffy!</a></span></h1>
+        <h2 id="site-description">My personal cloud server.</h2>
+        <h2 id="site-description">Your files, contacts and calendars, everywhere you are.</h2>
+    </hgroup>
+</header>
 
-<a href="login">Click here to login and go to your dashboard</a>
+<div id="main">
+    <div id="primary">
+        <div id="content" role="main">
+            <ul>
+                <li><img src="/_static/home/folder.png"/></li>
 
-<br/><br/>
+                <li><img src="/_static/home/contact.png"/></li>
 
-<a href="/signup">Or click here to create a new account</a>
+                <li><img src="/_static/home/calendar.png"/></li>
+            </ul>
+
+        </div>
+    </div>
+</div>
+
 
 </@layout.myLayout>

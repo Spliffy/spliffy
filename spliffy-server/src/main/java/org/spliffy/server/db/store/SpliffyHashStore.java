@@ -6,7 +6,7 @@ import org.hashsplit4j.api.Fanout;
 import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.FanoutEntry;
 import org.spliffy.server.db.FanoutHash;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 
 /**
  *

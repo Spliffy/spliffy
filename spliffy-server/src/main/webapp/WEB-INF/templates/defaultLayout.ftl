@@ -1,14 +1,12 @@
-<#macro myLayout title="Home" showNav=true>
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
+<#macro baseLayout title="Home" bodyClass="">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="Robots" content="index,follow" />
         <meta name="keywords" content="" />
-        <link rel="stylesheet" type="text/css" href="/_static/theme.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="/_static/themes/yellow/style.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/base.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="/_static/common.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/validation.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="/_static/jquery-ui-1.8.11.custom.css" media="screen" />        
         <link rel="stylesheet" type="text/css" href="/_static/fullcalendar.css" media="screen" />        
@@ -33,139 +31,98 @@
 
         <title> ${title}</title>        
     </head>
-    <body>
-        <!--wrapper-->
-        <div class="wrapper">
-            <!--header-->
-            <div class="header">
-                <!--logo-->
-                <h1 class="logo"><a href="/index.html">Spliffy</a></h1>
-                <!--headRight-->
-                <div class="headRight">
-                    <div class="formBox">
-                        <div class="userBtn Login"> 
-                            
+    <body class="blog two-column right-sidebar ${bodyClass}">
+        <nav id="access" role="navigation">
+            <h3 class="assistive-text">Main menu</h3>
+            <div class="menu-yellow-container">
+                <ul id="menu-yellow" class="menu">
+                    <#if page.currentUser??>
 
-                            <#if page.currentUser??>
-                            <a class="Link" id="currentuser" href="#">Hi ${page.currentUser.name}</a>
-                            <#else>
-                            <a class="Link" href="/login">Login</a>
-                            </#if>
-                            <div class="dropBox">
-                                <#if page.currentUser??>
-                                <ul class="list">
-                                    <li>
-                                        <a class="logout">Logout</a> <!-- cant logout while using digest/basic auth -->
-                                    </li>
-                                </ul>
-                                <#else>
-                                <ul class="list sansuser">
-                                    <li>
-                                        <a href="/register.html">Register</a>
-                                    </li>
-                                </ul>      
-                                <form method="post" action="" class="sansuser">
-                                    <fieldset>
-                                        <p id="validationMessage" style="display: none">.</p>
-                                        <label for="email">Email</label>
-                                        <input type="text" id="email" name="email" value="" class="Textbox" title="Email address" />
-                                        <label for="password">Password</label>
-                                        <input type="password" name="password" id="password" value="" class="Textbox" title="Password" />
-                                        <button class="Login Button" ><span>Login</span></button>                                     
-                                        <a href="/password-reset.html" title="Forgotten password" class="Forgot">Forgotten password</a>                                        
-                                    </fieldset>
-                                </form>
-                                </#if>
-                                <div class="accessBox">
-                                    <div class="greyBox FontSize"> 
-                                        <a class="linkText ZoomIn" href="#">A</a> 
-                                        <a class="linkText linkTxt ZoomOut" href="#">A</a> 
-                                        <a class="circle ZoomReset" href="#"><img src="/_static/images/circle.gif" alt="" /></a>
-                                        <div class="clr"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--
-                        <div class="divider"></div>                        
-                        <form action="http://www.google.com/search" method="get">
-                            <fieldset>
-                                <input type="hidden" name="domains" value="$targetPage.host.name"/>
-                                <input type="hidden" name="sitesearch" value="$targetPage.host.name" />
-                                <div class="inputBox">
-                                    <input class="input" type="text" name="q" placeholder="Search"/>
-                                    <button class="goBtn" name="btnG" type="submit">Go</button> 
-                                </div>    
-                            </fieldset>
-                            <div class="clr"></div>
-                        </form>
-                        -->
-                        <div class="clr"></div>
-                    </div>
-                </div>
+                    <li class="nav-dashboard menu-item menu-item-type-custom menu-item-object-custom menu-item-home">
+                        <a href="/${user.name}/">Dashboard</a>
+                    </li>
+                    <li class="nav-calendar menu-item menu-item-type-post_type menu-item-object-page">
+                        <a href="/${user.name}/cal/" shape="rect">Calendar</a>
+                    </li>
+                    <li class="nav-contacts menu-item menu-item-type-post_type menu-item-object-page">
+                        <a href="/${user.name}/abs/" shape="rect">Contacts</a>
+                    </li>
+                    <li class="nav-sharing menu-item menu-item-type-post_type menu-item-object-page">
+                        <a href="/${user.name}/sharing/" shape="rect">Sharing</a>
+                    </li>
+<!--
+                    <li id="menu-item-694" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-694">
+                        <a href="http://demo.wpcharity.com/yellow/?page_id=143">Archives</a>
+                        <ul class="sub-menu">
+                            <li id="menu-item-690" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-690">
+                                <a href="/${user.name}/cal/" shape="rect">Calendar</a>
+                            </li>
+                            <li id="menu-item-692" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-692">
+                                <a href="/${user.name}/abs/" shape="rect">Contacts</a>
+                            </li>
+                            <li id="menu-item-691" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-691">
+                                <a href="/${user.name}/sharing/" shape="rect">Sharing</a>
+                            </li>
+                        </ul>
+                    </li>
+-->
+                    <#else>
+                    <li class="nav-home menu-item menu-item-type-custom menu-item-object-custom current_page_item menu-item-home menu-item-688">
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    <li class="menu-item menu-item-type-custom menu-item-object-custom current_page_item menu-item-home menu-item-688">
+                        <a href="/login">Login</a>
+                    </li>
+                    <li class="nav-register menu-item menu-item-type-post_type menu-item-object-page menu-item-689">
+                        <a href="/signup">Register</a>
+                    </li>
 
-                <div class="clr"></div>
-                <!--nav-->
-                <#if page.currentUser??>
-                <#if showNav>                
-                <div class="nav">                    
-                    <ul>
-                        <li class="nav-myDashboard">
-                            <a href="/dashboard" shape="rect">Dashboard</a>
-                        </li>                    
-                        <!--
-                        <li class="nav-myDashboard">
-                            <a href="/${user.name}/photos/" shape="rect">Photos</a>
-                        </li>                    
-                        <li class="nav-myDashboard">
-                            <a href="/${user.name}/music/" shape="rect">Music</a>
-                        </li>                    
-                        <li class="nav-myDashboard">
-                            <a href="/${user.name}/videos/" shape="rect">Videos</a>
-                        </li>                                   
-                        -->
-                        <li class="nav-myDashboard">
-                            <a href="/${user.name}/cal/" shape="rect">Calendar</a>
-                        </li>                   
-                        <li class="nav-myDashboard">
-                            <a href="/${user.name}/abs/" shape="rect">Contacts</a>
-                        </li>                
-                        <!--
-                        <li class="nav-myDashboard">
-                            <a href="/${user.name}/sharing/" shape="rect">Sharing</a>
-                        </li>                              
-                        -->
-                        
-                    </ul>  
-                    <div class="clr">.</div>
-                </div>
-                </#if>
-                </#if>                        
-                <!--navEnd-->
-            </div>
-            <!--headerEnd-->
-            <!--content-->
-            <div class="content">
-                                               
+                    </#if>                        
+
+                </ul>
+            </div>			
+
+        </nav>
+        <!-- #access -->
+        <div class="clear"></div>
+
+        <div id="page" class="hfeed">
+
                 <#nested/>
 
-                <div class="clr"></div>
-            </div>
-            <!--contentEnd-->
-            <!--footer-->
-            <div class="footerOuter">
-                <div class="footer">
-                    <ul class="fList">
-                        <li>
-
-                        </li>                    
-                    </ul>
-                    <div class="clr">.</div>      
-                </div>
-            </div>
-            <!--footerEnd-->
         </div>
-        <!--wrapperEnd-->
+
+        <footer id="colophon" role="contentinfo">
+
+            <div id="supplementary" class="three">
+                <div id="first" class="widget-area" role="complementary">
+                    <aside id="text-2" class="widget widget_text"><h3 class="widget-title">About</h3>			
+                        <div class="textwidget">Spliffy is a personal cloud server, for accessing your files, calendars and contacts from any device.</div>
+                    </aside>
+                    <aside id="search-2" class="widget widget_search">
+                        <h3 class="widget-title">Search</h3>	
+                        <form method="get" id="searchform" action="http://demo.wpcharity.com/yellow/">
+                            <label for="s" class="assistive-text">Search</label>
+                            <input type="text" class="field" name="s" id="s" placeholder="Search" />
+                            <input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+                        </form>
+                    </aside>	
+                </div><!-- #first .widget-area -->
+
+            </div>
+            <div id="site-generator">
+                <div id="site-info">
+
+                    <a class="wordpress" href="http://spliffy.org">Spliffy</a>
+                    <a class="name" href="http://demo.wpcharity.com/yellow/" title="Yellow!" rel="home">
+                        Yellow!				
+                    </a>
+                </div><!-- #site-info -->
+            </div><!-- site-generator -->
+        </footer><!-- #colophon -->
+
+
         <div id="ajaxLoading" style="display: none">
             <div>
                 Processing, please wait...
@@ -186,19 +143,36 @@
         </script>
     </body>    
 </html> 
-
-
-
 </#macro>
 
-<#macro dirLayout title="Home">
-<@layout.myLayout title>
 
+
+<#macro myLayout title="Home" bodyClass="">
+<@layout.baseLayout title bodyClass>
+<div id="main">
+    <div id="primary">
+        <div id="content" role="main">
+            
+<#nested/>
+           
+        </div>
+    </div>
+</div>
+</@layout.baseLayout>
+</#macro>
+
+
+
+<#macro dirLayout title="Home" bodyClass="">
+<@layout.myLayout title bodyClass>
+<h1>${title}</h1>
+<div class="breadcrumbs">
 <@breadCrumbs node=page path="."/>
+</div>
 
 <#nested/>
 
-<table>
+<table class="data">
     <thead>
         <tr>
             <th>Name</th>
@@ -232,11 +206,11 @@
 
 <#macro breadCrumbs node path>
 <#if node.parent??>
-    <#assign p = path + "/..">  
-    <@breadCrumbs node=node.parent path=p/>
-    / <a href="${path}">${node.name}</a>
+<#assign p = path + "/..">  
+<@breadCrumbs node=node.parent path=p/>
+/ <a href="${path}">${node.name}</a>
 <#else>
-    / <a href="/">home</a>
+/ <a href="/">home</a>
 </#if>
 
 

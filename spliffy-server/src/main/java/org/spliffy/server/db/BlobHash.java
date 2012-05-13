@@ -1,5 +1,6 @@
 package org.spliffy.server.db;
 
+import org.spliffy.server.db.utils.SessionManager;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;

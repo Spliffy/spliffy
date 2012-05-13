@@ -133,6 +133,10 @@ public class ContactsHomeFolder  extends AbstractCollectionResource implements M
     public Long getContentLength() {
         return null;
     }
+
+    public String getHref() {
+        return parent.getHref() + name + "/";
+    }
 }
 
    

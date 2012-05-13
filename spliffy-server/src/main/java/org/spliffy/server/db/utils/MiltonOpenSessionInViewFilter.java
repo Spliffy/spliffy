@@ -1,4 +1,4 @@
-package org.spliffy.server.db;
+package org.spliffy.server.db.utils;
 
 import com.bradmcevoy.http.Filter;
 import com.bradmcevoy.http.FilterChain;

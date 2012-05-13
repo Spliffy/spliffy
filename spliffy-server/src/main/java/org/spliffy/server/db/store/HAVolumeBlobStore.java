@@ -3,7 +3,7 @@ package org.spliffy.server.db.store;
 import java.util.*;
 import org.hashsplit4j.api.BlobStore;
 import org.spliffy.server.db.BlobHash;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 import org.spliffy.server.db.VolumeInstance;
 
 /**

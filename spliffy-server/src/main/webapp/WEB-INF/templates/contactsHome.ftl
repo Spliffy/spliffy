@@ -1,5 +1,5 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.dirLayout "Contacts home">
+<@layout.dirLayout "Contacts home" "contacts">
 
 <#list page.children as x>
   

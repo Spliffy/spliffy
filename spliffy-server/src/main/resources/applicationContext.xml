@@ -28,7 +28,7 @@
     <bean id="volume.allocator" class="org.spliffy.server.db.store.SingleVolumeInstanceAllocator"/>
         
     <bean id="blob.store" class="org.spliffy.server.db.store.FileSystemBlobStore">
-        <constructor-arg value="target/blobs" />
+        <constructor-arg value="${blob.storage.location}" />
     </bean>
     
     <!-- This is a much more robust blob store, but experimental -->
@@ -46,18 +46,16 @@
 
     <bean id="hash.store" class="org.spliffy.server.db.store.SpliffyHashStore"/>
     
-    <!--
     <bean id="mail.sender" class="com.ettrema.mail.send.RemoteSmtpMailSender" init-method="start">
         <constructor-arg value="${mail.smtp.host}"/>
         <constructor-arg value="${mail.smtp.user}"/>
         <constructor-arg value="${mail.smtp.password}"/>
         <constructor-arg value="${mail.smtp.port}"/>
     </bean>
-    -->
 
-    
-    <bean id="mail.sender" class="com.ettrema.mail.send.MockMailSender"></bean>
-    
+    <!--
+    <bean id="mail.sender.mock" class="com.ettrema.mail.send.MockMailSender"></bean>
+    -->
     <!--
     <bean id="mail.sender.aspirin" class="com.ettrema.mail.send.AspirinMailSender"></bean>
     -->
@@ -65,7 +63,7 @@
     
     <bean id="password.manager" class="org.spliffy.server.web.PasswordManager"/>
 
-    <bean id="dao.user" class="org.spliffy.server.db.UserDao"  >
+    <bean id="dao.user" class="org.spliffy.server.db.utils.UserDao"  >
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
@@ -239,7 +237,7 @@
         </constructor-arg>
     </bean>
 
-    <bean id="open.session.in.view.filter" class="org.spliffy.server.db.MiltonOpenSessionInViewFilter">
+    <bean id="open.session.in.view.filter" class="org.spliffy.server.db.utils.MiltonOpenSessionInViewFilter">
         <constructor-arg ref="session.manager"/>
     </bean>
 

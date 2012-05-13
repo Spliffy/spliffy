@@ -18,7 +18,7 @@ package org.spliffy.server.apps.contacts;
 
 import com.ettrema.ldap.LdapTransactionManager;
 import java.io.IOException;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 
 /**
  *

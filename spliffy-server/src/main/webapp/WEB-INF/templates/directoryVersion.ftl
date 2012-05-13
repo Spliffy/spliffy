@@ -1,5 +1,5 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.dirLayout "Directory version">
+<@layout.dirLayout "Directory version" "dashboard">
 
 <#list page.children as x>
   

@@ -16,6 +16,7 @@
  */
 package org.spliffy.server.apps.contacts;
 
+import org.spliffy.server.db.utils.SessionManager;
 import info.ineighborhood.cardme.engine.VCardEngine;
 import info.ineighborhood.cardme.io.VCardWriter;
 import info.ineighborhood.cardme.vcard.VCard;

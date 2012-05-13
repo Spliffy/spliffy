@@ -17,7 +17,7 @@ import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.ItemVersion;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 
 /**
  * An instance of this class represents the root folder of a repository at a

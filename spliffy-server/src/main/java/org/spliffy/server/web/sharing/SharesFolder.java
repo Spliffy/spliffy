@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.Share;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.Services;

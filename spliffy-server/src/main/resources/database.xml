@@ -62,7 +62,7 @@
         <property name="namingStrategy" ref="namingStrategy" />
     </bean>
     
-    <bean id="session.manager" class="org.spliffy.server.db.SessionManager">
+    <bean id="session.manager" class="org.spliffy.server.db.utils.SessionManager">
         <constructor-arg ref="sessionFactory" />
     </bean>
 

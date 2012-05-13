@@ -1,4 +1,4 @@
-package org.spliffy.server.db;
+package org.spliffy.server.db.utils;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

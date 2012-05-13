@@ -1,5 +1,6 @@
 package org.spliffy.server.manager;
 
+import org.spliffy.server.db.utils.SessionManager;
 import com.bradmcevoy.http.HttpManager;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.mail.MailboxAddress;

@@ -4,7 +4,7 @@
     <parent>
         <groupId>spliffy</groupId>
         <artifactId>spliffy</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>spliffy-server</artifactId>
     <packaging>war</packaging>
@@ -17,6 +17,12 @@
             <id>hibernate-persistence</id>
             <layout>default</layout>
             <name>Repository for library Library[hibernate-persistence]</name>
+        </repository>
+        <repository>
+            <url>http://repo1.maven.org/maven2/</url>
+            <id>hibernate-support</id>
+            <layout>default</layout>
+            <name>Repository for library Library[hibernate-support]</name>
         </repository>
     </repositories>
     <dependencies>
@@ -164,8 +170,8 @@
             <artifactId>cardme-vcard</artifactId>
             <version>0.3.2.03</version>
         </dependency>
-
     </dependencies>
+    
     <profiles>
         <profile>
             <id>run</id>
@@ -184,9 +190,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <!--
                             <overrideWebXml>src/test/resources/web.xml</overrideWebXml>
-                            -->
                             <contextPath>/</contextPath>
                             <connectors>
                                 <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
@@ -195,9 +199,9 @@
                                 </connector>
                             </connectors>
                             <stopKey>stop</stopKey>
-                            <stopPort>8089</stopPort>
+                            <stopPort>8091</stopPort>
                             <useTestClasspath>true</useTestClasspath>
-                            <scanIntervalSeconds>1</scanIntervalSeconds>
+                            <scanIntervalSeconds>0</scanIntervalSeconds>
                         </configuration>						
                     </plugin>   					
                 </plugins>
@@ -221,9 +225,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <!--
                             <overrideWebXml>src/test/resources/web.xml</overrideWebXml>
-                            -->
                             <contextPath>/</contextPath>
                             <connectors>
                                 <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">

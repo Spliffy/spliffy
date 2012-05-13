@@ -3,7 +3,7 @@ package org.spliffy.server.web;
 import com.ettrema.mail.send.MailSender;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
-import org.spliffy.server.db.UserDao;
+import org.spliffy.server.db.utils.UserDao;
 import org.spliffy.server.manager.ResourceManager;
 import org.spliffy.server.manager.ShareManager;
 

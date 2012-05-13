@@ -1,9 +1,9 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.myLayout "Contacts">
+<@layout.myLayout "Contacts" "contacts">
 
 <@layout.breadCrumbs node=page path="."/>
 
-<table>
+<table class="data">
     <thead>
         <tr>
             <th>Name</th>

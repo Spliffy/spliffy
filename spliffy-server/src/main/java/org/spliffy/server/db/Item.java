@@ -1,5 +1,6 @@
 package org.spliffy.server.db;
 
+import org.spliffy.server.db.utils.SessionManager;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;

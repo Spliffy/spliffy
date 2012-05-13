@@ -31,7 +31,7 @@ import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.ValidationException;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Transaction;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 
 /**
  *

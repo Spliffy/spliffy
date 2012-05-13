@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import org.spliffy.server.db.utils.SessionManager;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;

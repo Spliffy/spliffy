@@ -1,5 +1,5 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.dirLayout "Repository home">
+<@layout.dirLayout "Repository home" "dashboard">
 <a class="share" href="javascript:showShareModal()">Share this folder</a>
 <script type="text/javascript">
     function showShareModal() {

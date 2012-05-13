@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spliffy.server.apps.contacts.ContactManager;
 import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.JsonResult;

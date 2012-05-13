@@ -40,7 +40,7 @@ import org.spliffy.server.apps.calendar.CalEventResource;
 import org.spliffy.server.apps.calendar.CalendarFolder;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.db.Contact;
-import org.spliffy.server.db.SessionManager;
+import org.spliffy.server.db.utils.SessionManager;
 import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.SpliffyCollectionResource;

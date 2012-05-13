@@ -36,10 +36,13 @@ public class ShareApp implements Application{
     
     @Override
     public Resource getNonBrowseablePage(Resource parent, String childName) {
+        /**
+         * This is for locating share invitations, which are outside the scope of any user
+         */
         if( parent instanceof SpliffyResourceFactory.RootFolder) {            
             SpliffyResourceFactory.RootFolder rf = (SpliffyResourceFactory.RootFolder) parent;
-            if( childName.equals("shares")) {
-                return new SharesFolder("shares", rf);
+            if( childName.equals("share")) {
+                return new SharesFolder("share", rf);
             }            
         }
         return null;

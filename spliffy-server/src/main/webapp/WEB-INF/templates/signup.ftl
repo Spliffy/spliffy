@@ -1,9 +1,9 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.myLayout "Signup">
+<@layout.myLayout "Signup" "register">
 
 <h1>Register a spliffy account</h1>
 
-<form id="signup" method="POST" action="${page.name}" onsubmit="doSignup()">
+<form id="signup" method="POST" action="${page.name}" onsubmit="doSignup(); return false;" style="float: left; width: 400px">
     <fieldset>
         <legend>Please enter your login details</legend>
         <label for="name">User name</label>
@@ -23,14 +23,16 @@
         <br/>
 
         <button>Signup now!</button>
-
-
-
+        
+        <p>Disclamier: Spliffy is quite new, a bit flaky and I'm not really sure if it works properly yet. Use it at your own risk!</p>
     </fieldset>
-
-    <button type="button" onclick="doSignup()">Signup now!</button>
-
+    
 </form>
+
+<div style="float: right; width: 300px;">
+    <h1 id="site-title"><span><a href="http://spliffy.org" title="Yellow!" rel="home">Spliffy!</a></span></h1>
+    <h2 id="site-description">My personal cloud server</h2>
+</div>
 
 <script type="text/javascript">
     function doSignup() {

@@ -9,7 +9,7 @@ import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.util.List;
 import org.spliffy.server.db.User;
-import org.spliffy.server.db.UserDao;
+import org.spliffy.server.db.utils.UserDao;
 
 /**
  *

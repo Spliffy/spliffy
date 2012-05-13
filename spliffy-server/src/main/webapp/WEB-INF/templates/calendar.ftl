@@ -1,8 +1,9 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.myLayout "Calendar">
+<@layout.myLayout "Calendar" "calendar">
 
 <script type="text/javascript" src="/_static/js/fullcalendar.js" >//</script>
 <script type="text/javascript" src="/_static/js/calendar.js">//</script>
+<h1>Calendar - ${page.name}</h1>
 <div id="calendar" style="width: 800px; margin: 0 auto;"></div>
 
 <table>

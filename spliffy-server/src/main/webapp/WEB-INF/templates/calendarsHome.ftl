@@ -1,6 +1,5 @@
 <#import "defaultLayout.ftl" as layout>
-<@layout.dirLayout "Calendars home">
-
+<@layout.dirLayout "My Calendars" "calendar">
 <#list page.children as x>
   
 </#list>  
