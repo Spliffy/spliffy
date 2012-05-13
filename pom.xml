@@ -3,8 +3,27 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>spliffy</groupId>
     <artifactId>spliffy</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
+    <distributionManagement>
+        <repository>
+            <id>ettrema-repo</id>
+            <url>http://www.ettrema.com/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>ettrema-repo</id>
+            <url>http://www.ettrema.com/maven2</url>
+        </snapshotRepository>
+    </distributionManagement>
+    <developers>
+        <developer>
+            <name>Brad McEvoy</name>
+            <timezone>GMT+12</timezone>
+            <organization>McEvoy Software</organization>
+            <organizationUrl>http://www.mcevoysoftware.co.nz/</organizationUrl>
+        </developer>
+    </developers>    
     <properties>
         <milton.version>1.8.0-SNAPSHOT</milton.version>
         <endrick.version>1.7.8</endrick.version>
