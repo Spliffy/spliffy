@@ -6,17 +6,10 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.webdav.PropertySourcesList;
 import com.ettrema.common.Service;
 import com.ettrema.event.EventManager;
-import com.ettrema.http.AccessControlledResource.Priviledge;
-import com.ettrema.http.acl.Principal;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.*;
 import org.spliffy.server.apps.ApplicationManager;
-import org.spliffy.server.db.*;
 
 /**
  *
@@ -27,7 +20,11 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SpliffyResourceFactory.class);
     
     public static RootFolder getRootFolder() {
-        return (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
+        if( HttpManager.request() != null ) {
+            return (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
+        } else {
+            return null;
+        }
     }
     
     private final UserDao userDao;    
@@ -60,7 +57,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
     }
    
     public RootFolder createRootFolder() {
-        return new RootFolder(services);
+        return new RootFolder(services, applicationManager);
     }
     
     @Override
@@ -74,7 +71,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         if (p.isRoot()) {
             RootFolder rootFolder = (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
             if( rootFolder == null ) {
-                rootFolder = new RootFolder(services);
+                rootFolder = new RootFolder(services, applicationManager);
                 HttpManager.request().getAttributes().put("_spliffy_root_folder", rootFolder);
             }
             return rootFolder;
@@ -91,112 +88,6 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
                 }
             }
         }
-    }
-
-    public class RootFolder extends AbstractResource implements SpliffyCollectionResource, GetableResource, PropFindableResource {
-
-        private Map<String,PrincipalResource> children = new HashMap<>();
-
-        public RootFolder(Services services) {
-            super(services);
-        }
-                        
-        @Override
-        public String getName() {
-            return "";
-        }
-
-        @Override
-        public boolean authorise(Request request, Request.Method method, Auth auth) {
-            return true;
-        }
-
-        @Override
-        public Date getModifiedDate() {
-            return null;
-        }
-
-        @Override
-        public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
-            Resource r = applicationManager.getNonBrowseablePage(this, childName);
-            if( r != null ) {
-                return r;
-            }
-            return findEntity(childName);
-        }
-        
-        public PrincipalResource findEntity(String name) {
-            PrincipalResource r = children.get(name);
-            if( r != null ) {
-                return r;
-            }
-            User u = userDao.getUser(name);
-            if (u == null) {
-                return null;
-            } else {
-                UserResource ur = new UserResource(this, u, applicationManager);
-                children.put(name, ur);
-                return ur;
-            }            
-        }
-        
-
-        @Override
-        public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
-            return Collections.EMPTY_LIST; // browsing not supported
-        }
-
-        @Override
-        public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-            services.getTemplater().writePage("home.ftl", this, params, out, getCurrentUser());
-        }
-
-        @Override
-        public Long getMaxAgeSeconds(Auth auth) {
-            return null;
-        }
-
-        @Override
-        public String getContentType(String accepts) {
-            return "text/html";
-        }
-
-        @Override
-        public Long getContentLength() {
-            return null;
-        }
-
-        @Override
-        public SpliffyCollectionResource getParent() {
-            return null;
-        }
-
-        @Override
-        public BaseEntity getOwner() {
-            return null;
-        }
-
-        @Override
-        public void addPrivs(List<Priviledge> list, User user) {
-
-        }
-
-        @Override
-        public Date getCreateDate() {
-            return null;
-        }
-
-        @Override
-        public boolean isDir() {
-            return true;
-        }
-
-        @Override
-        public Map<Principal, List<Priviledge>> getAccessControlList() {
-            return Collections.EMPTY_MAP;
-        }
-        
-        
     }
 
     public ApplicationManager getApplicationManager() {

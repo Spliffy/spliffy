@@ -28,7 +28,7 @@ public class SpliffySecurityManager {
         this.passwordManager = passwordManager;
     }
 
-    public Object authenticate(String userName, String requestPassword) {
+    public User authenticate(String userName, String requestPassword) {
         User user = userDao.getUser(userName);
         if (user == null) {
             return null;
@@ -42,7 +42,7 @@ public class SpliffySecurityManager {
         }
     }
 
-    public Object authenticate(DigestResponse digest) {
+    public User authenticate(DigestResponse digest) {
         User user = userDao.getUser(digest.getUser());
         if (user == null) {
             return null;

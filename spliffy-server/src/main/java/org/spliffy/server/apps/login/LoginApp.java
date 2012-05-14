@@ -24,9 +24,10 @@ import java.util.Properties;
 import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.LoginPage;
+import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
-import org.spliffy.server.web.SpliffyResourceFactory.RootFolder;
+import org.spliffy.server.web.RootFolder;
 
 /**
  *
@@ -38,7 +39,7 @@ public class LoginApp implements Application{
     
     @Override
     public Resource getNonBrowseablePage(Resource parent, String childName) {
-        if( parent instanceof SpliffyResourceFactory.RootFolder) {            
+        if( parent instanceof RootFolder) {            
             RootFolder rf = (RootFolder) parent;
             if( childName.equals("login")) {
                 return new LoginPage(services.getSecurityManager(), rf);

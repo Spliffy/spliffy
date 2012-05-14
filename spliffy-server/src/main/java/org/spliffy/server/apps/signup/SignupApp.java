@@ -22,6 +22,7 @@ import com.ettrema.event.EventManager;
 import java.util.List;
 import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
+import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
 
@@ -49,8 +50,8 @@ public class SignupApp implements Application {
 
     @Override
     public Resource getNonBrowseablePage(Resource parent, String requestedName) {
-        if (parent instanceof SpliffyResourceFactory.RootFolder) {
-            SpliffyResourceFactory.RootFolder rf = (SpliffyResourceFactory.RootFolder) parent;
+        if (parent instanceof RootFolder) {
+            RootFolder rf = (RootFolder) parent;
             if (requestedName.equals(signupPageName)) {
                 return new SignupPage(requestedName, rf, services);
             }

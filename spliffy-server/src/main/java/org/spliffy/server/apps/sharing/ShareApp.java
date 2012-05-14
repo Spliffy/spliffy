@@ -22,6 +22,7 @@ import com.ettrema.event.EventManager;
 import java.util.List;
 import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
+import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.sharing.SharesFolder;
@@ -46,8 +47,8 @@ public class ShareApp implements Application{
         /**
          * This is for locating share invitations, which are outside the scope of any user
          */
-        if( parent instanceof SpliffyResourceFactory.RootFolder) {            
-            SpliffyResourceFactory.RootFolder rf = (SpliffyResourceFactory.RootFolder) parent;
+        if( parent instanceof RootFolder) {            
+            RootFolder rf = (RootFolder) parent;
             if( childName.equals("share")) {
                 return new SharesFolder("share", rf);
             }            

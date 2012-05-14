@@ -22,10 +22,10 @@ import com.ettrema.ldap.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.db.User;
+import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
 import org.spliffy.server.web.UserResource;
@@ -38,12 +38,9 @@ public class ContactsApp implements Application, UserFactory{
 
     public static final String ADDRESS_BOOK_HOME_NAME = "abs";
     
-    private ContactManager contactManager;
-           
-    private Services services;
-    
-    private SpliffyResourceFactory resourceFactory;
-    
+    private ContactManager contactManager;           
+    private Services services;    
+    private SpliffyResourceFactory resourceFactory;    
     private com.ettrema.ldap.LdapServer ldapServer;
     
     @Override
@@ -92,16 +89,12 @@ public class ContactsApp implements Application, UserFactory{
 
     @Override
     public LdapPrincipal getUser(String userName, String password) {
-        LdapPrincipal p = (LdapPrincipal) resourceFactory.createRootFolder().findEntity(userName);
-        if( p == null ) {
+        User user = (User) services.getSecurityManager().authenticate(userName, password);
+        if( user == null) {
             return null;
-        } else {
-            if( p.authenticate(userName, password) != null ) {
-                return p;
-            } else {
-                return null;
-            }
         }
+        RootFolder rf = new RootFolder(services, resourceFactory.getApplicationManager());
+        return rf.findEntity(userName);
     }
 
     @Override

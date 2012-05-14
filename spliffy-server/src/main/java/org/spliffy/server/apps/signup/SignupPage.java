@@ -37,10 +37,11 @@ import org.spliffy.server.db.*;
 import org.spliffy.server.db.utils.SessionManager;
 import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.JsonResult;
+import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyCollectionResource;
 import org.spliffy.server.web.SpliffyResourceFactory;
-import org.spliffy.server.web.SpliffyResourceFactory.RootFolder;
+import org.spliffy.server.web.RootFolder;
 
 /**
  *
@@ -51,7 +52,7 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
     private static final Logger log = LoggerFactory.getLogger(SignupPage.class);
     
     private final String name;
-    private final SpliffyResourceFactory.RootFolder parent;
+    private final RootFolder parent;
     private JsonResult jsonResult;
 
     public SignupPage(String name, RootFolder parent, Services services) {
