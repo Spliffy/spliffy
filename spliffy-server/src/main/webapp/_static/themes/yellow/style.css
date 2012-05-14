@@ -629,7 +629,7 @@ table.data {
     border: none;
     border-collapse: separate;
     border-spacing: 0;
-    width: 80%;
+    width: 100%;
     font-family: Arial;
     margin-left: auto;
     margin-right: auto;
@@ -673,11 +673,6 @@ table.data thead th:first-child {
 }
 table.data thead th:last-child {
     border-radius: 0 8px 0 0;
-}
-div.breadcrumbs {
-    position: absolute;
-    right: 0;
-    top: 0;
 }
 .panel {
     min-width: 200px;

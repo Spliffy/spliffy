@@ -14,3 +14,6 @@
     background: white;
     display: none; /** initial state */
 }
+p.validationError {
+    margin: 0 0 0.1em 0;
+}

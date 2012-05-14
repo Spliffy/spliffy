@@ -2,7 +2,7 @@
 
 function resetValidation() {
     $(".validationError").remove();
-    $(".pageMessage").hide();
+    $(".pageMessage").hide(300);
     $(".error > *").unwrap();
     $(".errorField").removeClass("errorField");
 }
@@ -241,7 +241,7 @@ function showValidation(target, text, container) {
 
 function showMessage(text, container) {
     $(".pageMessage",container).append("<p class='validationError'>" + text + "</p>");
-    $(".pageMessage",container).show();
+    $(".pageMessage",container).show(500);
 }
 
 function showErrorField(target) {

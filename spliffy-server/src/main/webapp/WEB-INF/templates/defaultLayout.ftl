@@ -191,7 +191,7 @@
                 </#if>
             </td>
             <td>${x.modifiedDate!}</td>
-            <td>${x.createdDate!}</td>
+            <td>${x.createDate!}</td>
         </tr>
         </#list>  
     </tbody>

@@ -184,7 +184,7 @@ public class ContactManager {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-        if( vcard.getUID().hasUID() ) {
+        if( vcard.getUID() != null && vcard.getUID().hasUID() ) {
             contact.setUid(vcard.getUID().getUID());
         } else {
             contact.setUid(UUID.randomUUID().toString());

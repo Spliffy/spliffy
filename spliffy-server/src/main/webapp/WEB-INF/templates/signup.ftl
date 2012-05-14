@@ -6,6 +6,7 @@
 <form id="signup" method="POST" action="${page.name}" onsubmit="doSignup(); return false;" style="float: left; width: 400px">
     <fieldset>
         <legend>Please enter your login details</legend>
+        <div class="pageMessage"></div>
         <label for="name">User name</label>
         <input type="text" name="name" id="name" class="required" />
         <br/>

@@ -70,3 +70,17 @@ a.share {
     margin-bottom: 1em;
     width: 160px;
 }
+
+button.add {
+    background-image: url("images/add.png");
+    display: inline-block;
+    height: 48px;
+    width: 48px;
+    text-indent: -9999px;
+    float: right;
+}
+div.breadcrumbs {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
