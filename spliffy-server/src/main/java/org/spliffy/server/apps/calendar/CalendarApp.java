@@ -20,6 +20,7 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.event.EventManager;
 import java.util.List;
+import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
@@ -36,7 +37,12 @@ public class CalendarApp implements Application{
     private CalendarManager calendarManager;
            
     private Services services;
-    
+
+    @Override
+    public String getInstanceId() {
+        return "calendar";
+    }
+            
     @Override
     public Resource getNonBrowseablePage(Resource parent, String childName) {
         return null;
@@ -62,5 +68,11 @@ public class CalendarApp implements Application{
         }        
         
     }
+
+    @Override
+    public void initDefaultProperties(AppConfig config) {
+    }
+    
+    
     
 }

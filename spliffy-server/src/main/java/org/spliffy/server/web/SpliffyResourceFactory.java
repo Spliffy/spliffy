@@ -7,11 +7,11 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
-import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.webdav.PropertySourcesList;
 import com.ettrema.common.Service;
 import com.ettrema.event.EventManager;
 import com.ettrema.http.AccessControlledResource.Priviledge;
+import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -60,7 +60,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
     }
    
     public RootFolder createRootFolder() {
-        return new RootFolder();
+        return new RootFolder(services);
     }
     
     @Override
@@ -74,7 +74,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         if (p.isRoot()) {
             RootFolder rootFolder = (RootFolder) HttpManager.request().getAttributes().get("_spliffy_root_folder");
             if( rootFolder == null ) {
-                rootFolder = new RootFolder();
+                rootFolder = new RootFolder(services);
                 HttpManager.request().getAttributes().put("_spliffy_root_folder", rootFolder);
             }
             return rootFolder;
@@ -93,33 +93,18 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         }
     }
 
-    public class RootFolder implements SpliffyCollectionResource, GetableResource, PropFindableResource {
+    public class RootFolder extends AbstractResource implements SpliffyCollectionResource, GetableResource, PropFindableResource {
 
         private Map<String,PrincipalResource> children = new HashMap<>();
-        
-        protected User currentUser;        
-        
-        @Override
-        public String getUniqueId() {
-            return null;
-        }
 
+        public RootFolder(Services services) {
+            super(services);
+        }
+                        
         @Override
         public String getName() {
             return "";
         }
-
-        @Override
-        public Object authenticate(String user, String password) {
-            currentUser = (User) securityManager.authenticate(user, password);
-            return currentUser;
-        }
-        
-        @Override
-        public Object authenticate(DigestResponse digestRequest) {
-            currentUser = (User) securityManager.authenticate(digestRequest);
-            return currentUser;
-        }        
 
         @Override
         public boolean authorise(Request request, Request.Method method, Auth auth) {
@@ -127,17 +112,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         }
 
         @Override
-        public String getRealm() {
-            return securityManager.getRealm();
-        }
-
-        @Override
         public Date getModifiedDate() {
-            return null;
-        }
-
-        @Override
-        public String checkRedirect(Request request) {
             return null;
         }
 
@@ -197,23 +172,8 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         }
 
         @Override
-        public Services getServices() {
-            return services;
-        }
-
-        @Override
-        public boolean isDigestAllowed() {
-            return true;
-        }
-
-        @Override
         public BaseEntity getOwner() {
             return null;
-        }
-
-        @Override
-        public User getCurrentUser() {
-            return currentUser;
         }
 
         @Override
@@ -225,6 +185,18 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         public Date getCreateDate() {
             return null;
         }
+
+        @Override
+        public boolean isDir() {
+            return true;
+        }
+
+        @Override
+        public Map<Principal, List<Priviledge>> getAccessControlList() {
+            return Collections.EMPTY_MAP;
+        }
+        
+        
     }
 
     public ApplicationManager getApplicationManager() {

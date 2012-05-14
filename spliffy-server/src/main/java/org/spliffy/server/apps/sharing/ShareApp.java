@@ -20,6 +20,7 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.event.EventManager;
 import java.util.List;
+import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
@@ -32,7 +33,13 @@ import org.spliffy.server.web.sharing.SharesFolder;
 public class ShareApp implements Application{
 
     private Services services;
+
+    @Override
+    public String getInstanceId() {
+        return "sharing";
+    }
         
+    
     
     @Override
     public Resource getNonBrowseablePage(Resource parent, String childName) {
@@ -62,4 +69,11 @@ public class ShareApp implements Application{
     public void addBrowseablePages(CollectionResource parent, List<Resource> children) {
         
     }
+
+    @Override
+    public void initDefaultProperties(AppConfig config) {
+    
+    }
+    
+    
 }

@@ -19,6 +19,7 @@ package org.spliffy.server.apps.versions;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import java.util.List;
+import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.db.BaseEntity;
 import org.spliffy.server.web.Services;
@@ -32,6 +33,13 @@ import org.spliffy.server.web.UserResource;
 public class VersionsApp implements Application {
 
     private Services services;
+
+    @Override
+    public String getInstanceId() {
+        return "versions";
+    }
+    
+    
     
     @Override
     public void init(SpliffyResourceFactory resourceFactory) {
@@ -57,5 +65,11 @@ public class VersionsApp implements Application {
             children.add(f);
         }
     }
+
+    @Override
+    public void initDefaultProperties(AppConfig config) {
+    
+    }
+    
     
 }

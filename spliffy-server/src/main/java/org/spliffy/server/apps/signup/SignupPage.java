@@ -33,7 +33,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spliffy.server.apps.contacts.ContactManager;
 import org.spliffy.server.db.*;
 import org.spliffy.server.db.utils.SessionManager;
 import org.spliffy.server.web.AbstractResource;
@@ -93,8 +92,8 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
             services.getSecurityManager().getPasswordManager().setPassword(u, password);
 
             session.save(u);
-            addCalendar("MyCalendar", u, session);     
-            addAddressBook("MyContacts", u, session);         
+            addCalendar("cal", u, session);     
+            addAddressBook("contact", u, session);         
             addRepo("Documents", u, session);
             addRepo("Music", u, session);
             addRepo("Pictures", u, session);

@@ -12,7 +12,6 @@ import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.acl.Principal;
 import com.ettrema.ldap.Condition;
 import com.ettrema.ldap.LdapContact;
-import com.ettrema.ldap.LdapPrincipal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -29,7 +28,7 @@ import org.spliffy.server.db.*;
  *
  * @author brad
  */
-public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource, PrincipalResource, LdapPrincipal {
+public class UserResource extends AbstractCollectionResource implements CollectionResource, MakeCollectionableResource, PropFindableResource, GetableResource, PrincipalResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserResource.class);
     private final User user;
@@ -282,4 +281,8 @@ public class UserResource extends AbstractCollectionResource implements Collecti
             throw new RuntimeException(ex);
         }
     }
+
+    public User getThisUser() {
+        return user;
+    }        
 }

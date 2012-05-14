@@ -20,6 +20,7 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.event.EventManager;
 import java.util.List;
+import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
@@ -34,6 +35,12 @@ public class SignupApp implements Application {
     private EventManager eventManager;
     private String signupPageName = "signup";
 
+    @Override
+    public String getInstanceId() {
+        return "signup";
+    }
+
+        
     @Override
     public void init(SpliffyResourceFactory resourceFactory) {
         this.services = resourceFactory.getServices();
@@ -58,4 +65,11 @@ public class SignupApp implements Application {
     @Override
     public void shutDown() {
     }
+
+    @Override
+    public void initDefaultProperties(AppConfig config) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    
 }

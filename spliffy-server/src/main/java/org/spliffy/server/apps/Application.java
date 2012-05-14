@@ -18,10 +18,7 @@ package org.spliffy.server.apps;
 
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
-import com.ettrema.common.Service;
-import com.ettrema.event.EventManager;
 import java.util.List;
-import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
 
 /**
@@ -35,12 +32,20 @@ import org.spliffy.server.web.SpliffyResourceFactory;
 public interface Application {
     
     /**
+     * Indentifies this instance of this app in a way which persistent across server
+     * restarts. This will be used to locate properties
+     * 
+     * @return 
+     */
+    String getInstanceId();
+    
+    /**
      * Called on the application when the app starts
      * 
      * @param services
      * @param eventManager 
      */
-    void init(SpliffyResourceFactory resourceFactory);
+    void init(SpliffyResourceFactory resourceFactory) throws Exception;
     
     /**
      * Return a resource for the given parent of the given name if this
@@ -67,4 +72,16 @@ public interface Application {
      * Causes the application to release all resources. It should be restartable
      */
     void shutDown();
+
+   
+    /**
+     * Called when no configuration file exists. Populate the given object with
+     * default values, this will be stored to file so the administrator can
+     * review and edit as required
+     * 
+     * @param config 
+     */
+    void initDefaultProperties(AppConfig config);
+
+    
 }

@@ -45,13 +45,21 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     @Override
     public Object authenticate(String user, String password) {
         currentUser = (User) services.getSecurityManager().authenticate(user, password);
-        return currentUser;
+        if( currentUser != null ) {
+            return SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Object authenticate(DigestResponse digestRequest) {
         currentUser = (User) services.getSecurityManager().authenticate(digestRequest);
-        return currentUser;
+        if( currentUser != null ) {
+            return SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -139,8 +147,8 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     public List<AccessControlledResource.Priviledge> getPriviledges(Auth auth) {
         List<AccessControlledResource.Priviledge> list = new ArrayList<>();
         if (auth != null && auth.getTag() != null) {
-            User user = (User) auth.getTag();
-            addPrivs(list, user);
+            UserResource user = (UserResource) auth.getTag();
+            addPrivs(list, user.getThisUser() );
         }
         return list;
     }

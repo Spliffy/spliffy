@@ -3,6 +3,7 @@ package org.spliffy.server.web;
 import com.ettrema.http.acl.DiscretePrincipal;
 import com.ettrema.http.caldav.CalDavPrincipal;
 import com.ettrema.http.carddav.CardDavPrincipal;
+import com.ettrema.ldap.LdapPrincipal;
 
 /**
  * Defines a type of principal which is also a Resource, so it can
@@ -10,6 +11,6 @@ import com.ettrema.http.carddav.CardDavPrincipal;
  *
  * @author brad
  */
-public interface PrincipalResource  extends DiscretePrincipal, CalDavPrincipal, CardDavPrincipal, SpliffyCollectionResource {
+public interface PrincipalResource  extends DiscretePrincipal, CalDavPrincipal, CardDavPrincipal, SpliffyCollectionResource, LdapPrincipal {
     
 }

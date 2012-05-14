@@ -1,7 +1,6 @@
 package org.spliffy.server.apps;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 /**
  *
@@ -9,25 +8,30 @@ import java.util.Map;
  */
 public class AppConfig {
 
-    private Map<String, Object> properties = new HashMap<>();
+    private Properties properties;
 
+    public AppConfig(Properties properties) {
+        this.properties = properties;
+    }
+        
     public Integer getInt(String name) {
-        Object o = properties.get(name);
-        if (o == null) {
+        String s = properties.getProperty(name);
+        if (s == null) {
             return null;
         } else {
-            if (o instanceof String) {
-                String s = (String) o;
-                return Integer.parseInt(s);
-            } else if (o instanceof Integer) {
-                return (Integer) o;
-            } else {
-                throw new RuntimeException("Unsupported int type: " + o.getClass());
-            }
+            return Integer.parseInt(s);
         }
     }
     
-    public void add(String name, Object val) {
+    public void setInt(String name, Integer value) {
+        if( value == null ) {
+            properties.remove(name);
+        } else {
+            properties.setProperty(name, value.toString());
+        }
+    }
+    
+    public void add(String name, String val) {
         properties.put(name, val);
     }
 }

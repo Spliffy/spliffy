@@ -19,8 +19,10 @@ package org.spliffy.server.apps.contacts;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.ldap.*;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.db.User;
@@ -50,7 +52,7 @@ public class ContactsApp implements Application, UserFactory{
     }
 
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) {
+    public void init(SpliffyResourceFactory resourceFactory) throws IOException{
         this.services = resourceFactory.getServices();
         contactManager = new ContactManager();
         this.resourceFactory = resourceFactory;
@@ -105,7 +107,19 @@ public class ContactsApp implements Application, UserFactory{
     @Override
     public List<LdapContact> galFind(Condition equalTo, int sizeLimit) {
         return Collections.EMPTY_LIST;
-    }    
+    }
+
+    @Override
+    public String getInstanceId() {
+        return "contacts";
+    }
+
+    @Override
+    public void initDefaultProperties(AppConfig config) {
+        config.setInt("port", 8389); // default to non
+    }
+
+
 }
 
     

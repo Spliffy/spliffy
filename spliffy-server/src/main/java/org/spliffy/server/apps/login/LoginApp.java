@@ -20,6 +20,8 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.event.EventManager;
 import java.util.List;
+import java.util.Properties;
+import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.web.LoginPage;
 import org.spliffy.server.web.Services;
@@ -59,5 +61,17 @@ public class LoginApp implements Application{
     public void addBrowseablePages(CollectionResource parent, List<Resource> children) {
         
     }
+
+    @Override
+    public String getInstanceId() {
+        return "login"; // only single instance
+    }
+
+    @Override
+    public void initDefaultProperties(AppConfig config) {
+
+    }
+
+
     
 }
