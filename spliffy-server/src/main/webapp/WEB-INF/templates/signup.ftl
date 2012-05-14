@@ -23,15 +23,20 @@
         <br/>
 
         <button>Signup now!</button>
-        
+
         <p>Disclamier: Spliffy is quite new, a bit flaky and I'm not really sure if it works properly yet. Use it at your own risk!</p>
     </fieldset>
-    
+
 </form>
 
 <div style="float: right; width: 300px;">
     <h1 id="site-title"><span><a href="http://spliffy.org" title="Yellow!" rel="home">Spliffy!</a></span></h1>
     <h2 id="site-description">My personal cloud server</h2>
+</div>
+
+<div id="signupNext" style="display: none">
+    <p>Click next to login to your dashboard..</p>
+    <a href="#" class="button" style="float: right">Next</a>
 </div>
 
 <script type="text/javascript">
@@ -50,7 +55,7 @@
                 success: function(resp) {
                     if( resp.status ) {
                         log("save success", resp)
-                        //window.location.href = resp.nextUrl;
+                        showNext(resp.nextHref);
                     } else {
                         alert("Failed: " + resp.messages);
                     }
@@ -67,6 +72,14 @@
             log("exception sending forum comment", e);
         }        
         return false;
+    }
+    function showNext(href) {
+        $("#signupNext a").attr("href", href);
+        $("#signupNext").dialog({
+            title: "You're all signed up - thanks!",
+            modal: true 
+        });
+    
     }
 </script>
 

@@ -28,14 +28,14 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spliffy.server.apps.contacts.ContactManager;
-import org.spliffy.server.db.BaseEntity;
+import org.spliffy.server.db.*;
 import org.spliffy.server.db.utils.SessionManager;
-import org.spliffy.server.db.User;
 import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.JsonResult;
 import org.spliffy.server.web.Services;
@@ -93,6 +93,13 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
             services.getSecurityManager().getPasswordManager().setPassword(u, password);
 
             session.save(u);
+            addCalendar("MyCalendar", u, session);     
+            addAddressBook("MyContacts", u, session);         
+            addRepo("Documents", u, session);
+            addRepo("Music", u, session);
+            addRepo("Pictures", u, session);
+            addRepo("Videos", u, session);
+                       
             tx.commit();
 
             String userPath = "/" + u.getName(); // todo: encoding
@@ -102,6 +109,34 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
             jsonResult = new JsonResult(false, e.getMessage());
         }
         return null;
+    }
+
+    private void addCalendar(String name, User u, Session session) throws HibernateException {
+        Calendar cal = new Calendar();
+        cal.setOwner(u);
+        cal.setCreatedDate(new Date());
+        cal.setCtag(System.currentTimeMillis());
+        cal.setModifiedDate(new Date());
+        cal.setName(name);
+        session.save(cal);
+    }
+
+    private void addAddressBook(String name, User u, Session session) throws HibernateException {
+        AddressBook addressBook = new AddressBook();
+        addressBook.setName(name);
+        addressBook.setOwner(u);
+        addressBook.setCreatedDate(new Date());
+        addressBook.setModifiedDate(new Date());
+        addressBook.setDescription("My contacts");
+        session.save(addressBook);
+    }
+
+    private void addRepo(String name, User u, Session session) throws HibernateException {
+        Repository r1 = new Repository();
+        r1.setBaseEntity(u);
+        r1.setCreatedDate(new Date());
+        r1.setName(name);            
+        session.save(r1);
     }
 
     @Override
