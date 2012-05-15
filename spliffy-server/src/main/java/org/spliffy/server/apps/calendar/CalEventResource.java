@@ -25,10 +25,8 @@ import org.spliffy.server.web.AbstractResource;
 import org.spliffy.server.web.SpliffyCollectionResource;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.ValidationException;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.utils.SessionManager;
@@ -70,6 +68,7 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
 
     @Override
     public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
+        System.out.println("replaceContent: " + getName());
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             IOUtils.copy(in, bout);
@@ -104,6 +103,7 @@ public class CalEventResource extends AbstractResource implements ICalResource, 
             CalendarBuilder builder = new CalendarBuilder();
             Calendar calendar = builder.build(fin);
             calendarManager.setCalendar(calendar, event);
+            
         } catch (IOException | ParserException ex) {
             throw new RuntimeException(ex);
         } finally {

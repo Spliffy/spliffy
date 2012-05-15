@@ -153,7 +153,7 @@ public class CalendarManager {
         } catch (IOException | ParserException ex) {
             throw new RuntimeException(ex);
         }
-        setCalendar(cal4jCalendar, e);
+        _setCalendar(cal4jCalendar, e);
         updateCtag(e);
         session.save(e);
         tx.commit();
@@ -204,6 +204,17 @@ public class CalendarManager {
     }
 
     public void setCalendar(net.fortuna.ical4j.model.Calendar calendar, CalEvent calEvent) {
+        Session session = SessionManager.session();
+        Transaction tx = session.beginTransaction();
+        
+        _setCalendar(calendar, calEvent);
+        
+        updateCtag(calEvent);
+        session.save(calEvent);
+        tx.commit();        
+    }
+    
+    private void _setCalendar(net.fortuna.ical4j.model.Calendar calendar, CalEvent calEvent) {
         VEvent ev = event(calendar);
         calEvent.setStartDate(ev.getStartDate().getDate());
         Date endDate = null;

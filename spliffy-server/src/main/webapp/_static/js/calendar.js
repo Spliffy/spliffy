@@ -82,7 +82,7 @@ function updateEvent(event) {
         data += "&spliffy:endDate=" + edt;
     }
 	   
-    alert('start date: ' + sdt + 'endDate: ' + edt);
+    log('start date: ', sdt, 'endDate: ', edt, event);
     //return;
 	   	   
     $.ajax({

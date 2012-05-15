@@ -161,6 +161,7 @@
         <constructor-arg ref="milton.response.handler"/>
         <constructor-arg ref="milton.handler.helper"/>
         <constructor-arg ref="resource.type.helper.carddav"/>
+        <constructor-arg ref="milton.property.sources"/>
     </bean>
 
     <bean id="protocol.caldav" class="com.ettrema.http.caldav.CalDavProtocol">
