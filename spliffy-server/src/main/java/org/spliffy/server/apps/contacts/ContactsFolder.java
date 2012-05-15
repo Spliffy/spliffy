@@ -129,7 +129,7 @@ public class ContactsFolder extends AbstractCollectionResource implements Addres
 
     @Override
     public String getCTag() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return addressBook.getModifiedDate().getTime() + "t";
     }
     
     @Override

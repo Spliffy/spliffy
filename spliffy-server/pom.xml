@@ -4,7 +4,7 @@
     <parent>
         <groupId>spliffy</groupId>
         <artifactId>spliffy</artifactId>
-        <version>1.0.5</version>
+        <version>1.0.6</version>
     </parent>
     <artifactId>spliffy-server</artifactId>
     <packaging>war</packaging>

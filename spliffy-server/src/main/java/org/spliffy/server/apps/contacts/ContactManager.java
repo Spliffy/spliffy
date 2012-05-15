@@ -124,6 +124,10 @@ public class ContactManager {
         Transaction tx = session.beginTransaction();
 
         session.delete(contact);
+        
+        // update addressbook to force ctag change
+        contact.getAddressBook().setModifiedDate(new Date());
+        session.save(contact.getAddressBook());        
         tx.commit();
     }
 
@@ -134,9 +138,11 @@ public class ContactManager {
         e.setName(newName);
         e.setAddressBook(addressBook);
         e.setCreatedDate(new Date());
-
         _update(e, icalData);
         session.save(e);
+        // update addressbook to force ctag change
+        e.getAddressBook().setModifiedDate(new Date());
+        session.save(e.getAddressBook());        
         tx.commit();
         return e;
     }
@@ -146,6 +152,10 @@ public class ContactManager {
         Transaction tx = session.beginTransaction();
         _update(contact, data);
         session.save(contact);
+        
+        // update addressbook to force ctag change
+        contact.getAddressBook().setModifiedDate(new Date());
+        session.save(contact.getAddressBook());
         tx.commit();
     }
 
