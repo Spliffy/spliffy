@@ -54,10 +54,17 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
 
     @Override
     public Object authenticate(DigestResponse digestRequest) {
+        System.out.println("digest auth: " + digestRequest.getUser());
         currentUser = (User) services.getSecurityManager().authenticate(digestRequest);
-        if( currentUser != null ) {
-            return SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
+        if( currentUser != null ) {            
+            PrincipalResource ur = SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
+            if( ur == null ) {
+                throw new RuntimeException("Failed to find UserResource for: " + currentUser.getName());                
+            }
+            log.warn("sigest auth ok: " + ur);
+            return ur;
         } else {
+            log.warn("digest auth failed, got null user");
             return null;
         }
     }

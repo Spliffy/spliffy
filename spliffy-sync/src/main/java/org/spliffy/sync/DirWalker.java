@@ -172,7 +172,6 @@ public class DirWalker {
      * @param childPath 
      */
     private void doMissingRemote(Triplet localTriplet, Path path) throws IOException {
-        System.out.println("DirWalker: doMissingRemote: " + path);
         Long localPreviousHash = syncStatusStore.findBackedUpHash(path);
         if( localPreviousHash == null ) {
             // locally new

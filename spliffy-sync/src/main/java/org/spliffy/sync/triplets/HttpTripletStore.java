@@ -2,14 +2,14 @@ package org.spliffy.sync.triplets;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.httpclient.Host;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.NameValuePair;
+import java.util.Map;
 import org.spliffy.common.HashUtils;
 import org.spliffy.common.Triplet;
-import org.spliffy.sync.HttpUtils;
 
 /**
  * Loads triplets from a remote server over HTTP
@@ -17,7 +17,7 @@ import org.spliffy.sync.HttpUtils;
  * @author brad
  */
 public class HttpTripletStore implements TripletStore {
-    private final HttpClient httpClient;
+    private final Host host;
     private final Path rootPath;
 
     /**
@@ -25,8 +25,8 @@ public class HttpTripletStore implements TripletStore {
      * @param httpClient
      * @param rootPath 
      */
-    public HttpTripletStore(HttpClient httpClient, String rootPath) {
-        this.httpClient = httpClient;
+    public HttpTripletStore(Host httpClient, String rootPath) {
+        this.host = httpClient;
         this.rootPath = Path.path(rootPath);
     }
 
@@ -34,19 +34,20 @@ public class HttpTripletStore implements TripletStore {
 
     @Override
     public List<Triplet> getTriplets(Path path) {
-        String href = HttpUtils.toHref(rootPath, path) + "/?type=hashes";
+        Path p = rootPath.add(path);
+        Map<String,String> params = new HashMap<>();
+        params.put("type", "hashes");        
+                        
         try {            
-            byte[] arrRemoteTriplets = HttpUtils.get(httpClient, href);
+            byte[] arrRemoteTriplets = host.doGet(path, params);
             List<Triplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
-            System.out.println("HttpTripletStore: getTriples: " + href + " -> " + triplets.size());
             return triplets;
         } catch (IOException ex) {
-            throw new RuntimeException(href, ex);
+            throw new RuntimeException(p.toString(), ex);
         } catch (NotFoundException ex) {
-            System.out.println("HttpTripletStore: not found: " + href);
             return null;
         } catch(Throwable e) {
-            throw new RuntimeException(href, e);
+            throw new RuntimeException(p.toString(), e);
         }
     }    
 }

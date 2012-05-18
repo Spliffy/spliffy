@@ -1,6 +1,7 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.Cookie;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
@@ -8,6 +9,7 @@ import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.util.List;
+import java.util.Map.Entry;
 import org.spliffy.server.db.User;
 import org.spliffy.server.db.utils.UserDao;
 
@@ -18,7 +20,6 @@ import org.spliffy.server.db.utils.UserDao;
 public class SpliffySecurityManager {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SpliffySecurityManager.class);
-    
     private String realm = "spliffy";
     private final UserDao userDao;
     private final PasswordManager passwordManager;
@@ -34,7 +35,7 @@ public class SpliffySecurityManager {
             return null;
         } else {
             // only the password hash is stored on the user, so need to generate an expected hash
-            if( passwordManager.verifyPassword(user, requestPassword) ) {
+            if (passwordManager.verifyPassword(user, requestPassword)) {
                 return user;
             } else {
                 return null;
@@ -43,13 +44,17 @@ public class SpliffySecurityManager {
     }
 
     public User authenticate(DigestResponse digest) {
+        log.info("authenticate: " + digest.getUser());
         User user = userDao.getUser(digest.getUser());
         if (user == null) {
+            log.warn("user not found: " + digest.getUser());
             return null;
         }
         if (passwordManager.verifyDigest(digest, user)) {
+            log.warn("digest auth ok: " + user.getName());
             return user;
         } else {
+            log.warn("password verifuication failed");
             return null;
         }
     }
@@ -58,20 +63,20 @@ public class SpliffySecurityManager {
         return realm;
     }
 
-    public boolean authorise(Request rqst, Method method, Auth auth, Resource aThis) {
+    public boolean authorise(Request req, Method method, Auth auth, Resource aThis) {
         if (aThis instanceof AccessControlledResource) {
             AccessControlledResource acr = (AccessControlledResource) aThis;
             List<Priviledge> privs = acr.getPriviledges(auth);
             boolean result;
-            if( method.isWrite ) {
+            if (method.isWrite) {
                 result = SecurityUtils.hasWrite(privs);
             } else {
                 result = SecurityUtils.hasRead(privs);
             }
-            if( !result ) {
+            if (!result) {
                 log.info("Denied access of: " + auth + " to resource: " + aThis.getName() + " (" + aThis.getClass() + ")");
                 log.info("Allowed privs are:");
-                for( Priviledge p : privs ) {
+                for (Priviledge p : privs) {
                     log.info("   - " + p);
                 }
             }
@@ -88,6 +93,4 @@ public class SpliffySecurityManager {
     public UserDao getUserDao() {
         return userDao;
     }
-    
-    
 }

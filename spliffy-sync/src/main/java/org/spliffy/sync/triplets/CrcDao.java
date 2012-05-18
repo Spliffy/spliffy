@@ -25,7 +25,6 @@ public class CrcDao {
     
 
     public void deleteCrc(Connection c, String path, String name) throws SQLException {
-        System.out.println("delete crc: " + path + ", " + name);
         String sql = "DELETE FROM " + CRC.tableName + " WHERE " + CRC.path.getName() + " = ?" + " AND " + CRC.name.getName() + " = ?";
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
             CRC.path.set(stmt, 1, path);
@@ -35,7 +34,6 @@ public class CrcDao {
     }
 
     public void insertCrc(Connection c, String path, String name, long crc, long modDate) throws SQLException {
-        System.out.println("insertCrc: " + path + "," + name + "," + crc);
         String sql = CRC.getInsert();
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
             CRC.crc.set(stmt, 1, crc);

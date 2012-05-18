@@ -1,16 +1,19 @@
 package org.spliffy.sync;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.httpclient.Host;
+import com.ettrema.httpclient.HttpException;
+import com.ettrema.httpclient.MethodNotAllowedException;
 import java.io.*;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.hashsplit4j.api.*;
 import org.spliffy.common.HashUtils;
@@ -22,37 +25,51 @@ import org.spliffy.common.HashUtils;
 public class Syncer {
 
     private final HttpHashStore httpHashStore;
-    private final HttpBlobStore httpBlobStore;    
-    private final HttpClient client;
+    private final HttpBlobStore httpBlobStore;
+    private final Host host;
     private final Archiver archiver;
     private final File root;
     private final Path baseUrl;
 
-    public Syncer(File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, HttpClient client, Archiver archiver, String baseUrl) {
+    public Syncer(File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, Host host, Archiver archiver, String baseUrl) {
         this.root = root;
         this.httpHashStore = httpHashStore;
         this.httpBlobStore = httpBlobStore;
         this.archiver = archiver;
-        this.client = client;
+        this.host = host;
         this.baseUrl = Path.path(baseUrl);
     }
 
-    
     public void createRemoteDir(Path path) throws ConflictException {
-        String href = HttpUtils.toHref(baseUrl, path);        
-        HttpUtils.mkcol(client, href);
-    }
-
-    public void deleteRemote(Path path)  {
-        String s = HttpUtils.toHref(this.baseUrl, path);
+        Path p = baseUrl.add(path);
         try {
-            HttpUtils.delete(client, s);
+            host.doMkCol(p);
+        } catch (MethodNotAllowedException e) {
+            throw new ConflictException(p.toString());
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (NotAuthorizedException ex) {
+            throw new RuntimeException(ex);
+        } catch (BadRequestException ex) {
+            throw new RuntimeException(ex);
         } catch (NotFoundException ex) {
-            System.out.println("not found: " + s + " but ignoring as we only wanted to delete it anyway");
+            throw new RuntimeException(ex);
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException(ex);
         }
     }
-    
-    
+
+    public void deleteRemote(Path path) {
+        Path p = baseUrl.add(path);
+        try {
+            host.doDelete(p);
+        } catch (NotFoundException e) {
+            // ok
+        } catch (IOException | HttpException | NotAuthorizedException | ConflictException | BadRequestException ex) {
+            Logger.getLogger(Syncer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void downloadSync(long hash, Path path) throws IOException {
         System.out.println("downloadSync: " + path);
         File localFile = toFile(path);
@@ -143,7 +160,6 @@ public class Syncer {
 //            //System.out.println("Not Found: " + childEncodedPath + " - ignoring exception because we were going to delete it anyway");
 //        }
 //    }
-    
     public void upSync(Path path) throws FileNotFoundException, IOException {
         File file = toFile(path);
         System.out.println("upSync: " + file.getAbsolutePath());
@@ -162,7 +178,6 @@ public class Syncer {
         }
     }
 
-
     /**
      * Do a PUT with a special content type so the server knows to just update
      * the file's hash. The PUT content is just the hash
@@ -171,11 +186,6 @@ public class Syncer {
      * @param encodedPath
      */
     private void updateHashOnRemoteResource(long hash, Path path) {
-        String s = HttpUtils.toHref(this.baseUrl, path);
-        System.out.println("Syncer::updateHashOnRemoteResource: " + s);
-        PutMethod p = new PutMethod(s);
-        p.setRequestHeader("Content-Type", "spliffy/hash");
-
         // Copy longs into a byte array
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bout);
@@ -186,24 +196,14 @@ public class Syncer {
         }
         byte[] data = bout.toByteArray();
 
-        HttpMethodParams params = new HttpMethodParams();
-        p.setParams(params);
         try {
-            RequestEntity requestEntity = new ByteArrayRequestEntity(data);
-
-            p.setRequestEntity(requestEntity);
-            int result = client.executeMethod(p);
-            if (result < 200 || result >= 300) {
-                throw new RuntimeException("Hash set failed. result:" + result + "  url: " + s);
-            }
-        } catch (IOException ex) {
+            Path p = baseUrl.add(path);
+            host.doPut(p, data, "spliffy/hash");
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
-        } finally {
-            p.releaseConnection();
         }
     }
 
-    
     public Path getBaseUrl() {
         return baseUrl;
     }
@@ -215,6 +215,4 @@ public class Syncer {
         }
         return f;
     }
-
-
 }

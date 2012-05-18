@@ -5,16 +5,18 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.httpclient.Host;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.hashsplit4j.api.HttpBlobStore;
-import org.hashsplit4j.api.HttpHashStore;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.auth.*;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
 import org.spliffy.sync.triplets.HttpTripletStore;
 
 /**
@@ -31,7 +33,12 @@ public class SpliffySync {
 
         File localRootDir = new File(sLocalDir);
         URL url = new URL(sRemoteAddress);
-        HttpClient client = createHost(url, user, pwd);
+        //HttpClient client = createHost(url, user, pwd);
+        
+        Host client = new Host(url.getHost(), url.getPath(), url.getPort(), user, pwd, null, null);
+        boolean secure = url.getProtocol().equals("https");
+        client.setSecure(secure);
+        
 
         System.out.println("Sync: " + localRootDir.getAbsolutePath() + " - " + sRemoteAddress);
 
@@ -61,33 +68,15 @@ public class SpliffySync {
         System.out.println("http blob gets: " + httpBlobStore.getGets() + " sets: " + httpBlobStore.getSets());
     }
 
-    private static HttpClient createHost(URL url, String user, String pwd) throws MalformedURLException {
 
-        HttpClient client = new HttpClient();
-        client.getHttpConnectionManager().getParams().setConnectionTimeout(10000);
-        if (user != null) {
-            client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user, pwd));
-        }
-
-        if (user != null && user.length() > 0) {
-            client.getParams().setAuthenticationPreemptive(true);
-        }
-        client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-        client.getParams().setSoTimeout(30000);
-        client.getParams().setConnectionManagerTimeout(30000);
-        HttpMethodRetryHandler handler = new DefaultHttpMethodRetryHandler(0, false); // no retries
-        client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, handler);
-        client.getHostConfiguration().setHost(url.getHost(), url.getPort(), url.getProtocol());
-        return client;
-    }
     private final File localRoot;
     private final DbInitialiser dbInit;
-    private final HttpClient httpClient;
+    private final Host httpClient;
     private final Syncer syncer;
     private final String basePath;
     private final Archiver archiver;
 
-    public SpliffySync(File local, HttpClient httpClient, String basePath, Syncer syncer, Archiver archiver, DbInitialiser dbInit) {
+    public SpliffySync(File local, Host httpClient, String basePath, Syncer syncer, Archiver archiver, DbInitialiser dbInit) {
         this.localRoot = local;
         this.httpClient = httpClient;
         this.basePath = basePath;
@@ -111,4 +100,29 @@ public class SpliffySync {
         // Now do the 
         dirWalker.walk();
     }
+    
+    static class PreemptiveAuthInterceptor implements HttpRequestInterceptor {
+
+        @Override
+        public void process(final HttpRequest request, final HttpContext context) {
+            AuthState authState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+
+            // If no auth scheme avaialble yet, try to initialize it
+            // preemptively
+            if (authState.getAuthScheme() == null) {
+                AuthScheme authScheme = (AuthScheme) context.getAttribute("preemptive-auth");
+                if (authScheme != null) {
+                    CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
+                    HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+                    Credentials creds = credsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
+                    if (creds == null) {
+                        throw new RuntimeException("No credentials for preemptive authentication");
+                    }
+                    authState.setAuthScheme(authScheme);
+                    authState.setCredentials(creds);
+                }
+            }
+
+        }
+    }    
 }

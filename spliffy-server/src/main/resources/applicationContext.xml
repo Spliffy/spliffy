@@ -129,7 +129,7 @@
     </bean>    
     
     <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
-        <property name="disableDigest" value="true" />
+        <property name="disableDigest" value="false" />
     </bean>
 
     <bean id="milton.response.handler" class="com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler">

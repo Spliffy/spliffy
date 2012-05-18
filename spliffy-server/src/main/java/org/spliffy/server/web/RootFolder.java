@@ -17,6 +17,7 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
@@ -33,6 +34,7 @@ import org.spliffy.server.db.User;
  * @author brad
  */
 public class RootFolder extends AbstractResource implements SpliffyCollectionResource, GetableResource, PropFindableResource {
+
     private Map<String, PrincipalResource> children = new HashMap<>();
     private final ApplicationManager applicationManager;
 
@@ -48,6 +50,9 @@ public class RootFolder extends AbstractResource implements SpliffyCollectionRes
 
     @Override
     public boolean authorise(Request request, Request.Method method, Auth auth) {
+        if (method.equals(Method.PROPFIND)) { // force login for webdav browsing
+            return currentUser != null;
+        }
         return true;
     }
 
@@ -82,7 +87,13 @@ public class RootFolder extends AbstractResource implements SpliffyCollectionRes
 
     @Override
     public List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException {
-        return Collections.EMPTY_LIST; // browsing not supported
+        if (currentUser == null) {
+            throw new NotAuthorizedException("Need to be logged in to browse");
+        }
+        PrincipalResource r = findEntity(currentUser.getName());
+        List<Resource> list = new ArrayList<>();
+        list.add(r);
+        return list;
     }
 
     @Override
@@ -133,5 +144,4 @@ public class RootFolder extends AbstractResource implements SpliffyCollectionRes
     public Map<Principal, List<Priviledge>> getAccessControlList() {
         return Collections.EMPTY_MAP;
     }
-    
 }

@@ -1,16 +1,17 @@
 package org.spliffy.sync;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
 import java.io.*;
 import java.util.*;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.io.output.NullOutputStream;
 import org.hashsplit4j.api.*;
 import org.spliffy.common.Triplet;
@@ -22,23 +23,21 @@ import org.spliffy.common.HashUtils;
  */
 public class ScanningHashStore implements HashStore {
 
-    private final HttpClient httpClient;
-    private final String basePath;
+    private final Host httpClient;
+    private final Path basePath;
     private final File local;
     private Triplet rootTriplet = new Triplet();
     private Map<File, LocalFileTriplet> mapOfLocalTriplets = new HashMap<>();
     private final MemoryHashStore hashStore = new MemoryHashStore();
 
-    public ScanningHashStore(HttpClient httpClient, File local, String baseUrl) {
+    public ScanningHashStore(Host httpClient, File local, String baseUrl) {
         this.httpClient = httpClient;
         this.local = local;
-        this.basePath = baseUrl;
+        this.basePath = Path.path(baseUrl);
     }
 
     public long scan() throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
-        System.out.println("ScanningHashStore: scan");
-        String encodedPath = basePath;
-        return walkTree(local, rootTriplet, encodedPath);
+        return walkTree(local, rootTriplet, basePath);
     }
 
     public LocalFileTriplet getLocalTriplet(File localFile) {
@@ -49,18 +48,18 @@ public class ScanningHashStore implements HashStore {
      *
      * @param dir - the local directory being scanned
      * @param dirTriplet - triplet representing the directory being scanner
-     * @param encodedDirPath - the percentage encoded path of the remote
+     * @param dirPath - the percentage encoded path of the remote
      * repository
      * @return - the hash of the directory being scanned
      * @throws IOException
      */
-    private long walkTree(File dir, Triplet dirTriplet, String encodedDirPath) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException {
-        //      System.out.println("walkTree: " + encodedDirPath);
-        // Need to load triplets from remote host to get meta id's
-        System.out.println("walkTree: " + dir.getAbsolutePath());
+    private long walkTree(File dir, Triplet dirTriplet, Path dirPath) throws IOException, HttpException, NotAuthorizedException, BadRequestException, ConflictException {
         Map<String, Triplet> mapOfRemoteTriplets;
         try {
-            byte[] arrRemoteTriplets = HttpUtils.get(httpClient, encodedDirPath + "?type=hashes");
+            Map<String,String> params = new HashMap<>();
+            params.put("type", "hashes");
+            Path p = basePath.add(dirPath);
+            byte[] arrRemoteTriplets = httpClient.doGet(p, params);            
             List<Triplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
             mapOfRemoteTriplets = HashUtils.toMap(triplets);
         } catch (NotFoundException ex) {
@@ -81,7 +80,7 @@ public class ScanningHashStore implements HashStore {
                 childTriplet.setType(childFile.isDirectory() ? "d" : "f");
                 long hash;
                 if (childFile.isDirectory()) {
-                    String childPath = encodedDirPath + com.bradmcevoy.http.Utils.percentEncode(name) + "/";
+                    Path childPath = dirPath.child(childFile.getName());
                     hash = walkTree(childFile, childTriplet, childPath);
                 } else {
                     hash = parseFile(childFile, childTriplet.getBlobStore());

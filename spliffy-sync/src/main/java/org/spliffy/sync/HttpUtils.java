@@ -4,11 +4,22 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.httpclient.MkColMethod;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URLEncodedUtils;
 
 /**
  *
@@ -16,61 +27,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
  */
 public class HttpUtils {
 
-    public static byte[] get(HttpClient client, String path, NameValuePair... params) throws NotFoundException {
-        GetMethod getMethod = new GetMethod(path);
-        if (params != null && params.length > 0) {
-            System.out.println("add params: " + params);
-            getMethod.setQueryString(params);
-        }
-        int result;
-        try {
-            result = client.executeMethod(getMethod);
-            if (result >= 400 && result < 500) {
-                throw new NotFoundException("Not found: " + path);
-            }
-            if (result < 200 || result >= 300) {
-                throw new RuntimeException("Download failed. result:" + result + " url: " + path);
-            }
-            byte[] arr = getMethod.getResponseBody();
-            return arr;
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public static void delete(HttpClient client, String path) throws NotFoundException {
-        System.out.println("delete: " + path);
-        DeleteMethod getMethod = new DeleteMethod(path);
-        int result;
-        try {
-            result = client.executeMethod(getMethod);
-            if (result >= 400 && result < 500) {
-                throw new NotFoundException("Not found: " + path);
-            }
-            if (result < 200 || result >= 300) {
-                throw new RuntimeException("Delete failed. result:" + result + " url: " + path);
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public static void mkcol(HttpClient client, String path) throws ConflictException {
-        System.out.println("mkcol: " + path);
-        MkColMethod m = new MkColMethod(path);
-        int result;
-        try {
-            result = client.executeMethod(m);
-            if (result >= 400 && result < 500) {
-                throw new ConflictException("Conflict: " + path);
-            }
-            if (result < 200 || result >= 300) {
-                throw new RuntimeException("mkcol failed. result:" + result + " url: " + path);
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
     /**
      * Takes an unencoded local path (eg "/my docs") and turns it into a
@@ -86,5 +42,22 @@ public class HttpUtils {
             p = p.child(com.bradmcevoy.http.Utils.percentEncode(name));
         }
         return p.toString();
+    }
+
+    public static int executeHttpWithStatus(org.apache.http.client.HttpClient client, HttpUriRequest m, OutputStream out) throws IOException {
+        HttpResponse resp = client.execute(m);
+        HttpEntity entity = resp.getEntity();
+        if (entity != null) {
+            InputStream in = null;
+            try {
+                in = entity.getContent();
+                if (out != null) {
+                    IOUtils.copy(in, out);
+                }
+            } finally {
+                IOUtils.closeQuietly(in);
+            }
+        }
+        return resp.getStatusLine().getStatusCode();
     }
 }

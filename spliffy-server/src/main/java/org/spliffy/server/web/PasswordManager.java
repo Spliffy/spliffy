@@ -10,6 +10,8 @@ import org.spliffy.server.db.User;
  */
 public class PasswordManager {
     
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PasswordManager.class);
+    
     private final DigestGenerator digestGenerator;
             
     private String realm = "spliffy";
@@ -43,12 +45,13 @@ public class PasswordManager {
     }
     
     public boolean verifyDigest(DigestResponse digest, User user) {        
+        
         //String a1Md5 = user.getPasswordDigest();
         String a1Md5 = digestGenerator.encodePasswordInA1Format(user.getName(), realm, user.getPassword());
         String expectedResp = digestGenerator.generateDigestWithEncryptedPassword(digest, a1Md5);
         String actualResp = digest.getResponseDigest();
         if( expectedResp.equals(actualResp)) {
-            System.out.println("ok");
+            log.info("verifyDigest: ok");
             return true;
         } else {
             System.out.println("digests don't match!!!!");            
