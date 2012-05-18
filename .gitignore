@@ -1,3 +1,6 @@
 /spliffy-server/target/
 /spliffy-sync/target/
 /spliffy-lib/target/
+/spliffy-sync-app/module/target/
+/spliffy-sync-app/branding/target/
+/spliffy-sync-app/application/target/

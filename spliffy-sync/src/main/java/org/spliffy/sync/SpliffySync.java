@@ -6,6 +6,8 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.event.EventManager;
+import com.ettrema.event.EventManagerImpl;
 import com.ettrema.httpclient.Host;
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +59,8 @@ public class SpliffySync {
         httpBlobStore.setBaseUrl("/_hashes/blobs/");
 
         Archiver archiver = new Archiver();
-        Syncer syncer = new Syncer(localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
+        EventManager eventManager = new EventManagerImpl();
+        Syncer syncer = new Syncer(eventManager, localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
 
         SpliffySync spliffySync = new SpliffySync(localRootDir, client, url.getPath(), syncer, archiver, dbInit);
         spliffySync.scan();

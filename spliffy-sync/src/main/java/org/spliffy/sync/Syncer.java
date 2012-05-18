@@ -5,6 +5,7 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.event.EventManager;
 import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.MethodNotAllowedException;
@@ -17,21 +18,30 @@ import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.hashsplit4j.api.*;
 import org.spliffy.common.HashUtils;
+import org.spliffy.sync.event.DownloadSyncEvent;
+import org.spliffy.sync.event.EventUtils;
+import org.spliffy.sync.event.FinishedSyncEvent;
+import org.spliffy.sync.event.UploadSyncEvent;
 
 /**
+ * This class contains the code to actually perform file sync operations. This
+ * is generally called from SyncingDeltaListener in response to file comparison
+ * events.
  *
  * @author brad
  */
 public class Syncer {
-
+    private final EventManager eventManager;
     private final HttpHashStore httpHashStore;
     private final HttpBlobStore httpBlobStore;
     private final Host host;
     private final Archiver archiver;
     private final File root;
     private final Path baseUrl;
+    
 
-    public Syncer(File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, Host host, Archiver archiver, String baseUrl) {
+    public Syncer(EventManager eventManager, File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, Host host, Archiver archiver, String baseUrl) {
+        this.eventManager = eventManager;
         this.root = root;
         this.httpHashStore = httpHashStore;
         this.httpBlobStore = httpBlobStore;
@@ -43,6 +53,7 @@ public class Syncer {
     public void createRemoteDir(Path path) throws ConflictException {
         Path p = baseUrl.add(path);
         try {
+            EventUtils.fireQuietly(eventManager, new UploadSyncEvent());
             host.doMkCol(p);
         } catch (MethodNotAllowedException e) {
             throw new ConflictException(p.toString());
@@ -56,21 +67,35 @@ public class Syncer {
             throw new RuntimeException(ex);
         } catch (URISyntaxException ex) {
             throw new RuntimeException(ex);
+        } finally {
+            EventUtils.fireQuietly(eventManager, new FinishedSyncEvent());
         }
     }
 
     public void deleteRemote(Path path) {
         Path p = baseUrl.add(path);
         try {
+            EventUtils.fireQuietly(eventManager, new UploadSyncEvent());
             host.doDelete(p);
         } catch (NotFoundException e) {
             // ok
         } catch (IOException | HttpException | NotAuthorizedException | ConflictException | BadRequestException ex) {
             Logger.getLogger(Syncer.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            EventUtils.fireQuietly(eventManager, new FinishedSyncEvent());
         }
     }
 
     public void downloadSync(long hash, Path path) throws IOException {
+        try {
+            EventUtils.fireQuietly(eventManager, new DownloadSyncEvent());
+            _downloadSync(hash, path);;
+        } finally {
+            EventUtils.fireQuietly(eventManager, new FinishedSyncEvent());
+        }
+    }
+    
+    private void _downloadSync(long hash, Path path) throws IOException {
         System.out.println("downloadSync: " + path);
         File localFile = toFile(path);
         List<HashStore> hashStores = new ArrayList<>();
@@ -166,6 +191,7 @@ public class Syncer {
 
         FileInputStream fin = null;
         try {
+            EventUtils.fireQuietly(eventManager, new UploadSyncEvent());
             fin = new FileInputStream(file);
             BufferedInputStream bufIn = new BufferedInputStream(fin);
             Parser parser = new Parser();
@@ -174,6 +200,7 @@ public class Syncer {
             // Now set the new hash on the remote file, which effectively commits the new content
             updateHashOnRemoteResource(newHash, path);
         } finally {
+            EventUtils.fireQuietly(eventManager, new FinishedSyncEvent());
             IOUtils.closeQuietly(fin);
         }
     }
