@@ -24,6 +24,7 @@ import org.spliffy.server.db.User;
  * @author brad
  */
 public abstract class AbstractResource implements SpliffyResource, PropFindableResource, AccessControlledResource, ReportableResource {
+
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
 
     /**
@@ -45,7 +46,7 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     @Override
     public Object authenticate(String user, String password) {
         currentUser = (User) services.getSecurityManager().authenticate(user, password);
-        if( currentUser != null ) {
+        if (currentUser != null) {
             return SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
         } else {
             return null;
@@ -56,10 +57,10 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     public Object authenticate(DigestResponse digestRequest) {
         System.out.println("digest auth: " + digestRequest.getUser());
         currentUser = (User) services.getSecurityManager().authenticate(digestRequest);
-        if( currentUser != null ) {            
+        if (currentUser != null) {
             PrincipalResource ur = SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
-            if( ur == null ) {
-                throw new RuntimeException("Failed to find UserResource for: " + currentUser.getName());                
+            if (ur == null) {
+                throw new RuntimeException("Failed to find UserResource for: " + currentUser.getName());
             }
             log.warn("sigest auth ok: " + ur);
             return ur;
@@ -72,8 +73,8 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     @Override
     public boolean authorise(Request request, Method method, Auth auth) {
         boolean b = services.getSecurityManager().authorise(request, method, auth, this);
-        if( !b ) {
-            LogUtils.info(log, "authorisation failed", auth,"resource:", getName(), "method:", method);
+        if (!b) {
+            LogUtils.info(log, "authorisation failed", auth, "resource:", getName(), "method:", method);
         }
         return b;
     }
@@ -96,9 +97,11 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     public String checkRedirect(Request request) {
         if (request.getMethod().equals(Request.Method.GET)) {
             if (this instanceof CollectionResource) {
-                String url = request.getAbsolutePath();
-                if (!url.endsWith("/")) {
-                    return url + "/";
+                if (request.getParams().isEmpty()) { // only do redirect if no request params
+                    String url = request.getAbsolutePath();
+                    if (!url.endsWith("/")) {
+                        return url + "/";
+                    }
                 }
             }
         }
@@ -131,7 +134,6 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     public User getCurrentUser() {
         return currentUser;
     }
-    
 
     @Override
     public String getPrincipalURL() {
@@ -155,19 +157,15 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
         List<AccessControlledResource.Priviledge> list = new ArrayList<>();
         if (auth != null && auth.getTag() != null) {
             UserResource user = (UserResource) auth.getTag();
-            addPrivs(list, user.getThisUser() );
+            addPrivs(list, user.getThisUser());
         }
         return list;
     }
-    
-
 
     @Override
     public void setAccessControlList(Map<Principal, List<Priviledge>> privs) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
-    
 
     /**
      * Return the hrefs (either fully qualified URLs or absolute paths) to the
@@ -187,5 +185,4 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
         list.add("/users/");
         return list;
     }
-    
 }

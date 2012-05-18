@@ -71,12 +71,16 @@ public class HashUtils {
     }
 
     private static Triplet parse(String line) {
-        String[] arr = line.split(":");
-        Triplet triplet = new Triplet();
-        triplet.setName(arr[0]);
-        triplet.setHash(Long.parseLong(arr[1]));
-        triplet.setType(arr[2]);
-        return triplet;
+        try {
+            String[] arr = line.split(":");
+            Triplet triplet = new Triplet();
+            triplet.setName(arr[0]);
+            triplet.setHash(Long.parseLong(arr[1]));
+            triplet.setType(arr[2]);
+            return triplet;
+        } catch (Throwable e) {
+            throw new RuntimeException("Couldnt parse - " + line, e);
+        }
     }
     
     public static Map<String, Triplet> toMap(List<Triplet> triplets) {

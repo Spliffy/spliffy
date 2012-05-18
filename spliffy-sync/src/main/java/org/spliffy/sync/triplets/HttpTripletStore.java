@@ -25,9 +25,9 @@ public class HttpTripletStore implements TripletStore {
      * @param httpClient
      * @param rootPath 
      */
-    public HttpTripletStore(Host httpClient, String rootPath) {
+    public HttpTripletStore(Host httpClient, Path rootPath) {
         this.host = httpClient;
-        this.rootPath = Path.path(rootPath);
+        this.rootPath = rootPath;
     }
 
 
@@ -39,7 +39,7 @@ public class HttpTripletStore implements TripletStore {
         params.put("type", "hashes");        
                         
         try {            
-            byte[] arrRemoteTriplets = host.doGet(path, params);
+            byte[] arrRemoteTriplets = host.doGet(p, params);
             List<Triplet> triplets = HashUtils.parseTriplets(new ByteArrayInputStream(arrRemoteTriplets));
             return triplets;
         } catch (IOException ex) {

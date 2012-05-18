@@ -1,5 +1,6 @@
 package org.spliffy.sync;
 
+import com.bradmcevoy.common.Path;
 import org.spliffy.sync.triplets.JdbcLocalTripletStore;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -35,7 +36,7 @@ public class SpliffySync {
         URL url = new URL(sRemoteAddress);
         //HttpClient client = createHost(url, user, pwd);
         
-        Host client = new Host(url.getHost(), url.getPath(), url.getPort(), user, pwd, null, null);
+        Host client = new Host(url.getHost(), url.getPort(), user, pwd, null);
         boolean secure = url.getProtocol().equals("https");
         client.setSecure(secure);
         
@@ -90,7 +91,7 @@ public class SpliffySync {
     }
 
     public void doScan() throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
-        HttpTripletStore remoteTripletStore = new HttpTripletStore(httpClient, basePath);
+        HttpTripletStore remoteTripletStore = new HttpTripletStore(httpClient, Path.path(basePath));
         JdbcLocalTripletStore jdbcTripletStore = new JdbcLocalTripletStore(dbInit.getUseConnection(), dbInit.getDialect(), localRoot);
         JdbcSyncStatusStore statusStore = new JdbcSyncStatusStore(dbInit.getUseConnection(), dbInit.getDialect(), basePath, localRoot);
         DeltaListener2 deltaListener2 = new SyncingDeltaListener(syncer, archiver, localRoot, statusStore);
