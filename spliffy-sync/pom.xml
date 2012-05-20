@@ -4,7 +4,7 @@
     <parent>
         <groupId>spliffy</groupId>
         <artifactId>spliffy</artifactId>
-        <version>1.0.8-SNAPSHOT</version>
+        <version>1.0.9-SNAPSHOT</version>
     </parent>
     <artifactId>spliffy-sync</artifactId>
     <packaging>jar</packaging>
