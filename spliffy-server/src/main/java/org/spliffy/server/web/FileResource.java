@@ -6,6 +6,7 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.httpclient.Host;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +17,8 @@ import java.util.Set;
 import org.hashsplit4j.api.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spliffy.server.db.ItemVersion;
 import org.spliffy.server.db.utils.SessionManager;
 
@@ -28,6 +31,8 @@ import org.spliffy.server.db.utils.SessionManager;
  */
 public class FileResource extends AbstractMutableResource implements ReplaceableResource {
 
+    private static final Logger log = LoggerFactory.getLogger(FileResource.class);
+    
     private Fanout fanout;
     
     private boolean dirty;
@@ -65,15 +70,17 @@ public class FileResource extends AbstractMutableResource implements Replaceable
         
         String ct = HttpManager.request().getContentTypeHeader();
         if (ct != null && ct.equals("spliffy/hash")) {
-            // read the new hash and set it on this
+            // read the new hash and set it on this            
             DataInputStream din = new DataInputStream(in);
             try {
                 hash = din.readLong();
             } catch (IOException ex) {
                 throw new BadRequestException("Couldnt read the new hash", ex);
             }
+            log.info("replaceContent: setting hash: " + hash);
 
         } else {
+            log.info("replaceContent: set content");
             // parse data and persist to stores
             Parser parser = new Parser();
             long fileHash;

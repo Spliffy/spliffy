@@ -47,6 +47,11 @@
             <scope>test</scope>
         </dependency>
         -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>spliffy-sync-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -13,6 +13,7 @@ import javax.swing.SwingUtilities;
 import org.openide.LifecycleManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spliffy.sync.SpliffySync;
 import org.spliffy.sync.event.DownloadSyncEvent;
 import org.spliffy.sync.event.FinishedSyncEvent;
 import org.spliffy.sync.event.ScanEvent;
@@ -26,7 +27,8 @@ public class TrayController {
 
     private static final Logger log = LoggerFactory.getLogger(TrayController.class);
 
-    private WindowController windowController;
+    private final WindowController windowController;
+    private final SpliffySync spliffySync;
     
     private final TrayIcon trayIcon;
     private final Image trayIconIdle;
@@ -35,14 +37,13 @@ public class TrayController {
     private final Image trayIconOffline;
     private MenuItem openItem;
     private MenuItem openWebItem;
-    private MenuItem viewFilesItem;
-    private CheckboxMenuItem paused;
-    private CheckboxMenuItem disableScanning;
+    private CheckboxMenuItem paused;    
     private MenuItem exitItem;
     private Image current;
 
-    public TrayController(EventManager eventManager, WindowController windowController) {
+    public TrayController(EventManager eventManager, WindowController windowController, SpliffySync spliffySync) {
         this.windowController = windowController;
+        this.spliffySync = spliffySync;
         TrayControllerEventListener tcel = new TrayControllerEventListener();
         eventManager.registerEventListener(tcel, UploadSyncEvent.class);
         eventManager.registerEventListener(tcel, DownloadSyncEvent.class);
@@ -70,21 +71,17 @@ public class TrayController {
             final SystemTray tray = SystemTray.getSystemTray();
 
             // Create a pop-up menu components
-            openItem = new MenuItem("Open ShmeGO");
-            openWebItem = new MenuItem("Browse your media lounge");
-            viewFilesItem = new MenuItem("View files on server");
+            openItem = new MenuItem("Open");
+            openWebItem = new MenuItem("Go to the web site");
             paused = new CheckboxMenuItem("Pause");
-            disableScanning = new CheckboxMenuItem("Disable scanning");
             exitItem = new MenuItem("Exit");
-            setFont(openItem, paused, exitItem, openWebItem, viewFilesItem, disableScanning);
+            setFont(openItem, paused, exitItem, openWebItem);
 
             //Add components to pop-up menu
             popup.add(openItem);
             popup.add(openWebItem);
-            popup.add(viewFilesItem);
             popup.addSeparator();
             popup.add(paused);
-            popup.add(disableScanning);
             popup.addSeparator();
             popup.add(exitItem);
 
@@ -145,29 +142,12 @@ public class TrayController {
                 }
             });
 
-            viewFilesItem.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    windowController.showRemoteBrowser();
-                }
-            });
-
             paused.addItemListener(new ItemListener() {
 
                 @Override
                 public void itemStateChanged(ItemEvent e) {
                     log.debug(" paused : " + paused.getState());
-                    //config.setPaused(paused.getState());
-                }
-            });
-
-            disableScanning.addItemListener(new ItemListener() {
-
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    log.info("set diabled scanning: " + disableScanning.getState());
-                    //scanService.setScanningDisabled(disableScanning.getState());
+                    spliffySync.setPaused(paused.getState());
                 }
             });
 

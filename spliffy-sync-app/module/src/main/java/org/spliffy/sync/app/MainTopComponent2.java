@@ -257,6 +257,13 @@ public final class MainTopComponent2 extends TopComponent {
         // TODO add custom code on component closing
     }
 
+    @Override
+    public boolean canClose() {
+        return false;
+    }
+    
+    
+
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles

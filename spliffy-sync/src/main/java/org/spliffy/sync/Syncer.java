@@ -31,6 +31,9 @@ import org.spliffy.sync.event.UploadSyncEvent;
  * @author brad
  */
 public class Syncer {
+    
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Syncer.class);
+    
     private final EventManager eventManager;
     private final HttpHashStore httpHashStore;
     private final HttpBlobStore httpBlobStore;
@@ -39,6 +42,7 @@ public class Syncer {
     private final File root;
     private final Path baseUrl;
     
+    private boolean paused;
 
     public Syncer(EventManager eventManager, File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, Host host, Archiver archiver, String baseUrl) {
         this.eventManager = eventManager;
@@ -187,7 +191,7 @@ public class Syncer {
 //    }
     public void upSync(Path path) throws FileNotFoundException, IOException {
         File file = toFile(path);
-        System.out.println("upSync: " + file.getAbsolutePath());
+        log.info("upSync: " + file.getAbsolutePath());
 
         FileInputStream fin = null;
         try {
@@ -224,7 +228,7 @@ public class Syncer {
         byte[] data = bout.toByteArray();
 
         try {
-            Path p = baseUrl.add(path);
+            Path p = baseUrl.add(path);            
             host.doPut(p, data, "spliffy/hash");
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -241,5 +245,10 @@ public class Syncer {
             f = new File(f, fname);
         }
         return f;
+    }
+
+    public void setPaused(boolean state) {
+        this.paused = state;
+        // TODO: should act on uploading and downloading
     }
 }

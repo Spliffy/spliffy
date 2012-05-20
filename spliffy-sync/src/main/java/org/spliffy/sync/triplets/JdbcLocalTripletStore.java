@@ -7,17 +7,25 @@ import com.ettrema.db.TableCreatorService;
 import com.ettrema.db.TableDefinitionSource;
 import com.ettrema.db.UseConnection;
 import com.ettrema.db.dialects.Dialect;
+import com.ettrema.event.EventManager;
 import java.io.*;
+import java.nio.file.*;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.NullHashStore;
 import org.hashsplit4j.api.Parser;
 import org.spliffy.common.HashUtils;
 import org.spliffy.common.Triplet;
 import org.spliffy.sync.Utils;
+import org.spliffy.sync.event.EventUtils;
+import org.spliffy.sync.event.FileChangedEvent;
 import org.spliffy.sync.triplets.BlobDao.BlobVector;
 import org.spliffy.sync.triplets.CrcDao.CrcRecord;
 
@@ -43,6 +51,7 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JdbcLocalTripletStore.class);
     private static ThreadLocal<Connection> tlConnection = new ThreadLocal<>();
+    private static WatchEvent.Kind<?>[] events = {StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY};
 
     private static Connection con() {
         return tlConnection.get();
@@ -51,11 +60,16 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
     private final CrcDao crcDao;
     private final BlobDao blobDao;
     private final File root;
+    private final WatchService watchService;        
+    private final EventManager eventManager;
+    
     private File currentScanFile;
     private long currentOffset;
     private long lastBlobHash;
     private byte[] lastBlob;
     private boolean initialScanDone;
+    private ScheduledFuture<?> futureScan;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     /**
      *
@@ -63,11 +77,16 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
      * @param dialect
      * @param group - so we can cache different collections in one table
      */
-    public JdbcLocalTripletStore(UseConnection useConnection, Dialect dialect, File root) {
+    public JdbcLocalTripletStore(UseConnection useConnection, Dialect dialect, File root, EventManager eventManager) throws IOException {
         this.useConnection = useConnection;
         this.root = root;
+        this.eventManager = eventManager;
         this.crcDao = new CrcDao();
         this.blobDao = new BlobDao();
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        final java.nio.file.Path path = FileSystems.getDefault().getPath(root.getAbsolutePath());
+        watchService = path.getFileSystem().newWatchService();
+
         TableDefinitionSource defs = new TableDefinitionSource() {
 
             @Override
@@ -179,6 +198,37 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
                 return null;
             }
         });
+
+    }
+    
+    /**
+     * Start processing file system events
+     */
+    public void start() {
+        // after initial scan is done, start the thread which will process file changed events
+        // note these events begin accumulating as the scan processes directories
+        Runnable rScan = new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    scanFsEvents();
+                } catch (IOException ex) {
+                    log.error("Exception processing events", ex);
+                }
+            }
+        };
+        log.info("Begin file watch loop: " + root.getAbsolutePath());
+        futureScan = scheduledExecutorService.scheduleWithFixedDelay(rScan, 200, 200, TimeUnit.MILLISECONDS);        
+    }
+
+    /**
+     * Stop processing file system events
+     */
+    public void stop() {
+        if( futureScan != null ) {
+            futureScan.cancel(true);
+        }
     }
 
     /**
@@ -190,6 +240,7 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         if (Utils.ignored(dir)) {
             return false;
         }
+        registerWatchDir(dir);
 
         File[] children = dir.listFiles();
         if (children == null) {
@@ -261,7 +312,7 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
                 }
             }
         }
-
+                
         return changed;
     }
 
@@ -298,5 +349,82 @@ public class JdbcLocalTripletStore implements TripletStore, BlobStore {
         long newHash = HashUtils.calcTreeHash(triplets);
         log.info("Insert new directory hash: " + dir.getParent() + " :: " + dir.getName() + " = " + newHash);
         crcDao.insertCrc(c, dir.getParent(), dir.getName(), newHash, dir.lastModified());
+    }
+
+    private void registerWatchDir(final File dir) throws IOException {
+        final java.nio.file.Path path = FileSystems.getDefault().getPath(dir.getAbsolutePath());
+        // will only watch specified directory, not subdirectories
+        path.register(watchService, events);
+    }
+    
+    private void scanFsEvents() throws IOException {
+        WatchKey watchKey;
+        watchKey = watchService.poll(); // this call is blocking until events are present
+        if (watchKey == null) {
+            return;
+        }
+        Watchable w = watchKey.watchable();
+        java.nio.file.Path watchedPath = (java.nio.file.Path) w;
+        // poll for file system events on the WatchKey
+        for (final WatchEvent<?> event : watchKey.pollEvents()) {
+            WatchEvent.Kind<?> kind = event.kind();
+            if (kind.equals(StandardWatchEventKinds.ENTRY_CREATE)) {
+                java.nio.file.Path pathCreated = (java.nio.file.Path) event.context();
+                File f = new File(watchedPath + File.separator + pathCreated);
+                if (f.isDirectory()) {
+                    directoryCreated(f);
+                } else {
+                    fileCreated(f);
+                }
+            } else if (kind.equals(StandardWatchEventKinds.ENTRY_DELETE)) {
+                java.nio.file.Path pathDeleted = (java.nio.file.Path) event.context();
+                File f = new File(watchedPath + File.separator + pathDeleted);
+                fileDeleted(f);
+            } else if (kind.equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
+                java.nio.file.Path pathModified = (java.nio.file.Path) event.context();
+                File f = new File(watchedPath + File.separator + pathModified);
+                fileModified(f);
+            }
+        }
+
+        // if the watched directed gets deleted, get out of run method
+        if (!watchKey.reset()) {
+            log.info("Watch is no longer valid");
+            watchKey.cancel();
+        }
+    }
+
+    private void directoryCreated(final File f) throws IOException {
+        registerWatchDir( f);
+        scanDirTx(f);
+    }
+
+    private void fileCreated(File f) {
+        scanDirTx(f.getParentFile());
+    }
+
+    private void fileModified(File f) {
+        scanDirTx(f.getParentFile());
+    }
+
+    private void fileDeleted(File f) {
+        scanDirTx(f.getParentFile());
+    }
+    
+    private void scanDirTx(final File dir) {
+        useConnection.use(new With<Connection, Object>() {
+
+            @Override
+            public Object use(Connection t) throws Exception {
+                tlConnection.set(t);
+                if( scanDirectory(dir) ) {
+                    EventUtils.fireQuietly(eventManager, new FileChangedEvent());
+                }
+                con().commit();
+
+                tlConnection.remove();
+                return null;
+            }
+        });        
     }
 }

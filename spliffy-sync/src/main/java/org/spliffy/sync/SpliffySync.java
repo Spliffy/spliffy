@@ -6,20 +6,17 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.event.Event;
+import com.ettrema.event.EventListener;
 import com.ettrema.event.EventManager;
 import com.ettrema.event.EventManagerImpl;
 import com.ettrema.httpclient.Host;
+import com.ettrema.httpclient.HttpException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.auth.*;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
+import java.util.concurrent.*;
+import org.spliffy.sync.event.FileChangedEvent;
 import org.spliffy.sync.triplets.HttpTripletStore;
 
 /**
@@ -28,50 +25,7 @@ import org.spliffy.sync.triplets.HttpTripletStore;
  */
 public class SpliffySync {
 
-    public static void main(String[] args) throws Exception {
-        String sLocalDir = args[0];
-        String sRemoteAddress = args[1];
-        String user = args[2];
-        String pwd = args[3];
-
-        File localRootDir = new File(sLocalDir);
-        URL url = new URL(sRemoteAddress);
-        //HttpClient client = createHost(url, user, pwd);
-        
-        Host client = new Host(url.getHost(), url.getPort(), user, pwd, null);
-        boolean secure = url.getProtocol().equals("https");
-        client.setSecure(secure);
-        
-
-        System.out.println("Sync: " + localRootDir.getAbsolutePath() + " - " + sRemoteAddress);
-
-        File dbFile = new File("target/sync-db");
-        System.out.println("Using database: " + dbFile.getAbsolutePath());
-
-        DbInitialiser dbInit = new DbInitialiser(dbFile);
-
-        JdbcHashCache fanoutsHashCache = new JdbcHashCache(dbInit.getUseConnection(), dbInit.getDialect(), "h");
-        JdbcHashCache blobsHashCache = new JdbcHashCache(dbInit.getUseConnection(), dbInit.getDialect(), "b");
-
-        HttpHashStore httpHashStore = new HttpHashStore(client, fanoutsHashCache);
-        httpHashStore.setBaseUrl("/_hashes/fanouts/");
-        HttpBlobStore httpBlobStore = new HttpBlobStore(client, blobsHashCache);
-        httpBlobStore.setBaseUrl("/_hashes/blobs/");
-
-        Archiver archiver = new Archiver();
-        EventManager eventManager = new EventManagerImpl();
-        Syncer syncer = new Syncer(eventManager, localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
-
-        SpliffySync spliffySync = new SpliffySync(localRootDir, client, url.getPath(), syncer, archiver, dbInit);
-        spliffySync.scan();
-
-        System.out.println("Stats---------");
-        System.out.println("fanouts cache: hits: " + fanoutsHashCache.getHits() + " misses:" + fanoutsHashCache.getMisses() + " inserts: " + fanoutsHashCache.getInserts());
-        System.out.println("blobs cache: hits: " + blobsHashCache.getHits() + " misses:" + blobsHashCache.getMisses() + " inserts: " + blobsHashCache.getInserts());
-        System.out.println("http hash gets: " + httpHashStore.getGets() + " sets: " + httpHashStore.getSets());
-        System.out.println("http blob gets: " + httpBlobStore.getGets() + " sets: " + httpBlobStore.getSets());
-    }
-
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SpliffySync.class);
 
     private final File localRoot;
     private final DbInitialiser dbInit;
@@ -79,54 +33,106 @@ public class SpliffySync {
     private final Syncer syncer;
     private final String basePath;
     private final Archiver archiver;
+    private final HttpTripletStore remoteTripletStore;
+    private final JdbcLocalTripletStore jdbcTripletStore;
+    private final JdbcSyncStatusStore statusStore;
+    private final DeltaListener2 deltaListener2;
+    private final EventManager eventManager;
+    private ScheduledExecutorService scheduledExecService;
+    private ScheduledFuture<?> scanJob;
+    private boolean paused;
 
-    public SpliffySync(File local, Host httpClient, String basePath, Syncer syncer, Archiver archiver, DbInitialiser dbInit) {
+    public SpliffySync(File local, Host httpClient, String basePath, Syncer syncer, Archiver archiver, DbInitialiser dbInit, EventManager eventManager) throws IOException {
         this.localRoot = local;
         this.httpClient = httpClient;
         this.basePath = basePath;
         this.syncer = syncer;
         this.archiver = archiver;
-        this.dbInit = dbInit;                
+        this.dbInit = dbInit;
+        this.eventManager = eventManager;
+        remoteTripletStore = new HttpTripletStore(httpClient, Path.path(basePath));
+        jdbcTripletStore = new JdbcLocalTripletStore(dbInit.getUseConnection(), dbInit.getDialect(), localRoot, eventManager);
+        statusStore = new JdbcSyncStatusStore(dbInit.getUseConnection(), dbInit.getDialect(), basePath, localRoot);
+        deltaListener2 = new SyncingDeltaListener(syncer, archiver, localRoot, statusStore);       
     }
 
+    /**
+     * Perform an immediate scan
+     * 
+     * @throws com.ettrema.httpclient.HttpException
+     * @throws NotAuthorizedException
+     * @throws BadRequestException
+     * @throws ConflictException
+     * @throws NotFoundException
+     * @throws IOException 
+     */
     public void scan() throws com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException, IOException {
-        doScan();
-    }
-
-    public void doScan() throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
-        HttpTripletStore remoteTripletStore = new HttpTripletStore(httpClient, Path.path(basePath));
-        JdbcLocalTripletStore jdbcTripletStore = new JdbcLocalTripletStore(dbInit.getUseConnection(), dbInit.getDialect(), localRoot);
-        JdbcSyncStatusStore statusStore = new JdbcSyncStatusStore(dbInit.getUseConnection(), dbInit.getDialect(), basePath, localRoot);
-        DeltaListener2 deltaListener2 = new SyncingDeltaListener(syncer, archiver, localRoot, statusStore);
-        
         DirWalker dirWalker = new DirWalker(remoteTripletStore, jdbcTripletStore, statusStore, deltaListener2);
-                
+
         // Now do the 
         dirWalker.walk();
     }
+
+    /**
+     * Start the syncronisation service. This will schedule the first scan after 
+     * a short delay, then will scan at intervals after that.
+     * 
+     */
+    public void start() {
+        // subscribe to receive notifications when the file system changes
+        eventManager.registerEventListener(new SpliffySyncEventListener(), FileChangedEvent.class);
+        scheduledExecService = Executors.newScheduledThreadPool(1);
+        // schedule a job to do the scanning with a fixed interval
+        scanJob = scheduledExecService.scheduleWithFixedDelay(new ScanRunner(),5000, 60000, TimeUnit.MILLISECONDS);
+        jdbcTripletStore.start();
+    }
+
+    public void stop() {
+        if (scanJob != null) {
+            scanJob.cancel(true);
+            scanJob = null;
+        }
+        if (scheduledExecService != null) {
+            scheduledExecService.shutdownNow();
+            scheduledExecService = null;
+        }
+        jdbcTripletStore.stop();
+    }
     
-    static class PreemptiveAuthInterceptor implements HttpRequestInterceptor {
+    public void setPaused(boolean state) {
+        paused = state;
+        syncer.setPaused(state);
+    }
+    
+    public boolean isPaused() {
+        return paused;
+    }
+
+    private class ScanRunner implements Runnable {
 
         @Override
-        public void process(final HttpRequest request, final HttpContext context) {
-            AuthState authState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+        public void run() {
+            log.info("doing scan..");
+            try {
+                if( !paused ) {
+                    scan();
+                }
+            } catch (HttpException | NotAuthorizedException | BadRequestException | ConflictException | NotFoundException | IOException ex) {
+                log.error("Exception during scan", ex);
+            }
+        }
+    }
 
-            // If no auth scheme avaialble yet, try to initialize it
-            // preemptively
-            if (authState.getAuthScheme() == null) {
-                AuthScheme authScheme = (AuthScheme) context.getAttribute("preemptive-auth");
-                if (authScheme != null) {
-                    CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
-                    HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-                    Credentials creds = credsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
-                    if (creds == null) {
-                        throw new RuntimeException("No credentials for preemptive authentication");
-                    }
-                    authState.setAuthScheme(authScheme);
-                    authState.setCredentials(creds);
+    private class SpliffySyncEventListener implements EventListener {
+
+        @Override
+        public void onEvent(Event e) {
+            if (e instanceof FileChangedEvent) {
+                log.info("File changed event, doing scan..");
+                if( !paused ) {
+                    scheduledExecService.submit(new ScanRunner());
                 }
             }
-
         }
-    }    
+    }
 }

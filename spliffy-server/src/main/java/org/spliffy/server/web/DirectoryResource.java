@@ -135,8 +135,10 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
             DataInputStream din = new DataInputStream(inputStream);
 
             long newHash = din.readLong();
+            log.info("createNew: setting hash: " + hash);
             fileResource.setHash(newHash);
         } else {
+            log.info("createNew: set content");
             // parse data and persist to stores
             Parser parser = new Parser();
             long fileHash = parser.parse(inputStream, getHashStore(), getBlobStore());
