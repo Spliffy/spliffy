@@ -34,7 +34,9 @@
                 <value>org.spliffy.server.db.Commit</value>
                 <value>org.spliffy.server.db.Repository</value>
                 <value>org.spliffy.server.db.Item</value>
-                <value>org.spliffy.server.db.User</value>
+                <value>org.spliffy.server.db.Profile</value>
+                <value>org.spliffy.server.db.Credential</value>
+                <value>org.spliffy.server.db.PasswordCredential</value>
                 <value>org.spliffy.server.db.FanoutHash</value>
                 <value>org.spliffy.server.db.FanoutEntry</value>
                 <value>org.spliffy.server.db.ItemVersion</value>
@@ -47,7 +49,12 @@
                 <value>org.spliffy.server.db.CalEvent</value>
                 <value>org.spliffy.server.db.AddressBook</value>
                 <value>org.spliffy.server.db.Contact</value>
-                
+                <value>org.spliffy.server.db.ContactExtendedProperty</value>
+                <value>org.spliffy.server.db.Organisation</value>
+                <value>org.spliffy.server.db.Website</value>
+                <value>org.spliffy.server.db.Group</value>
+                <value>org.spliffy.server.db.NvPair</value>
+                <value>org.spliffy.server.db.GroupMembership</value>                
             </list>
         </property>
         <property name="hibernateProperties">

@@ -79,7 +79,7 @@
     <bean id="password.manager" class="org.spliffy.server.web.PasswordManager"/>
 
     <bean id="dao.user" class="org.spliffy.server.db.utils.UserDao"  >
-        <constructor-arg ref="sessionFactory"/>
+
     </bean>
 
     <bean id="security.manager" class="org.spliffy.server.web.SpliffySecurityManager">
@@ -103,13 +103,24 @@
     </bean>    
             
     <!-- default config is to load templates from WEB-INF/templates -->
-    <bean id="templater" class="org.spliffy.server.web.FreemarkerTemplater"/>
+    <bean id="templater" class="org.spliffy.server.web.templating.FreemarkerTemplater">
+        <constructor-arg ref="application.manager" />
+    </bean>
     
     <bean id="event.manager" class="com.ettrema.event.EventManagerImpl"/>
     
     <bean id="application.manager" class="org.spliffy.server.apps.ApplicationManager">
         <constructor-arg>
-            <list></list>
+            <list>
+                <bean class="org.spliffy.server.apps.admin.dashboard.DashboardAdminApp"/>
+                <bean class="org.spliffy.server.apps.admin.users.UserAdminApp"/>
+                <bean class="org.spliffy.server.apps.admin.websites.WebsiteAdminApp"/>
+                <bean class="org.spliffy.server.apps.login.LoginApp"/>
+                <bean class="org.spliffy.server.apps.calendar.CalendarApp"/>
+                <bean class="org.spliffy.server.apps.contacts.ContactsApp"/>
+                <bean class="org.spliffy.server.apps.sharing.ShareApp"/>
+                <bean class="org.spliffy.server.apps.signup.SignupApp"/>                
+            </list>
         </constructor-arg>
         <property name="appsConfigDir" value="${apps.config.dir}" />
     </bean>

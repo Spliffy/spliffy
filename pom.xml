@@ -53,6 +53,7 @@
     </organization>    
     <modules>
         <module>spliffy-lib</module>
+        <module>spliffy-core</module>
         <module>spliffy-server</module>
         <module>spliffy-sync</module>
     </modules>

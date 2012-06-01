@@ -28,7 +28,7 @@
     <dependencies>
         <dependency>
             <groupId>spliffy</groupId>
-            <artifactId>spliffy-lib</artifactId>
+            <artifactId>spliffy-core</artifactId>
             <version>${project.version}</version>
         </dependency> 
         <dependency>
@@ -40,12 +40,7 @@
             <groupId>com.ettrema</groupId>
             <artifactId>milton-ldap</artifactId>
             <version>${milton.version}</version>
-        </dependency>          
-        <dependency>
-            <groupId>com.ettrema</groupId>
-            <artifactId>milton-filesystem</artifactId>
-            <version>${milton.version}</version>
-        </dependency>        
+        </dependency>               
         <dependency>
             <groupId>com.ettrema</groupId>
             <artifactId>milton-servlet</artifactId>
