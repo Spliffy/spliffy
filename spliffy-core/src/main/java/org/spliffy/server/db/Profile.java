@@ -6,7 +6,6 @@ import javax.persistence.*;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.Restrictions;
 import org.spliffy.server.db.utils.SessionManager;
 
 /**
@@ -86,7 +85,13 @@ public class Profile extends BaseEntity {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-            
+    
+    /**
+     * Create a GroupMembership linking this profile to the given group. Is immediately saved
+     * 
+     * @param g
+     * @return 
+     */
     public Profile addToGroup(Group g) {
         if( g.isMember(this)) {
             return this;

@@ -75,7 +75,7 @@ public class ShareResource extends AbstractResource implements GetableResource, 
         if( jsonResult != null ) {
             jsonResult.write(out);
         } else {
-            services.getTemplater().writePage("share.ftl", this, params, out, getCurrentUser());
+            services.getHtmlTemplater().writePage("share", this, params, out);
         }
     }
 

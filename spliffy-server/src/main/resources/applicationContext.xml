@@ -93,25 +93,14 @@
         <constructor-arg ref="resource.manager" />
         <constructor-arg ref="mail.sender" />
     </bean>    
-    <bean id="services" class="org.spliffy.server.web.Services">
-        <constructor-arg ref="hash.store"/>
-        <constructor-arg ref="blob.store"/>
-        <constructor-arg ref="templater"/>
-        <constructor-arg ref="security.manager"/>
-        <constructor-arg ref="share.manager"/>
-        <constructor-arg ref="resource.manager"/>
-    </bean>    
-            
-    <!-- default config is to load templates from WEB-INF/templates -->
-    <bean id="templater" class="org.spliffy.server.web.templating.FreemarkerTemplater">
-        <constructor-arg ref="application.manager" />
-    </bean>
     
     <bean id="event.manager" class="com.ettrema.event.EventManagerImpl"/>
     
     <bean id="application.manager" class="org.spliffy.server.apps.ApplicationManager">
         <constructor-arg>
             <list>
+                <bean class="org.spliffy.server.apps.orgs.OrganisationsApp"/>
+                <bean class="org.spliffy.server.apps.website.WebsiteApp"/>
                 <bean class="org.spliffy.server.apps.admin.dashboard.DashboardAdminApp"/>
                 <bean class="org.spliffy.server.apps.admin.users.UserAdminApp"/>
                 <bean class="org.spliffy.server.apps.admin.websites.WebsiteAdminApp"/>
@@ -119,7 +108,7 @@
                 <bean class="org.spliffy.server.apps.calendar.CalendarApp"/>
                 <bean class="org.spliffy.server.apps.contacts.ContactsApp"/>
                 <bean class="org.spliffy.server.apps.sharing.ShareApp"/>
-                <bean class="org.spliffy.server.apps.signup.SignupApp"/>                
+                <bean class="org.spliffy.server.apps.signup.SignupApp"/>
             </list>
         </constructor-arg>
         <property name="appsConfigDir" value="${apps.config.dir}" />
@@ -216,6 +205,14 @@
 
     <bean id="permissions.authoriser" class="com.bradmcevoy.property.DefaultPropertyAuthoriser"/>
     
+    <bean id="services" class="org.spliffy.server.web.Services">
+        <constructor-arg ref="hash.store"/>
+        <constructor-arg ref="blob.store"/>
+        <constructor-arg ref="security.manager"/>
+        <constructor-arg ref="share.manager"/>
+        <constructor-arg ref="resource.manager"/>
+        <constructor-arg ref="application.manager"/>
+    </bean>       
 
     <bean id="main.spliffy.resource.factory" class="org.spliffy.server.web.SpliffyResourceFactory" init-method="start" destroy-method="stop">
         <!--        
@@ -255,14 +252,29 @@
         </constructor-arg>
     </bean>
     
+    
+    <!-- This will expose resources on the classpath, required for apps which have css/js files in the jar -->
+    <bean id="classpath.resource.factory" class="com.ettrema.http.fs.ClassPathResourceFactory"></bean>
+    
+    <bean id="apps.resource.factory" class="org.spliffy.server.web.resources.AppsResourceFactory">
+        <constructor-arg ref="application.manager" />
+    </bean>        
+    
     <bean id="resource.factory" class="com.bradmcevoy.http.MultipleResourceFactory">
         <constructor-arg>
             <list>
                 <ref local="sync.spliffy.resource.factory" />
-                <ref local="wrapper.resource.factory" />                
-                <ref local="wellknown.resource.factory" />                
+                <ref local="wrapper.resource.factory" />  
+                <ref local="apps.resource.factory"/>
+                <ref local="classpath.resource.factory" />
+                <ref local="wellknown.resource.factory" />
             </list>
         </constructor-arg>
+    </bean>
+
+    <!-- This is used for accessing web resources from a file path. Most useful for debugging -->
+    <bean class="org.spliffy.server.config.SysPropertyResourceFactoryLoader" init-method="init">
+        <constructor-arg ref="resource.factory" />
     </bean>
 
     <bean id="open.session.in.view.filter" class="org.spliffy.server.db.utils.MiltonOpenSessionInViewFilter">

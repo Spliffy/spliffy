@@ -46,7 +46,7 @@ public class CalendarFolder extends AbstractCollectionResource implements Calend
     
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        services.getTemplater().writePage("calendar.ftl", this, params, out, currentUser);
+        services.getHtmlTemplater().writePage("calendar/calendar", this, params, out);
     }
     
     

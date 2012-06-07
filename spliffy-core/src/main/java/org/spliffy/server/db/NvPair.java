@@ -33,6 +33,7 @@ import javax.persistence.*;
 public class NvPair implements Serializable{
     private Long id;
     private BaseEntity baseEntity;
+    private Repository repository;
     private String name;
     private String propValue;
     
@@ -46,17 +47,6 @@ public class NvPair implements Serializable{
         this.id = id;
     }
 
-    @ManyToOne(optional=false)
-    public BaseEntity getBaseEntity() {
-        return baseEntity;
-    }
-
-    public void setBaseEntity(BaseEntity baseEntity) {
-        this.baseEntity = baseEntity;
-    }
-    
-    
-    
     @Column(nullable=false)
     public String getName() {
         return name;
@@ -74,5 +64,24 @@ public class NvPair implements Serializable{
     public void setPropValue(String propValue) {
         this.propValue = propValue;
     }
+
+    @ManyToOne
+    public Repository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(Repository repository) {
+        this.repository = repository;
+    }
+
+    @ManyToOne
+    public BaseEntity getBaseEntity() {
+        return baseEntity;
+    }
+
+    public void setBaseEntity(BaseEntity baseEntity) {
+        this.baseEntity = baseEntity;
+    }
+    
     
 }

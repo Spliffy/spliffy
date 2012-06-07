@@ -44,14 +44,12 @@ public class ContactsApp implements Application {
     }
 
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) throws IOException{
+    public void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws IOException{
         this.services = resourceFactory.getServices();
         contactManager = new ContactManager();
         this.resourceFactory = resourceFactory;
-        SpliffyLdapTransactionManager txManager = new SpliffyLdapTransactionManager(resourceFactory.getSessionManager());
-        
-        AppConfig config = resourceFactory.getApplicationManager().getAppConfig(this);
-        Integer port = config.getInt("port");        
+//        SpliffyLdapTransactionManager txManager = new SpliffyLdapTransactionManager(resourceFactory.getSessionManager());                
+//        Integer port = config.getInt("port");        
 //        ldapServer = new LdapServer(txManager, this, resourceFactory.getPropertySources(), port, false, null);
 //        ldapServer.start();
     }

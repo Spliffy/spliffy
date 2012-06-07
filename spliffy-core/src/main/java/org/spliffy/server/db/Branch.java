@@ -16,8 +16,15 @@
  */
 package org.spliffy.server.db;
 
+import com.ettrema.http.AccessControlledResource;
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.*;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Expression;
+import org.spliffy.server.db.Permission.DynamicPrincipal;
+import org.spliffy.server.db.utils.SessionManager;
 
 /**
  * A branch is a version of a repository which is mutable. Ie as changes are made
@@ -38,6 +45,7 @@ public class Branch implements Serializable{
     private Repository repository;
     private Commit head;
     private Branch linkedTo;
+    private List<Permission> permissions; // can be granted permissions
 
     @Id
     @GeneratedValue
@@ -92,7 +100,38 @@ public class Branch implements Serializable{
         return repository;
     }
     
+    /**
+     * Permissions which have been granted on this Branch
+     * 
+     * @return 
+     */
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "grantedOnBranch")
+    public List<Permission> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<Permission> grantedPermissions) {
+        this.permissions = grantedPermissions;
+    }    
     
-    
+    public void grant(AccessControlledResource.Priviledge priviledge, DynamicPrincipal grantee) {
+        if (isGranted(priviledge, grantee)) {
+            return;
+        }
+        Permission p = new Permission();
+        p.setGrantedOnBranch(this);
+        p.setGranteePrincipal(grantee.name());
+        p.setPriviledge(priviledge);
+        SessionManager.session().save(p);
+    }
+
+    public boolean isGranted(AccessControlledResource.Priviledge priviledge, DynamicPrincipal grantee) {
+        Session session = SessionManager.session();
+        Criteria crit = session.createCriteria(Permission.class);
+        crit.add(
+                Expression.and(Expression.eq("granteePrincipal", grantee.name()), Expression.and(Expression.eq("grantedOnBranch", this), Expression.eq("priviledge", priviledge))));
+        List list = crit.list();
+        return list != null && !list.isEmpty();
+    }    
         
 }

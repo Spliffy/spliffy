@@ -21,16 +21,18 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * A Website is a repository with a theme. The name of the repository is the DNS name for it
+ * A Website is a repository with a theme. The name of the repository is the DNS
+ * name for it
  *
  * @author brad
  */
 @Entity
 @DiscriminatorValue("U")
-public class Website extends Repository{
-    private String theme;
+public class Website extends Repository {
 
-       
+    private String theme;
+    private String currentBranch;
+
     @Column
     public String getTheme() {
         return theme;
@@ -39,6 +41,27 @@ public class Website extends Repository{
     public void setTheme(String theme) {
         this.theme = theme;
     }
-    
-    
+
+    public String getCurrentBranch() {
+        return currentBranch;
+    }
+
+    public void setCurrentBranch(String currentBranch) {
+        this.currentBranch = currentBranch;
+    }
+
+    public Branch currentBranch() {
+        String branchName = getCurrentBranch();
+        if (branchName == null || branchName.isEmpty()) {
+            return null;
+        }
+        if (getBranches() != null) {
+            for (Branch b : getBranches()) {
+                if( b.getName().equals(branchName)) {
+                    return b;
+                }
+            }
+        }
+        return null;
+    }
 }

@@ -18,7 +18,6 @@ import java.util.Map;
 import org.hashsplit4j.api.BlobStore;
 import org.hashsplit4j.api.HashStore;
 import org.spliffy.server.db.BaseEntity;
-import org.spliffy.server.db.Organisation;
 import org.spliffy.server.db.Profile;
 
 /**
@@ -35,10 +34,12 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     public abstract boolean isDir();
     
     protected final Services services;
-    protected Profile currentUser;
 
     public AbstractResource(Services services) {
         this.services = services;
+        if( services == null ) {
+            throw new NullPointerException("services");
+        }
     }
 
     @Override
@@ -48,9 +49,9 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
 
     @Override
     public Object authenticate(String user, String password) {
-        currentUser = (Profile) services.getSecurityManager().authenticate(getOrganisation(), user, password);
-        if (currentUser != null) {
-            return SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
+        Profile u = (Profile) services.getSecurityManager().authenticate(getOrganisation(), user, password);
+        if (u != null) {
+            return SpliffyResourceFactory.getRootFolder().findEntity(u.getName());
         } else {
             return null;
         }
@@ -58,12 +59,11 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
 
     @Override
     public Object authenticate(DigestResponse digestRequest) {
-        System.out.println("digest auth: " + digestRequest.getUser());
-        currentUser = (Profile) services.getSecurityManager().authenticate(getOrganisation(), digestRequest);
-        if (currentUser != null) {
-            PrincipalResource ur = SpliffyResourceFactory.getRootFolder().findEntity(currentUser.getName());
+        Profile u = (Profile) services.getSecurityManager().authenticate(getOrganisation(), digestRequest);
+        if (u != null) {
+            PrincipalResource ur = SpliffyResourceFactory.getRootFolder().findEntity(u.getName());
             if (ur == null) {
-                throw new RuntimeException("Failed to find UserResource for: " + currentUser.getName());
+                throw new RuntimeException("Failed to find UserResource for: " + u.getName());
             }
             log.warn("sigest auth ok: " + ur);
             return ur;
@@ -120,7 +120,7 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     }
 
     public Templater getTemplater() {
-        return services.getTemplater();
+        return services.getHtmlTemplater();
     }
 
     @Override
@@ -135,7 +135,7 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
 
     @Override
     public Profile getCurrentUser() {
-        return currentUser;
+        return services.getSecurityManager().getCurrentUser();
     }
 
     @Override
@@ -158,10 +158,13 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
     @Override
     public List<AccessControlledResource.Priviledge> getPriviledges(Auth auth) {
         List<AccessControlledResource.Priviledge> list = new ArrayList<>();
+        Profile user = null;
         if (auth != null && auth.getTag() != null) {
-            UserResource user = (UserResource) auth.getTag();
-            addPrivs(list, user.getThisUser());
-        }
+            UserResource userRes = (UserResource) auth.getTag();
+            user = userRes.getThisUser();
+        }        
+        addPrivs(list, user);
+        
         return list;
     }
 
@@ -188,4 +191,11 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
         list.add("/users/");
         return list;
     }
+
+    @Override
+    public boolean is(String type) {
+        return type.equals("resource");
+    }
+    
+    
 }

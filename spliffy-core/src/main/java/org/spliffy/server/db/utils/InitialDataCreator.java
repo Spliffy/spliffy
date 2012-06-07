@@ -51,6 +51,7 @@ public class InitialDataCreator {
             spliffyWeb.setBaseEntity(rootOrg);
             spliffyWeb.setName(initialWebsite);
             spliffyWeb.setCreatedDate(new Date());
+            spliffyWeb.setTheme("yellow");
             session.save(spliffyWeb);
             
             createChildOrg(rootOrg, "Branch1", session);

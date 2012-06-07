@@ -107,7 +107,7 @@ public class CalendarHomeFolder extends AbstractCollectionResource implements Ma
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        getServices().getTemplater().writePage("calendarsHome.ftl", this, params, out, currentUser);
+        getServices().getHtmlTemplater().writePage("calendar/calendarsHome", this, params, out);
     }
 
     @Override

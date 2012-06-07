@@ -56,11 +56,6 @@ public abstract class AbstractVersionResource extends AbstractResource{
 
     @Override
     public void addPrivs(List<Priviledge> list, Profile user) {
-        ItemVersion itemVersion = directoryMember.getMemberItem();
-        if( itemVersion != null ) {
-            List<Permission> perms = itemVersion.getItem().grantedPermissions(user);
-            SecurityUtils.addPermissions(perms, list);
-        }
         getParent().addPrivs(list, user);
     }    
     
@@ -73,13 +68,7 @@ public abstract class AbstractVersionResource extends AbstractResource{
      */
     @Override
     public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
-        ItemVersion v = directoryMember.getMemberItem();
-        if (v == null) {
-            return null;
-        } else {
-            List<Permission> perms = v.getItem().getGrantedPermissions();
-            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
-            return map;
-        }
+        return null;
+
     }        
 }

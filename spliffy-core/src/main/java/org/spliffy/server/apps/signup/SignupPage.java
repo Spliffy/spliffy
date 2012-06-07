@@ -16,6 +16,7 @@
  */
 package org.spliffy.server.apps.signup;
 
+import org.spliffy.server.apps.website.WebsiteRootFolder;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -60,7 +61,7 @@ public class SignupPage extends AbstractResource implements GetableResource, Pos
         if (jsonResult != null) {
             jsonResult.write(out);
         } else {
-            services.getTemplater().writePage("signup.ftl", this, params, out, currentUser);
+            services.getHtmlTemplater().writePage("signup", this, params, out);
         }
     }
 

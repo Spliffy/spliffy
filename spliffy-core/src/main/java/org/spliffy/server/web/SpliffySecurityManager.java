@@ -1,6 +1,7 @@
 package org.spliffy.server.web;
 
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
@@ -29,6 +30,10 @@ public class SpliffySecurityManager {
         this.userDao = userDao;
         this.passwordManager = passwordManager;
     }
+    
+    public Profile getCurrentUser() {
+        return (Profile) HttpManager.request().getAttributes().get("_current_user");
+    }
 
     public Profile authenticate(Organisation org, String userName, String requestPassword) {
         Session session = SessionManager.session();
@@ -38,6 +43,7 @@ public class SpliffySecurityManager {
         } else {
             // only the password hash is stored on the user, so need to generate an expected hash
             if (passwordManager.verifyPassword(user, requestPassword)) {
+                HttpManager.request().getAttributes().put("_current_user", user);
                 return user;
             } else {
                 return null;
@@ -82,6 +88,9 @@ public class SpliffySecurityManager {
                 log.info("Allowed privs of current user are:");
                 for (Priviledge p : privs) {
                     log.info("   - " + p);
+                }
+                if( log.isTraceEnabled() ) {
+                    log.trace("stack trace so you know whats going on", new Exception("not a real exception"));
                 }
             }
             return result;

@@ -51,7 +51,7 @@ public class ResourceManager {
 
         Branch repo = getRepoToUse(repositoryFolder.getDirectRepository());
         try {
-            for (MutableResource r : repositoryFolder.getChildren()) { // if is dirty then children must be loaded
+            for (Resource r : repositoryFolder.getChildren()) { // if is dirty then children must be loaded
                 if (r instanceof MutableCollection) {
                     MutableCollection col = (MutableCollection) r;
                     calcHashes(session, col); // each collection checks its own dirty flag, won't do anything if clean

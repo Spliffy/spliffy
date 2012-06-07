@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.http.Resource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class HashCalc {
         return crc;
     }
 
-    public static long calcResourceesHash(List<MutableResource> children) {
+    public static long calcResourceesHash(List<? extends Resource> children) {
         OutputStream nulOut = new NullOutputStream();
         try {
             return calcResourceesHash(children, nulOut);
@@ -56,17 +57,19 @@ public class HashCalc {
      * @param out
      * @return
      */
-    public static long calcResourceesHash(List<MutableResource> children, OutputStream out) throws IOException {
+    public static long calcResourceesHash(List<? extends Resource> children, OutputStream out) throws IOException {
         CheckedOutputStream cout = new CheckedOutputStream(out, new Adler32());
-        for (MutableResource r : children) {
-            String type = (r instanceof MutableCollection) ? "d" : "f";
-            String line = HashUtils.toHashableText(r.getName(), r.getEntryHash(), type);
-            HashUtils.appendLine(line, cout);
+        for (Resource r : children) {
+            if (r instanceof MutableResource) {
+                MutableResource mr = (MutableResource) r;
+                String type = (r instanceof MutableCollection) ? "d" : "f";
+                String line = HashUtils.toHashableText(r.getName(), mr.getEntryHash(), type);
+                HashUtils.appendLine(line, cout);
+            }
         }
         cout.flush();
         Checksum check = cout.getChecksum();
         long crc = check.getValue();
         return crc;
     }
-
 }

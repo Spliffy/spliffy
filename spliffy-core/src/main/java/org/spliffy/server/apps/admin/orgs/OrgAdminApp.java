@@ -38,7 +38,7 @@ public class OrgAdminApp implements Application{
     }
 
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) throws Exception {
+    public void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws Exception {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

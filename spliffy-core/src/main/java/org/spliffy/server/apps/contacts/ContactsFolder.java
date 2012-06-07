@@ -68,7 +68,7 @@ public class ContactsFolder extends AbstractCollectionResource implements Addres
     
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        services.getTemplater().writePage("contacts.ftl", this, params, out, currentUser);
+        services.getHtmlTemplater().writePage("contacts", this, params, out);
     }
     
     

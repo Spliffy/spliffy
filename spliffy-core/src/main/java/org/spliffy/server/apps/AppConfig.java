@@ -34,4 +34,8 @@ public class AppConfig {
     public void add(String name, String val) {
         properties.put(name, val);
     }
+
+    public String get(String key) {
+        return properties.getProperty(key);
+    }
 }

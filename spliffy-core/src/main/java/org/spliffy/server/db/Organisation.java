@@ -19,7 +19,6 @@ package org.spliffy.server.db;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.DiscriminatorValue;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.hibernate.Criteria;
@@ -77,6 +76,27 @@ public class Organisation extends BaseEntity {
             }
         }
         return list;
+    }
+
+    /**
+     * Find a unique name based on the given base name
+     * 
+     * @param nickName
+     * @return 
+     */
+    public String findUniqueName(String nickName, Session session) {
+        String candidateName = nickName;        
+        int counter = 1;
+        while(!isUniqueName(candidateName, session)) {
+            candidateName = nickName + counter++;
+        }
+        return candidateName;
+    }
+
+    public boolean isUniqueName(String name, Session session) {
+        Criteria crit = session.createCriteria(BaseEntity.class);
+        crit.add(Expression.and(Expression.eq("organisation", this), Expression.eq("name", name)));        
+        return crit.uniqueResult() == null;
     }
     
     

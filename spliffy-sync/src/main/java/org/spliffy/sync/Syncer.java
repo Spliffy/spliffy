@@ -43,6 +43,7 @@ public class Syncer {
     private final Path baseUrl;
     
     private boolean paused;
+    private boolean readonlyLocal;
 
     public Syncer(EventManager eventManager, File root, HttpHashStore httpHashStore, HttpBlobStore httpBlobStore, Host host, Archiver archiver, String baseUrl) {
         this.eventManager = eventManager;
@@ -91,6 +92,10 @@ public class Syncer {
     }
 
     public void downloadSync(long hash, Path path) throws IOException {
+        if( readonlyLocal ) {
+            log.warn("Not downsyncing because local is readonly");
+            return ;
+        }
         try {
             EventUtils.fireQuietly(eventManager, new DownloadSyncEvent());
             _downloadSync(hash, path);;
@@ -251,4 +256,14 @@ public class Syncer {
         this.paused = state;
         // TODO: should act on uploading and downloading
     }
+
+    public boolean isReadonlyLocal() {
+        return readonlyLocal;
+    }
+
+    public void setReadonlyLocal(boolean readonlyLocal) {
+        this.readonlyLocal = readonlyLocal;
+    }
+    
+    
 }

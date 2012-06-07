@@ -16,11 +16,8 @@
  */
 package org.spliffy.server.db;
 
-import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.util.List;
 import javax.persistence.DiscriminatorValue;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Expression;
@@ -47,7 +44,15 @@ public class Group extends BaseEntity {
     public boolean isMember(BaseEntity u) {
         Criteria crit = SessionManager.session().createCriteria(GroupMembership.class);
         List list = crit.add(Expression.and(Expression.eq("member", u), Expression.eq("groupEntity", this))).list();
-        return list != null && !list.isEmpty();
-    }    
+        boolean b = ( list != null && !list.isEmpty());
+        return b;
+    }
+
+    @Override
+    public boolean containsUser(BaseEntity entity) {
+        return isMember(entity);
+    }
+    
+    
     
 }

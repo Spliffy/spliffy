@@ -13,8 +13,20 @@ import org.spliffy.server.db.Profile;
  * @author brad
  */
 public interface SpliffyResource extends DigestResource{
+        
+    
+    /**
+     * Get the parent item in the folder hierarchy
+     * 
+     * @return 
+     */
     SpliffyCollectionResource getParent();
     
+    /**
+     * Convenient access to main service singletons
+     * 
+     * @return 
+     */
     Services getServices();
     
     /**
@@ -45,4 +57,13 @@ public interface SpliffyResource extends DigestResource{
      * @param user 
      */
     void addPrivs(List<AccessControlledResource.Priviledge> list, Profile user);    
+    
+    /*
+     * A simple "is" test to see if this resource represents something in particular.
+     * 
+     * Exactly what values should satisfy this test for different resources varies,
+     * but should generally be intuitive. Eg UserResource.is("user") = true, etc
+     * 
+     */
+    boolean is(String type);
 }

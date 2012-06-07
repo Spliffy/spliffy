@@ -79,7 +79,7 @@ public class UserAdminPage extends AbstractCollectionResource implements Getable
         } else {
             searchResults = userDao.listProfiles(org, SessionManager.session()); // find the given user in this organisation
         }
-        services.getTemplater().writePage("userAdmin.ftl", this, params, out, currentUser);
+        services.getHtmlTemplater().writePage("manageUsers/userAdmin", this, params, out);
     }
 
     @Override
@@ -179,4 +179,13 @@ public class UserAdminPage extends AbstractCollectionResource implements Getable
         }
         return list;
     }
+
+    @Override
+    public boolean is(String type) {
+        if( type.equals("userAdmin")) {
+            return true;
+        }
+        return super.is(type);
+    }
+    
 }

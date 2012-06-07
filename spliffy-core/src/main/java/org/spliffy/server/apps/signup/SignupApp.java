@@ -27,7 +27,7 @@ import org.spliffy.server.db.Profile;
 import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.Services;
 import org.spliffy.server.web.SpliffyResourceFactory;
-import org.spliffy.server.web.WebsiteRootFolder;
+import org.spliffy.server.apps.website.WebsiteRootFolder;
 
 /**
  *
@@ -51,7 +51,7 @@ public class SignupApp implements Application {
 
         
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) {
+    public void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws Exception {
         this.services = resourceFactory.getServices();
         this.eventManager = resourceFactory.getEventManager();
     }
@@ -63,8 +63,6 @@ public class SignupApp implements Application {
             if (requestedName.equals(signupPageName)) {
                 return new SignupPage(requestedName, rf, services);
             }
-        } else {
-            System.out.println("not org: " + parent.getClass());
         }
         return null;
     }
@@ -79,7 +77,7 @@ public class SignupApp implements Application {
 
     @Override
     public void initDefaultProperties(AppConfig config) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        
     }
     
     @Override

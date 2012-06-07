@@ -23,7 +23,7 @@ import java.util.List;
 import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.db.Profile;
-import org.spliffy.server.web.OrganisationFolder;
+import org.spliffy.server.apps.orgs.OrganisationFolder;
 import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.SpliffyCollectionResource;
 import org.spliffy.server.web.SpliffyResourceFactory;
@@ -42,7 +42,7 @@ public class UserAdminApp implements Application {
     }
 
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) throws Exception {
+    public void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws Exception {
         this.resourceFactory = resourceFactory;
     }
 

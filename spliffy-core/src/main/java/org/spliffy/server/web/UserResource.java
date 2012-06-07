@@ -32,7 +32,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserResource.class);
     private final Profile user;
-    private final SpliffyCollectionResource parent;    
+    private final SpliffyCollectionResource parent;
     private final ApplicationManager applicationManager;
     private List<Resource> children;
 
@@ -45,51 +45,42 @@ public class UserResource extends AbstractCollectionResource implements Collecti
 
     public List<RepositoryFolder> getRepositories() throws NotAuthorizedException, BadRequestException {
         List<RepositoryFolder> list = new ArrayList<>();
-        for( Resource r : getChildren() ) {
-            if( r instanceof RepositoryFolder) {
-                list.add((RepositoryFolder)r);
+        for (Resource r : getChildren()) {
+            if (r instanceof RepositoryFolder) {
+                list.add((RepositoryFolder) r);
             }
         }
         return list;
     }
-    
+
     public List<CalendarFolder> getCalendars() throws NotAuthorizedException, BadRequestException {
         List<CalendarFolder> list = new ArrayList<>();
-        for( Resource r : getChildren() ) {
-            if( r instanceof CalendarHomeFolder) {
+        for (Resource r : getChildren()) {
+            if (r instanceof CalendarHomeFolder) {
                 CalendarHomeFolder calHome = (CalendarHomeFolder) r;
-                for( Resource r2 : calHome.getChildren()) {
-                    if( r2 instanceof CalendarFolder ) {
-                        list.add((CalendarFolder)r2);
+                for (Resource r2 : calHome.getChildren()) {
+                    if (r2 instanceof CalendarFolder) {
+                        list.add((CalendarFolder) r2);
                     }
                 }
             }
         }
         return list;
-    }    
-    
+    }
+
     public List<ContactsFolder> getAddressBooks() throws NotAuthorizedException, BadRequestException {
         List<ContactsFolder> list = new ArrayList<>();
-        for( Resource r : getChildren() ) {
-            if( r instanceof ContactsHomeFolder) {
+        for (Resource r : getChildren()) {
+            if (r instanceof ContactsHomeFolder) {
                 ContactsHomeFolder home = (ContactsHomeFolder) r;
-                for( Resource r2 : home.getChildren()) {
-                    if( r2 instanceof ContactsFolder ) {
-                        list.add((ContactsFolder)r2);
+                for (Resource r2 : home.getChildren()) {
+                    if (r2 instanceof ContactsFolder) {
+                        list.add((ContactsFolder) r2);
                     }
                 }
             }
         }
         return list;
-    }      
-    
-    @Override
-    public Resource child(String childName) throws NotAuthorizedException, BadRequestException {
-        Resource r = applicationManager.getPage(this, childName);
-        if (r != null) {
-            return r;
-        }
-        return Utils.childOf(getChildren(), childName);
     }
 
     @Override
@@ -98,9 +89,9 @@ public class UserResource extends AbstractCollectionResource implements Collecti
             children = new ArrayList();
             if (user.getRepositories() != null) {
                 for (Repository r : user.getRepositories()) {
-                    Commit rv = getServices().getResourceManager().getHead(r.trunk(SessionManager.session()));
+                    Branch b = r.trunk(SessionManager.session());
                     // Note that r is not necessarily the direct repo for rv, might be linked
-                    RepositoryFolder rr = new RepositoryFolder(this, r, rv);
+                    RepositoryFolder rr = new RepositoryFolder(r.getName(), this, r, b, false);
                     children.add(rr);
                 }
             }
@@ -127,11 +118,10 @@ public class UserResource extends AbstractCollectionResource implements Collecti
         }
         list.add(r);
         Branch b = r.trunk(SessionManager.session());
-        
+
         SessionManager.session().save(r);
         tx.commit();
-        Commit rv = r.latestVersion(SessionManager.session());
-        return new RepositoryFolder(this, r, rv);
+        return new RepositoryFolder(r.getName(), this, r, b, false);
     }
 
     @Override
@@ -147,7 +137,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
         // TODO: should connect template selection to the Application which produced this resource
-        getTemplater().writePage("userHome.ftl", this, params, out, getCurrentUser());
+        getTemplater().writePage("userHome", this, params, out);
     }
 
     @Override
@@ -222,13 +212,15 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     @Override
     public void addPrivs(List<Priviledge> list, Profile u) {
         // Give this user special permissions
-        if (user.getName().equals(u.getName())) {
-            list.add(Priviledge.READ);
-            list.add(Priviledge.WRITE);
-            list.add(Priviledge.READ_ACL);
-            list.add(Priviledge.UNLOCK);
-            list.add(Priviledge.WRITE_CONTENT);
-            list.add(Priviledge.WRITE_PROPERTIES);
+        if (u != null) {
+            if (user.getName().equals(u.getName())) {
+                list.add(Priviledge.READ);
+                list.add(Priviledge.WRITE);
+                list.add(Priviledge.READ_ACL);
+                list.add(Priviledge.UNLOCK);
+                list.add(Priviledge.WRITE_CONTENT);
+                list.add(Priviledge.WRITE_PROPERTIES);
+            }
         }
         parent.addPrivs(list, u);
     }
@@ -265,7 +257,7 @@ public class UserResource extends AbstractCollectionResource implements Collecti
                             for (Resource r3 : cf.getChildren()) {
                                 if (r3 instanceof LdapContact) {
                                     LdapContact ldapContact = (LdapContact) r3;
-                                    if ( condition == null || condition.isMatch(ldapContact)) {
+                                    if (condition == null || condition.isMatch(ldapContact)) {
                                         log.trace("searchContacts: contact matches search criteria: " + ldapContact.getName());
                                         results.add(ldapContact);
                                     }
@@ -292,6 +284,4 @@ public class UserResource extends AbstractCollectionResource implements Collecti
     public Organisation getOrganisation() {
         return parent.getOrganisation();
     }
-    
-    
 }

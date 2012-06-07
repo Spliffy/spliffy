@@ -10,10 +10,6 @@ import com.bradmcevoy.http.webdav.PropertySourcesList;
 import com.ettrema.common.Service;
 import com.ettrema.event.EventManager;
 import org.spliffy.server.apps.ApplicationManager;
-import org.spliffy.server.db.Organisation;
-import org.spliffy.server.db.Website;
-import org.spliffy.server.db.utils.OrganisationDao;
-import org.spliffy.server.db.utils.WebsiteDao;
 
 /**
  *
@@ -31,8 +27,6 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         }
     }
     private final UserDao userDao;
-    private final WebsiteDao websiteDao;
-    private final OrganisationDao organisationDao;
     private final SpliffySecurityManager securityManager;
     private final Services services;
     private final ApplicationManager applicationManager;
@@ -41,8 +35,6 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
     private final SessionManager sessionManager;
 
     public SpliffyResourceFactory(UserDao userDao, SpliffySecurityManager securityManager, Services services, ApplicationManager applicationManager, EventManager eventManager, PropertySourcesList propertySources, SessionManager sessionManager) {
-        this.websiteDao = new WebsiteDao();
-        this.organisationDao = new OrganisationDao();
         this.userDao = userDao;
         this.securityManager = securityManager;
         this.services = services;
@@ -77,16 +69,7 @@ public class SpliffyResourceFactory implements ResourceFactory, Service {
         if (p.isRoot()) {
             Resource rootFolder = (Resource) HttpManager.request().getAttributes().get("_spliffy_root_folder");
             if (rootFolder == null) {
-                Website website = websiteDao.getWebsite(host, SessionManager.session());
-                if (website == null) {
-                    Organisation org = OrganisationDao.getRootOrg(SessionManager.session());
-                    if( org == null ) {
-                        throw new RuntimeException("No root organisation");
-                    }
-                    rootFolder = new OrganisationFolder(services, applicationManager, org);
-                } else {
-                    rootFolder = new WebsiteRootFolder(services, applicationManager, website);
-                }
+                rootFolder = applicationManager.getPage(null, host);
                 HttpManager.request().getAttributes().put("_spliffy_root_folder", rootFolder);
             }
             return rootFolder;

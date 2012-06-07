@@ -16,9 +16,11 @@
  */
 package org.spliffy.server.apps;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import java.util.List;
+import org.spliffy.server.apps.website.WebsiteRootFolder;
 import org.spliffy.server.db.Profile;
 import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.SpliffyResourceFactory;
@@ -45,10 +47,8 @@ public interface Application {
     /**
      * Called on the application when the app starts
      * 
-     * @param services
-     * @param eventManager 
      */
-    void init(SpliffyResourceFactory resourceFactory) throws Exception;
+    void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws Exception;
     
     /**
      * Return a resource for the given parent of the given name if this
@@ -87,6 +87,7 @@ public interface Application {
     void initDefaultProperties(AppConfig config);
 
     void appendMenu(List<MenuItem> list, Resource r, Profile user, RootFolder rootFolder);
+
 
     
 }

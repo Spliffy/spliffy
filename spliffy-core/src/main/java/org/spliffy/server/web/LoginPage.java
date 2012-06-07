@@ -35,7 +35,7 @@ public class LoginPage implements GetableResource, SpliffyResource {
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        parent.getServices().getTemplater().writePage("login", this, params, out, getCurrentUser()); 
+        parent.getServices().getHtmlTemplater().writePage("login", this, params, out); 
     }
 
     @Override
@@ -133,6 +133,11 @@ public class LoginPage implements GetableResource, SpliffyResource {
     @Override
     public Organisation getOrganisation() {
         return parent.getOrganisation();
+    }
+
+    @Override
+    public boolean is(String type) {
+        return type.equals("loginPage");
     }
     
     

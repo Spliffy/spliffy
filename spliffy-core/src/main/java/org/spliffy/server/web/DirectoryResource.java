@@ -25,11 +25,13 @@ import org.spliffy.server.db.*;
 public class DirectoryResource extends AbstractMutableResource implements PutableResource, GetableResource, MutableCollection {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DirectoryResource.class);
-    private List<MutableResource> children;    
+    private final boolean renderMode;
+    private ResourceList children;    
     private boolean dirty;
 
-    public DirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
+    public DirectoryResource(String name, ItemVersion meta, MutableCollection parent, Services services, boolean renderMode) {
         super(name, meta, parent, services);
+        this.renderMode = renderMode;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
 
             MutableCollection newParent = (MutableCollection) toCollection;
             ItemVersion newMeta = Utils.newFileItemVersion();
-            DirectoryResource newDir = new DirectoryResource(newName, newMeta, newParent, services);
+            DirectoryResource newDir = new DirectoryResource(newName, newMeta, newParent, services, renderMode);
             newDir.setHash(hash);
             newParent.addChild(newDir);
             newParent.save(session);
@@ -82,13 +84,13 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
     }
 
     @Override
-    public List<MutableResource> getChildren() throws NotAuthorizedException, BadRequestException {
+    public ResourceList getChildren() throws NotAuthorizedException, BadRequestException {
         if (children == null) {
             if (getItemVersion() != null) {
                 List<DirectoryMember> members = getItemVersion().getMembers();
-                children = Utils.toResources(this, members);
+                children = Utils.toResources(this, members, renderMode);
             } else {
-                children = new ArrayList<>();
+                children = new ResourceList();
             }
         }
         return children;
@@ -100,7 +102,7 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         Transaction tx = session.beginTransaction();
 
         ItemVersion newMeta = Utils.newDirItemVersion();
-        DirectoryResource rdr = new DirectoryResource(newName, newMeta, this, services);
+        DirectoryResource rdr = new DirectoryResource(newName, newMeta, this, services, renderMode);
         addChild(rdr);
         save(session);
 
@@ -157,7 +159,7 @@ public class DirectoryResource extends AbstractMutableResource implements Putabl
         String type = HttpManager.request().getParams().get("type");
         if (type == null) {
             // output directory listing
-            getTemplater().writePage("directoryIndex.ftl", this, params, out, getCurrentUser());
+            getTemplater().writePage("directoryIndex", this, params, out);
         } else {
             if (type.equals("hashes")) {
                 HashCalc.calcResourceesHash(getChildren(), out);

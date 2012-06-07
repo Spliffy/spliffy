@@ -61,7 +61,7 @@ public class WebsitesAdminPage extends AbstractCollectionResource implements Get
     
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {                
-        services.getTemplater().writePage("websites.ftl", this, params, out, currentUser);
+        services.getHtmlTemplater().writePage("manageWebsites/websites", this, params, out);
     }
 
     @Override

@@ -10,10 +10,7 @@ import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.acl.Principal;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.hashsplit4j.api.Parser;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -22,8 +19,7 @@ import org.spliffy.server.db.*;
 /**
  * Represents the current version of the trunk of a repository
  *
- * This behaves much the same as a DirectoryResource but is defined
- * differently
+ * This behaves much the same as a DirectoryResource but is defined differently
  *
  * TODO: must support PUT
  *
@@ -32,32 +28,38 @@ import org.spliffy.server.db.*;
 public class RepositoryFolder extends AbstractCollectionResource implements MutableCollection, CollectionResource, PropFindableResource, MakeCollectionableResource, GetableResource, PutableResource, PostableResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RepositoryFolder.class);
-    
     private final Repository repository;
-    
+    private final boolean renderMode;
     private final SpliffyCollectionResource parent;
-    private List<MutableResource> children;
+    private final String name;
+    private final Branch branch;
+    private ResourceList children;
     private long hash;
     private boolean dirty;
     private Commit repoVersion; // may be null
     private ItemVersion rootItemVersion;
-    
+    /**
+     * if set html resources will be rendered with the templater
+     */
+    private String theme;
     private JsonResult jsonResult; // set after completing a POST
 
-    public RepositoryFolder(SpliffyCollectionResource parent, Repository repository, Commit repoVersion) {
+    public RepositoryFolder(String name, SpliffyCollectionResource parent, Repository repository, Branch branch, boolean renderMode) {
         super(parent.getServices());
+        this.renderMode = renderMode;
+        this.name = name;
         this.parent = parent;
         this.repository = repository;
-        this.repoVersion = repoVersion;
-        if (repoVersion != null) {
+        this.branch = branch;
+        this.repoVersion = branch.getHead();        
+        if( this.repoVersion != null) {
             rootItemVersion = repoVersion.getRootItemVersion();
-            if (rootItemVersion != null) {
-                hash = rootItemVersion.getItemHash();
-            }
         }
+        if (rootItemVersion != null) {
+            hash = rootItemVersion.getItemHash();
+        }
+
     }
-    
-    
 
     @Override
     public Resource child(String childName) {
@@ -65,13 +67,13 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     }
 
     @Override
-    public List<MutableResource> getChildren() {
+    public ResourceList getChildren() {
         if (children == null) {
             if (repoVersion != null) {
                 List<DirectoryMember> members = repoVersion.getRootItemVersion().getMembers();
-                children = Utils.toResources(this, members);
+                children = Utils.toResources(this, members, renderMode);
             } else {
-                children = new ArrayList<>();
+                children = new ResourceList();
             }
         }
         return children;
@@ -79,7 +81,7 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     @Override
     public String getName() {
-        return repository.getName();
+        return name;
     }
 
     @Override
@@ -91,12 +93,12 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         tx.commit();
         return rdr;
     }
-    
+
     public DirectoryResource createDirectoryResource(String newName, Session session) throws NotAuthorizedException, ConflictException, BadRequestException {
         ItemVersion newItemVersion = Utils.newDirItemVersion();
-        DirectoryResource rdr = new DirectoryResource(newName, newItemVersion, this, services);
+        DirectoryResource rdr = new DirectoryResource(newName, newItemVersion, this, services, false);
         addChild(rdr);
-        save(session);        
+        save(session);
         return rdr;
     }
 
@@ -185,7 +187,6 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         //this.dirty = false;
         this.rootItemVersion = newVersion;
     }
-        
 
     @Override
     public Date getCreateDate() {
@@ -205,12 +206,12 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         if (jsonResult != null) {
             jsonResult.write(out);
             return;
-        }               
+        }
         String type = params.get("type");
         if (type == null) {
             // output directory listing
             log.trace("sendContent: render template");
-            getTemplater().writePage("repoHome.ftl", this, params, out, getCurrentUser());
+            getTemplater().writePage("repoHome", this, params, out);
         } else {
             log.trace("sendContent: " + type);
             switch (type) {
@@ -236,9 +237,9 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
 
     @Override
     public String getContentType(String accepts) {
-        if( jsonResult != null ) {
+        if (jsonResult != null) {
             return "application/x-javascript; charset=utf-8";
-        }        
+        }
         String type = HttpManager.request().getParams().get("type");
         if (type == null || type.length() == 0) {
             return "text/html";
@@ -282,8 +283,6 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
     }
-    
-    
 
     /**
      * may be null
@@ -308,9 +307,11 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     public BaseEntity getOwner() {
         return parent.getOwner();
     }
-    
+
     @Override
     public void addPrivs(List<Priviledge> list, Profile user) {
+        Set<Permission> perms = SecurityUtils.getPermissions(user, branch, SessionManager.session());
+        SecurityUtils.addPermissions(perms, list);
         parent.addPrivs(list, user);
     }
 
@@ -323,23 +324,17 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
      */
     @Override
     public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
-        ItemVersion v = this.getItemVersion();
-        if (v == null) {
-            return null;
-        } else {
-            List<Permission> perms = v.getItem().getGrantedPermissions();
-            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
-            return map;
-        }
+        return null;
     }
 
     /**
-     * Return the direct (not linked) repository. That is, the direct parent
-     * of the RepositoryVersion object this resource is listing children for
-     * @return 
+     * Return the direct (not linked) repository. That is, the direct parent of
+     * the RepositoryVersion object this resource is listing children for
+     *
+     * @return
      */
     public Branch getDirectRepository() {
-        if( this.repoVersion != null ) {
+        if (this.repoVersion != null) {
             return repoVersion.getBranch();
         }
         return repository.trunk(SessionManager.session());
@@ -366,11 +361,11 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         AccessControlledResource.Priviledge p = AccessControlledResource.Priviledge.valueOf(priv);
         String message = parameters.get("message");
         if (shareWith != null) {
-            getServices().getShareManager().sendShareInvites(currentUser, repository, shareWith, p, message);
+            getServices().getShareManager().sendShareInvites(getCurrentUser(), repository, shareWith, p, message);
             this.jsonResult = new JsonResult(true);
         }
         return null;
-    
+
     }
 
     @Override
@@ -378,5 +373,7 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
         return parent.getOrganisation();
     }
     
-    
+    public String getTitle() {
+        return repository.getTitle();
+    }
 }

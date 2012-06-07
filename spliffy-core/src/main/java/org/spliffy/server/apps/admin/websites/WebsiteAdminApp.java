@@ -23,7 +23,7 @@ import org.spliffy.server.apps.AppConfig;
 import org.spliffy.server.apps.Application;
 import org.spliffy.server.apps.admin.users.UserAdminPage;
 import org.spliffy.server.db.Profile;
-import org.spliffy.server.web.OrganisationFolder;
+import org.spliffy.server.apps.orgs.OrganisationFolder;
 import org.spliffy.server.web.RootFolder;
 import org.spliffy.server.web.SpliffyCollectionResource;
 import org.spliffy.server.web.SpliffyResourceFactory;
@@ -39,18 +39,18 @@ public class WebsiteAdminApp  implements Application {
 
     @Override
     public String getInstanceId() {
-        return "websiteAdmin";
+        return "manageWebsites";
     }
 
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) throws Exception {
+    public void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws Exception {
         this.resourceFactory = resourceFactory;
     }
 
     @Override
     public Resource getPage(Resource parent, String requestedName) {
         if (parent instanceof OrganisationFolder) {
-            if (requestedName.equals("manageSites")) {
+            if (requestedName.equals("manageWebsites")) {
                 OrganisationFolder orgFolder = (OrganisationFolder) parent;
                 return new WebsitesAdminPage(requestedName,orgFolder.getOrganisation(), (SpliffyCollectionResource) parent, resourceFactory.getServices());
             }

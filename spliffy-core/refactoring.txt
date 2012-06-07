@@ -1,0 +1,55 @@
+The current schema for storing files is probably non-optimal.
+
+Currently it uses non-crypto relationships to establish file hierarchy. This means
+that we have item identity (which allows modified dates, permissions, etc), but 
+at the expense of efficiency. It also makes folder sharing hard.
+
+Suggestion here is to return to crypto relationships, btu augmented with a path
+based structure to contain modified dates, permissions, etc.
+
+When using cryptographic relationships, there is nothing which identifies a file
+or directory as belonging to a particular user, or even being in a particular location
+in a user's repository. In fact, the same item may manifest itself in many places. Eg
+an empty directory will only be stored to once, but will be linked to many times.
+
+So, to associated things which are peculiar to a resource's manifested location we
+need somethign which represents that location. This proposal is to create that 
+representation in the form of a conventional parent/child tree structure, although
+one which is aware of branching so does not duplicate parent/child data when a 
+branch is created
+
+Schema
+
+Cryptographic relationship tables:
+
+HashItem (unique key=Name,Hash,Type)
+    - ID
+    - Name
+    - Hash
+    - Type
+
+HashLink (unique key=HashItemID,ParentHash)
+    - HashItemID (fk -> HashItem.ID)
+    - ParentHash
+
+Commit
+    - RootParentHash
+    - ... other columns
+
+
+Augmented tree tables:
+
+TreeItem
+    - ID
+    - BranchID (fk -> Branch.ID)
+    - ParentID (fk -> TreeItem.ID)
+    - Name
+    - CreatedDate
+    - ModDate
+
+TreeItemVersion
+    - TreeItemID (fk -> TreeItem.ID)
+    - HashItemID (fk -> HashItem.ID)
+    - Date
+    - ProfileID (fk -> Profile.ID)
+

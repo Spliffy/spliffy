@@ -2,6 +2,7 @@ package org.spliffy.server.db;
 
 import com.ettrema.http.AccessControlledResource;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -17,9 +18,10 @@ import org.spliffy.server.db.utils.SessionManager;
  *
  * An entity can be both a recipient of permissions and a target of permissions.
  * For example a user entity can be given access to an organisation entity
- * 
- * An entity name must be unique within the organisation that defines it. What this
- * name means depends on the context. For a user, the name is almost meaningless
+ *
+ * An entity name must be unique within the organisation that defines it. What
+ * this name means depends on the context. For a user, the name is almost
+ * meaningless
  *
  * @author brad
  */
@@ -35,23 +37,23 @@ public class BaseEntity implements Serializable {
 
     public static BaseEntity find(Organisation org, String name, Session session) {
         Criteria crit = session.createCriteria(BaseEntity.class);
-        crit.add(Expression.and(Expression.eq("organisation", org), Expression.eq("name", name)));        
+        crit.add(Expression.and(Expression.eq("organisation", org), Expression.eq("name", name)));
         List list = crit.list();
-        if( list == null || list.isEmpty() ) {
+        if (list == null || list.isEmpty()) {
             System.out.println("nothignn found");
             return null;
         } else {
             return (BaseEntity) list.get(0);
         }
     }
-       
     private long id;
     private String name;
     private String type;
     private Organisation organisation;
     private Date createdDate;
     private Date modifiedDate;
-    private List<Permission> grantedPermissions; // can be granted permissions
+    private List<Permission> permissions; // permissions granted ON this entity
+    private List<Permission> grantedPermissions; // permissions granted TO this entity
     private List<Repository> repositories;    // has repositories
     private List<GroupMembership> memberships; // can belong to groups
     private List<NvPair> nvPairs; // holds data capture information
@@ -76,8 +78,6 @@ public class BaseEntity implements Serializable {
     public void setOrganisation(Organisation organisation) {
         this.organisation = organisation;
     }
-    
-    
 
     @Column(nullable = false)
     public String getName() {
@@ -96,6 +96,17 @@ public class BaseEntity implements Serializable {
     public void setGrantedPermissions(List<Permission> grantedPermissions) {
         this.grantedPermissions = grantedPermissions;
     }
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "grantedOnEntity")
+    public List<Permission> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<Permission> permissions) {
+        this.permissions = permissions;
+    }
+    
+    
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "baseEntity")
     public List<Repository> getRepositories() {
@@ -132,7 +143,7 @@ public class BaseEntity implements Serializable {
      * @param user
      * @return
      */
-    public boolean containsUser(Profile user) {
+    public boolean containsUser(BaseEntity user) {
         return user.getName().equals(this.getName()); // very simple because currenly only have users
     }
 
@@ -172,8 +183,6 @@ public class BaseEntity implements Serializable {
         this.type = type;
     }
 
-    
-    
     @OneToMany(mappedBy = "member")
     public List<GroupMembership> getMemberships() {
         return memberships;
@@ -203,10 +212,63 @@ public class BaseEntity implements Serializable {
     public boolean isGranted(AccessControlledResource.Priviledge priviledge, BaseEntity grantedOn) {
         Session session = SessionManager.session();
         Criteria crit = session.createCriteria(Permission.class);
-        crit.add(Expression.and(Expression.eq("grantedOnEntity", grantedOn), Expression.eq("priviledge", priviledge)));
+        
+        crit.add(
+                Expression.and(Expression.eq("grantee", this), Expression.and(Expression.eq("grantedOnEntity", grantedOn), Expression.eq("priviledge", priviledge))));
         List list = crit.list();
         return list != null && !list.isEmpty();
     }
-    
-    
+
+    public void grant(AccessControlledResource.Priviledge priviledge, Branch grantedOn) {
+        if (isGranted(priviledge, grantedOn)) {
+            return;
+        }
+        Permission p = new Permission();
+        p.setGrantedOnBranch(grantedOn);
+        p.setGrantee(this);
+        p.setPriviledge(priviledge);
+        SessionManager.session().save(p);
+    }
+
+    public boolean isGranted(AccessControlledResource.Priviledge priviledge, Branch grantedOn) {
+        Session session = SessionManager.session();
+        Criteria crit = session.createCriteria(Permission.class);
+        crit.add(
+                Expression.and(Expression.eq("grantee", this), Expression.and(Expression.eq("grantedOnBranch", grantedOn), Expression.eq("priviledge", priviledge))));
+        List list = crit.list();
+        return list != null && !list.isEmpty();
+    }
+
+    public void setAttribute(String name, String value, Session session) {
+        List<NvPair> list = getNvPairs();
+        if (list == null) {
+            list = new ArrayList<>();
+            setNvPairs(list);
+        }
+        for (NvPair nv : list) {
+            if (nv.getName().equals(name)) {
+                nv.setPropValue(value);
+                session.save(nv);
+            }
+        }
+        NvPair nv = new NvPair();
+        nv.setName(name);
+        nv.setPropValue(value);
+        nv.setBaseEntity(this);
+        list.add(nv);
+        session.save(nv);
+    }
+
+    public String getAttribute(String name) {
+        List<NvPair> list = getNvPairs();
+        if (list == null) {
+            return null;
+        }
+        for (NvPair nv : list) {
+            if (nv.getName().equals(name)) {
+                return nv.getPropValue();
+            }
+        }
+        return null;
+    }
 }

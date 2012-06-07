@@ -164,23 +164,12 @@ public abstract class AbstractMutableResource extends AbstractResource implement
      */
     @Override
     public Map<Principal, List<AccessControlledResource.Priviledge>> getAccessControlList() {
-        ItemVersion v = this.getItemVersion();
-        if (v == null) {
-            return null;
-        } else {
-            List<Permission> perms = v.getItem().getGrantedPermissions();
-            Map<Principal, List<AccessControlledResource.Priviledge>> map = SecurityUtils.toMap(perms);
-            return map;
-        }
+        return null;
     }    
     
 
     @Override
     public void addPrivs(List<Priviledge> list, Profile user) {
-        if( itemVersion != null ) {
-            List<Permission> perms = itemVersion.getItem().grantedPermissions(user);
-            SecurityUtils.addPermissions(perms, list);
-        }
         // TODO: if this is a linked folder this won't be right!!!
         getParent().addPrivs(list, user);
     }

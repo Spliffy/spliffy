@@ -1,7 +1,6 @@
 package org.spliffy.server.db;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -21,27 +20,9 @@ public class Item implements Serializable {
     private long id;
     private String type; // "f" = file, "d" = directory
     private Date createDate;
-    private List<Permission> grantedPermissions;
     private List<ItemVersion> versions;
 
-
     public Item() {
-    }
-
-    /**
-     * Find the permissions on this item which are granted to the given user
-     *
-     * @param user
-     * @return
-     */
-    public List<Permission> grantedPermissions(Profile user) {
-        List<Permission> list = new ArrayList<>();
-        for (Permission p : getGrantedPermissions()) {
-            if (p.getGrantee() == user) {
-                list.add(p);
-            }
-        }
-        return list;
     }
 
     @Id
@@ -73,15 +54,6 @@ public class Item implements Serializable {
         this.createDate = createDate;
     }
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "grantedOn")
-    public List<Permission> getGrantedPermissions() {
-        return grantedPermissions;
-    }
-
-    public void setGrantedPermissions(List<Permission> grantedPermissions) {
-        this.grantedPermissions = grantedPermissions;
-    }
-
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
     public List<ItemVersion> getVersions() {
         return versions;
@@ -90,7 +62,4 @@ public class Item implements Serializable {
     public void setVersions(List<ItemVersion> versions) {
         this.versions = versions;
     }
-
-
-
 }

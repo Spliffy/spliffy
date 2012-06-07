@@ -49,7 +49,7 @@ public class CalendarApp implements Application {
     }
 
     @Override
-    public void init(SpliffyResourceFactory resourceFactory) {
+    public void init(SpliffyResourceFactory resourceFactory, AppConfig config) throws Exception {
         this.services = resourceFactory.getServices();
         calendarManager = new CalendarManager();
     }

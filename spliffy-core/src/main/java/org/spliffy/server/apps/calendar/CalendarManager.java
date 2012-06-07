@@ -171,7 +171,7 @@ public class CalendarManager {
         String sTimezone = calEvent.getTimezone();
         TimeZone timezone = null;
         if (sTimezone != null && sTimezone.length() > 0) {
-            registry.getTimeZone(sTimezone); // Eg Pacific/Auckland
+            timezone = registry.getTimeZone(sTimezone); // Eg Pacific/Auckland
         }
         if (timezone == null) {
             timezone = registry.getTimeZone("Pacific/Auckland");

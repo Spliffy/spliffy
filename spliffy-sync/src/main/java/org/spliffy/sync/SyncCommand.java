@@ -33,7 +33,20 @@ public class SyncCommand {
         String sRemoteAddress = args[1];
         String user = args[2];
         String pwd = args[3];
+        runOnce(sLocalDir, sRemoteAddress, user, pwd);
+    }
+    
+    
+    public static void runOnce(String sLocalDir, String sRemoteAddress, String user, String pwd) throws Exception {
+        start(sLocalDir, sRemoteAddress, user, pwd, false);
+    }
 
+    public static void monitor(String sLocalDir, String sRemoteAddress, String user, String pwd) throws Exception {
+        start(sLocalDir, sRemoteAddress, user, pwd, true);
+    }
+    
+    
+    private static void start(String sLocalDir, String sRemoteAddress, String user, String pwd, boolean monitor) throws Exception {
         File localRootDir = new File(sLocalDir);
         URL url = new URL(sRemoteAddress);
         //HttpClient client = createHost(url, user, pwd);
@@ -63,8 +76,12 @@ public class SyncCommand {
         Syncer syncer = new Syncer(eventManager, localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
 
         SpliffySync spliffySync = new SpliffySync(localRootDir, client, url.getPath(), syncer, archiver, dbInit, eventManager);
-        spliffySync.scan();
-
+        if( monitor ) {
+            spliffySync.start();
+        } else {
+            spliffySync.scan();
+        }
+        
         System.out.println("Stats---------");
         System.out.println("fanouts cache: hits: " + fanoutsHashCache.getHits() + " misses:" + fanoutsHashCache.getMisses() + " inserts: " + fanoutsHashCache.getInserts());
         System.out.println("blobs cache: hits: " + blobsHashCache.getHits() + " misses:" + blobsHashCache.getMisses() + " inserts: " + blobsHashCache.getInserts());
