@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import org.spliffy.server.manager.PasswordManager;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request;

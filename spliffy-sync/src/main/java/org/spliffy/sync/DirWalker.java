@@ -183,6 +183,7 @@ public class DirWalker {
             // it was previously synced, but now gone. So must have been deleted remotely            
             // So we want to "delete" the local resource. But its possible this is half
             // of a move operation, so instead of immediately deleting we will defer it
+            log.info("Queueing local deletion: " + path + " because remote file is missing and there is a local sync record");
             LocalDelete localDelete = new LocalDelete(localTriplet, path);
             localDeletes.add(localDelete);
         }

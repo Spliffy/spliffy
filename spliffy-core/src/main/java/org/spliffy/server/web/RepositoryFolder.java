@@ -309,8 +309,9 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     }
 
     @Override
-    public void addPrivs(List<Priviledge> list, Profile user) {
+    public void addPrivs(List<Priviledge> list, Profile user) {        
         Set<Permission> perms = SecurityUtils.getPermissions(user, branch, SessionManager.session());
+        System.out.println("addPrivs: " + perms);
         SecurityUtils.addPermissions(perms, list);
         parent.addPrivs(list, user);
     }
@@ -347,11 +348,6 @@ public class RepositoryFolder extends AbstractCollectionResource implements Muta
     @Override
     public DirectoryMember getDirectoryMember() {
         return null;
-    }
-
-    @Override
-    public Path getPath() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

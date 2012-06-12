@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.Range;
@@ -140,5 +141,13 @@ public class LoginPage implements GetableResource, SpliffyResource {
         return type.equals("loginPage");
     }
     
-    
+    @Override
+    public Path getPath() {
+        SpliffyCollectionResource p = getParent();
+        if( p != null ) {
+            return p.getPath().child(this.getName());
+        } else {
+            return Path.root;
+        }
+    }    
 }

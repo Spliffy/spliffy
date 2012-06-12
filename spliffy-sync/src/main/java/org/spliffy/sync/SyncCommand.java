@@ -21,6 +21,8 @@ import com.ettrema.event.EventManagerImpl;
 import com.ettrema.httpclient.Host;
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Allows SpliffySync to be run from the command line
@@ -28,37 +30,42 @@ import java.net.URL;
  * @author brad
  */
 public class SyncCommand {
+
+    /**
+     * Run once over a single local directory:
+     *         sDbFile
+        sLocalDir
+        sRemoteAddress
+        user
+        pwd
+     * 
+     * @param args
+     * @throws Exception 
+     */
     public static void main(String[] args) throws Exception {
-        String sLocalDir = args[0];
-        String sRemoteAddress = args[1];
-        String user = args[2];
-        String pwd = args[3];
-        runOnce(sLocalDir, sRemoteAddress, user, pwd);
-    }
-    
-    
-    public static void runOnce(String sLocalDir, String sRemoteAddress, String user, String pwd) throws Exception {
-        start(sLocalDir, sRemoteAddress, user, pwd, false);
+        String sDbFile = args[0];
+        String sLocalDir = args[1];
+        String sRemoteAddress = args[2];
+        String user = args[3];
+        String pwd = args[4];
+        runOnce(sDbFile, sLocalDir, sRemoteAddress, user, pwd);
     }
 
-    public static void monitor(String sLocalDir, String sRemoteAddress, String user, String pwd) throws Exception {
-        start(sLocalDir, sRemoteAddress, user, pwd, true);
+    public static void runOnce(String sDbFile, String sLocalDir, String sRemoteAddress, String user, String pwd) throws Exception {
+        File dbFile = new File(sDbFile);
+        File localDir = new File(sLocalDir);
+        SyncJob job = new SyncJob(localDir, sRemoteAddress, user, pwd, false);
+        start(dbFile, Arrays.asList(job));
     }
     
-    
-    private static void start(String sLocalDir, String sRemoteAddress, String user, String pwd, boolean monitor) throws Exception {
-        File localRootDir = new File(sLocalDir);
-        URL url = new URL(sRemoteAddress);
-        //HttpClient client = createHost(url, user, pwd);
+    public static void monitor(String sDbFile, String sLocalDir, String sRemoteAddress, String user, String pwd) throws Exception {
+        File dbFile = new File(sDbFile);
+        File localDir = new File(sLocalDir);
+        SyncJob job = new SyncJob(localDir, sRemoteAddress, user, pwd, true);
+        start(dbFile, Arrays.asList(job));
+    }
 
-        Host client = new Host(url.getHost(), url.getPort(), user, pwd, null);
-        boolean secure = url.getProtocol().equals("https");
-        client.setSecure(secure);
-
-
-        System.out.println("Sync: " + localRootDir.getAbsolutePath() + " - " + sRemoteAddress);
-
-        File dbFile = new File("target/sync-db");
+    public static void start(File dbFile, List<SyncJob> jobs) throws Exception {        
         System.out.println("Using database: " + dbFile.getAbsolutePath());
 
         DbInitialiser dbInit = new DbInitialiser(dbFile);
@@ -66,26 +73,69 @@ public class SyncCommand {
         JdbcHashCache fanoutsHashCache = new JdbcHashCache(dbInit.getUseConnection(), dbInit.getDialect(), "h");
         JdbcHashCache blobsHashCache = new JdbcHashCache(dbInit.getUseConnection(), dbInit.getDialect(), "b");
 
-        HttpHashStore httpHashStore = new HttpHashStore(client, fanoutsHashCache);
-        httpHashStore.setBaseUrl("/_hashes/fanouts/");
-        HttpBlobStore httpBlobStore = new HttpBlobStore(client, blobsHashCache);
-        httpBlobStore.setBaseUrl("/_hashes/blobs/");
+        for (SyncJob job : jobs) {
+            File localRootDir = job.getLocalDir();
+            URL url = new URL(job.getRemoteAddress());
 
-        Archiver archiver = new Archiver();
-        EventManager eventManager = new EventManagerImpl();
-        Syncer syncer = new Syncer(eventManager, localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
+            Host client = new Host(url.getHost(), url.getPort(), job.getUser(), job.getPwd(), null);
+            boolean secure = url.getProtocol().equals("https");
+            client.setSecure(secure);
 
-        SpliffySync spliffySync = new SpliffySync(localRootDir, client, url.getPath(), syncer, archiver, dbInit, eventManager);
-        if( monitor ) {
-            spliffySync.start();
-        } else {
-            spliffySync.scan();
+
+            System.out.println("Sync: " + localRootDir.getAbsolutePath() + " - " + job.getRemoteAddress());
+
+            HttpHashStore httpHashStore = new HttpHashStore(client, fanoutsHashCache);
+            httpHashStore.setBaseUrl("/_hashes/fanouts/");
+            HttpBlobStore httpBlobStore = new HttpBlobStore(client, blobsHashCache);
+            httpBlobStore.setBaseUrl("/_hashes/blobs/");
+
+            Archiver archiver = new Archiver();
+            EventManager eventManager = new EventManagerImpl();
+            Syncer syncer = new Syncer(eventManager, localRootDir, httpHashStore, httpBlobStore, client, archiver, url.getPath());
+
+            SpliffySync spliffySync = new SpliffySync(localRootDir, client, url.getPath(), syncer, archiver, dbInit, eventManager);
+            if (job.isMonitor()) {
+                spliffySync.start();
+            } else {
+                spliffySync.scan();
+            }
         }
-        
-        System.out.println("Stats---------");
-        System.out.println("fanouts cache: hits: " + fanoutsHashCache.getHits() + " misses:" + fanoutsHashCache.getMisses() + " inserts: " + fanoutsHashCache.getInserts());
-        System.out.println("blobs cache: hits: " + blobsHashCache.getHits() + " misses:" + blobsHashCache.getMisses() + " inserts: " + blobsHashCache.getInserts());
-        System.out.println("http hash gets: " + httpHashStore.getGets() + " sets: " + httpHashStore.getSets());
-        System.out.println("http blob gets: " + httpBlobStore.getGets() + " sets: " + httpBlobStore.getSets());
-    }    
+    }
+
+    public static class SyncJob {
+
+        private final File localDir;
+        private final String remoteAddress;
+        private final String user;
+        private final String pwd;
+        private final boolean monitor;
+
+        public SyncJob(File sLocalDir, String sRemoteAddress, String user, String pwd, boolean monitor) {
+            this.localDir = sLocalDir;
+            this.remoteAddress = sRemoteAddress;
+            this.user = user;
+            this.pwd = pwd;
+            this.monitor = monitor;
+        }
+
+        public String getPwd() {
+            return pwd;
+        }
+
+        public String getUser() {
+            return user;
+        }
+
+        public File getLocalDir() {
+            return localDir;
+        }
+
+        public String getRemoteAddress() {
+            return remoteAddress;
+        }
+
+        public boolean isMonitor() {
+            return monitor;
+        }
+    }
 }

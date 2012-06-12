@@ -1,4 +1,4 @@
-package org.spliffy.server.web;
+package org.spliffy.server.manager;
 
 import com.bradmcevoy.http.http11.auth.DigestGenerator;
 import com.bradmcevoy.http.http11.auth.DigestResponse;

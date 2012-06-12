@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.spliffy.server.db.*;
 import org.spliffy.server.web.templating.HtmlPage;
 import org.spliffy.server.web.templating.WebResource;
@@ -43,6 +45,7 @@ public class RenderFileResource extends AbstractResource implements MutableResou
     private final List<String> bodyClasses = new ArrayList<>();
     private final List<WebResource> webResources = new ArrayList<>();
     
+    private boolean parsed;
     private String title;
     private String body;
 
@@ -52,11 +55,21 @@ public class RenderFileResource extends AbstractResource implements MutableResou
     }
 
     @Override
-    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
-        services.getTemplateParser().parse(this, Path.root);
-        System.out.println(body);
-        
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {        
+        checkParse();
         services.getHtmlTemplater().writePage("content/page", this, params, out);
+    }
+    
+    private void checkParse() {
+        if( parsed ) {
+            return ;
+        }
+        try {
+            services.getTemplateParser().parse(this, Path.root);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        parsed = true;
     }
 
     @Override
@@ -82,6 +95,7 @@ public class RenderFileResource extends AbstractResource implements MutableResou
 
     @Override
     public String getBody() {
+        checkParse();
         return body;
     }    
     
@@ -200,6 +214,7 @@ public class RenderFileResource extends AbstractResource implements MutableResou
 
     @Override
     public String getTitle() {
+        checkParse();
         return title;
     }
 

@@ -30,6 +30,7 @@ public class FileResource extends AbstractMutableResource implements Replaceable
     private static final Logger log = LoggerFactory.getLogger(FileResource.class);
     private Fanout fanout;
     private boolean dirty;
+    private RenderFileResource htmlPage; // for parsing html pages
 
     public FileResource(String name, ItemVersion meta, MutableCollection parent, Services services) {
         super(name, meta, parent, services);
@@ -142,5 +143,12 @@ public class FileResource extends AbstractMutableResource implements Replaceable
     @Override
     public boolean isDirty() {
         return dirty;
+    }
+    
+    public RenderFileResource getHtml() {
+        if( htmlPage == null ) {
+            htmlPage = new RenderFileResource(services, this);
+        }
+        return htmlPage;                
     }
 }

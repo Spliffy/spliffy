@@ -41,15 +41,37 @@ Augmented tree tables:
 
 TreeItem
     - ID
-    - BranchID (fk -> Branch.ID)
+    - RelatedToTreeItemID
+    - RelationType (branch, link)
     - ParentID (fk -> TreeItem.ID)
     - Name
     - CreatedDate
     - ModDate
 
 TreeItemVersion
-    - TreeItemID (fk -> TreeItem.ID)
-    - HashItemID (fk -> HashItem.ID)
-    - Date
-    - ProfileID (fk -> Profile.ID)
+    - ID
+    - TreeItem.ID
+    - ModDate
+    - Action (update, move, delete)
 
+When creating a branch, create a TreeItem related to the branched from resource. 
+When viewing the branch, locate TreeITems for resources initially within the branch
+TreeItem, if none found look under the source branch (ie trunk) to get view only. In
+this case the located TreeItem is a "shadow". IF the resource is changed, create a 
+new one, including parent links up to the branched TreeITem
+
+When sharing a folder,create a TreeItem relating to the source with a relation type
+of "linked". So when a resource is changed (or the parent of a changed resource is
+has its hash updated) and you find "linked" TreeItems, you know to set the related
+hash to be the same.
+
+MetaData
+TreeItem can be subclassed with additional meta. For example, a Module could be 
+represented as a ModuleTreeItem, with columns for the module. Same for contacts,
+calendar items, etc.
+
+Versioning
+When a resource is created, update the mod date on the TreeItem, and insert a new
+TreeItemVersion
+
+Perhaps TreeItemVersion can be subclassed, to provide versioned meta data??? Eg ModuleVersion??

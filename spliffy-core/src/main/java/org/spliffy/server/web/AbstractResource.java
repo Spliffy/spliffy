@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.Path;
 import org.spliffy.server.web.templating.Templater;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
@@ -197,5 +198,13 @@ public abstract class AbstractResource implements SpliffyResource, PropFindableR
         return type.equals("resource");
     }
     
-    
+    @Override
+    public Path getPath() {
+        SpliffyCollectionResource p = getParent();
+        if( p != null ) {
+            return p.getPath().child(this.getName());
+        } else {
+            return Path.root;
+        }
+    }
 }

@@ -8,7 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.spliffy.server.db.*;
-import org.spliffy.server.web.PasswordManager;
+import org.spliffy.server.manager.PasswordManager;
 
 /**
  *

@@ -171,7 +171,7 @@ public abstract class AbstractMutableResource extends AbstractResource implement
     @Override
     public void addPrivs(List<Priviledge> list, Profile user) {
         // TODO: if this is a linked folder this won't be right!!!
-        getParent().addPrivs(list, user);
+        parent.addPrivs(list, user);
     }
 
     @Override
@@ -179,10 +179,6 @@ public abstract class AbstractMutableResource extends AbstractResource implement
         return dm;
     }
     
-    public Path getPath() {
-        return parent.getPath().child(getName());
-    }
-
     @Override
     public Organisation getOrganisation() {
         return parent.getOrganisation();

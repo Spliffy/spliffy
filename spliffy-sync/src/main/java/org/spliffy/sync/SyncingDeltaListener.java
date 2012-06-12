@@ -6,12 +6,14 @@ import java.io.File;
 import java.io.IOException;
 import javax.swing.JOptionPane;
 import org.spliffy.common.Triplet;
+import org.spliffy.sync.triplets.JdbcLocalTripletStore;
 
 /**
  *
  * @author brad
  */
 class SyncingDeltaListener implements DeltaListener2 {
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SyncingDeltaListener.class);
     private final Syncer syncer;
     private final Archiver archiver;
     private final File root;
@@ -30,14 +32,14 @@ class SyncingDeltaListener implements DeltaListener2 {
         if( remoteTriplet.isDirectory()) {
             final File localFile = toFile(path);
             if( !localFile.exists() ) {
-                System.out.println("new remote directory, create: " + localFile.getAbsolutePath());
+                log.info("new remote directory, create: " + localFile.getAbsolutePath());
                 if( !localFile.mkdirs() ) {
                     throw new IOException("Couldnt create local directory: " + localFile.getAbsolutePath());
                 }
             }
         } else {
             final File localChild = toFile(path);
-            System.out.println("new or modified remote file: " + localChild.getAbsolutePath());
+            log.info("new or modified remote file: " + localChild.getAbsolutePath());
             syncer.downloadSync(remoteTriplet.getHash(), path);
             syncStatusStore.setBackedupHash(path, remoteTriplet.getHash());
         }        
@@ -46,7 +48,7 @@ class SyncingDeltaListener implements DeltaListener2 {
     @Override
     public void onRemoteDelete(Triplet localTriplet, Path path) {
         final File localChild = toFile(path);
-        System.out.println("Archiving remotely deleted file: " + localChild.getAbsolutePath());        
+        log.info("Archiving remotely deleted file: " + localChild.getAbsolutePath());        
         archiver.archive(localChild);
         syncStatusStore.clearBackedupHash(path);
     }    

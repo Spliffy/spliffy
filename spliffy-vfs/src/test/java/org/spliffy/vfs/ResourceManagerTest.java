@@ -14,29 +14,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.spliffy.server.db;
+package org.spliffy.vfs;
 
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import com.bradmcevoy.common.Path;
+import org.junit.*;
 
 /**
- * Represents a password authentication factor, to be combined with the
- * username or email address of a User
  *
  * @author brad
  */
-@Entity
-@DiscriminatorValue(value="P")
-public class PasswordCredential extends Credential{
-    private String password;
+public class ResourceManagerTest {
     
-    @Column(nullable=false)
-    public String getPassword() {
-        return password;
+    ResourceManager resourceManager;
+    
+    @Before
+    public void setUp() {
+        resourceManager = new ResourceManager();
+    }
+    
+    @After
+    public void tearDown() {
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }    
+    @Test
+    public void testFind() {
+        Path p = Path.path("/a/b/c");
+        VfsItem item = resourceManager.find(p);
+    }
 }

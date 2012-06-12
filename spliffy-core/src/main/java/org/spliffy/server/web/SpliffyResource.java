@@ -1,5 +1,6 @@
 package org.spliffy.server.web;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.DigestResource;
 import com.ettrema.http.AccessControlledResource;
 import java.util.List;
@@ -66,4 +67,11 @@ public interface SpliffyResource extends DigestResource{
      * 
      */
     boolean is(String type);
+    
+    /**
+     * The absolute path to this resource
+     * 
+     * @return 
+     */
+    Path getPath();
 }
