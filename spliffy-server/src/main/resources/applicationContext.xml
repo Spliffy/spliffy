@@ -76,7 +76,7 @@
     -->
     
     
-    <bean id="password.manager" class="org.spliffy.server.web.PasswordManager"/>
+    <bean id="password.manager" class="org.spliffy.server.manager.PasswordManager"/>
 
     <bean id="dao.user" class="org.spliffy.server.db.utils.UserDao"  >
 
