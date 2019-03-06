@@ -39,7 +39,7 @@ The test data includes a repository called repo1, although you can add more. Go 
 
 http://localhost:8080/user1/repo1
 
-Now we can start adding real files and folders. By "real" i mean things that can be versioned and syncronised. Any time you add, delete, or modify that information does not replace what
+Now we can start adding real files and folders. By "real" i mean things that can be versioned and synchronised. Any time you add, delete, or modify that information does not replace what
 was there before - its added to it. All that really happens is that we switch a pointer on the repository to the new bytes. At the time of writing the old versions arent actually accessible, but
 that will be the first thing to do once this README is written.
 
@@ -69,7 +69,7 @@ it does a PUT to the actual resource, but instead of sending real data it just s
 it just creates a new ItemVersion with the new hash. 
 
 But, to avoid uploading all the blobs over and over again we check if the server already has the blob (identifying it by its hash) with an OPTIONS request. If a file has had a small change most of
-the blobs will alreay be on the server. But a file can have 1000's of blobs, and we don't want to do 1000's of OPTIONs requests. So we take advantage of the fact that blobs are immutable and last forever
+the blobs will already be on the server. But a file can have 1000's of blobs, and we don't want to do 1000's of OPTIONs requests. So we take advantage of the fact that blobs are immutable and last forever
 we cache the existence of remote blobs (with JdbcHashCache) and check that first
 
 To download files we use the local file as a BlobStore (with FileBlobStore). This parses the local file so it knows what blobs it has, then uses that as the primary blob store, and the remote server
